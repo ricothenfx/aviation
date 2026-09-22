@@ -1,0 +1,20 @@
+{
+  "name": "@aviation/llm-gateway",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Provider-agnostic LLM gateway with mandatory mock provider (ADR-0003, D-10).",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@aviation/config": "workspace:*",
+    "@types/node": "^22.10.5",
+    "typescript": "^5.6.3",
+    "vitest": "^3.0.5"
+  }
+}

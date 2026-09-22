@@ -1,0 +1,79 @@
+# Local development topology (monorepo-architecture.md §3).
+# Profiles: "infra" = postgres + redis only; "turnaround" = full project stack
+# (postgres + redis + web). Run from the repo root:
+#   docker compose --profile turnaround up -d
+services:
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    profiles: ["turnaround", "infra"]
+    environment:
+      POSTGRES_USER: turnaround
+      POSTGRES_PASSWORD: turnaround
+      POSTGRES_DB: turnaround_iq
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata_turnaround:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U turnaround -d turnaround_iq"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine
+    profiles: ["turnaround", "infra"]
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  # Containerized Next dev server (full-container mode, http://localhost:3001).
+  # Host mode `pnpm dev` binds :3000 against the same postgres/redis.
+  # AUTH_SECRET below is a dev-only throwaway value for local simulated data.
+  web:
+    image: node:22-bookworm-slim
+    profiles: ["turnaround"]
+    working_dir: /repo
+    command: >-
+      sh -c "corepack enable &&
+             pnpm install --frozen-lockfile &&
+             pnpm --filter turnaround-iq seed &&
+             pnpm --filter turnaround-iq dev"
+    environment:
+      DATABASE_URL: postgresql://turnaround:turnaround@postgres:5432/turnaround_iq
+      AUTH_SECRET: dev-only-insecure-secret-0123456789abcdef
+      AUTH_COOKIE_NAME: tiq_session
+      LLM_PROVIDER: mock
+      NEXT_TELEMETRY_DISABLED: "1"
+    ports:
+      - "3001:3000"
+    volumes:
+      - ../..:/repo
+      - web_node_modules:/repo/node_modules
+      - web_app_node_modules:/repo/apps/turnaround-iq/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/healthz').then((r)=>{if(!r.ok)throw new Error('unhealthy')}).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 24
+      start_period: 180s
+
+volumes:
+  pgdata_turnaround:
+  web_node_modules:
+  web_app_node_modules:

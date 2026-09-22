@@ -10,16 +10,16 @@
 
 | # | JD requirement | Feature (PRD ref) | Code path | Tests | Status |
 |---|---|---|---|---|---|
-| 1 | TypeScript production quality | All app code, strict mode | `apps/turnaround-iq`, `packages/*` | typecheck gate | planned (F1) |
-| 2 | Next.js full-stack apps | Frontend + REST API routes | `apps/turnaround-iq/src/app` | e2e happy path | planned (F1–F2) |
-| 3 | Tailwind CSS responsive UI | Design system tokens + components | `packages/ui` | visual smoke | planned (F1) |
+| 1 | TypeScript production quality | All app code, strict mode | `apps/turnaround-iq`, `packages/*` | typecheck gate | F1 scaffold done — strict enforced in CI |
+| 2 | Next.js full-stack apps | Frontend + REST API routes | `apps/turnaround-iq/src/app` | e2e happy path | F1 shell done (login/board/REST auth+board); projections F2 |
+| 3 | Tailwind CSS responsive UI | Design system tokens + components | `packages/ui` | visual smoke | F1 tokens + primitives done; screens F2–F4 |
 | 4 | Document-based data models | Replan scenario + task config stored as JSONB documents in PostgreSQL (divergence from MongoDB: ADR-0002) | `apps/turnaround-iq/src/db` | schema integration tests | planned (F2) |
-| 5 | Git workflows | Conventional commits, PR flow, branch strategy | repo-wide | CI gates | planned (F1) |
-| 6 | REST API design/integration | Versioned REST + WS contracts | `apps/turnaround-iq/src/app/api`, api-contracts.md | contract tests | planned (F2) |
-| 7 | Docker containerisation | Compose for local; production Dockerfiles | `infra/` | compose smoke in CI | planned (F1) |
-| 8 | AuthN/AuthZ, roles | Seeded users, JWT sessions, RBAC (coordinator/supervisor/viewer) | auth module | RBAC unit + e2e | planned (F2) |
+| 5 | Git workflows | Conventional commits, PR flow, branch strategy | repo-wide | CI gates | F1 done |
+| 6 | REST API design/integration | Versioned REST + WS contracts | `apps/turnaround-iq/src/app/api`, api-contracts.md | contract tests | F1 auth+board routes + zod contracts done; full surface F2 |
+| 7 | Docker containerisation | Compose for local; production Dockerfiles | `infra/compose` | compose smoke in CI | F1 done (profile `turnaround` + CI smoke); prod Dockerfiles F5 |
+| 8 | AuthN/AuthZ, roles | Seeded users, JWT sessions, RBAC (coordinator/supervisor/viewer) | `apps/turnaround-iq/src/lib/auth` | RBAC + JWT unit tests; CI compose login smoke | F1 done (Cognito-shaped provider, D-09); server-side matrix e2e F2 |
 | 9 | AWS integration | AWS service mapping + IaC-ready deploy config (CDK-compatible structure) | `infra/` | — | planned (F5) |
-| 10 | CI/CD, automated testing, logging, monitoring | GitHub Actions pipeline; structured logs + metrics + dashboard | `.github/workflows`, observability module | pipeline green | planned (F1, F5) |
+| 10 | CI/CD, automated testing, logging, monitoring | GitHub Actions pipeline; structured logs + metrics + dashboard | `.github/workflows/ci.yml`, `src/lib/api/respond.ts` | pipeline green | F1 pipeline + JSON logs done; metrics/Grafana F5 |
 | 11 | Problem discovery → prototyping → production ownership | PRD problem statement + demo script + production-hardening milestone | docs + F5 | — | docs done |
 
 ## 2. CAG ML Engineer (Req 7167) → mro-copilot (spec pending, D-02)

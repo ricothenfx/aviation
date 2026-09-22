@@ -1,0 +1,86 @@
+# CI pipeline (monorepo-architecture.md §4, engineering-standards.md §7).
+# docs-only changes skip the heavy jobs via paths-ignore.
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+      - ".gitignore"
+  pull_request:
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+      - ".gitignore"
+
+jobs:
+  check:
+    name: lint · typecheck · unit · build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint (prettier + eslint, zero warnings)
+        run: pnpm lint
+
+      - name: Typecheck (tsc strict across workspace)
+        run: pnpm typecheck
+
+      - name: Unit tests (vitest)
+        run: pnpm test
+
+      - name: Build (packages + next)
+        run: pnpm build
+
+  # Milestone F1 DoD: `pnpm install && docker compose --profile turnaround up -d`
+  # works from a clean clone and a seeded coordinator can log in.
+  compose-smoke:
+    name: compose stack smoke (F1 DoD)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Boot the turnaround stack (postgres + redis + web)
+        run: docker compose --profile turnaround up -d --wait
+
+      - name: Health + seeded login smoke
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:3001/healthz > /dev/null; then break; fi
+            sleep 5
+          done
+          curl -sf http://localhost:3001/healthz
+          echo "healthz OK"
+          curl -sf -X POST http://localhost:3001/api/v1/auth/login \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"maya.tan@nx-sim.example","password":"coordinator-nx-01"}' \
+            | grep -o '"role":"coordinator"'
+          echo "seeded coordinator login OK"
+
+      - name: Teardown
+        if: always()
+        run: docker compose --profile turnaround down -v --remove-orphans

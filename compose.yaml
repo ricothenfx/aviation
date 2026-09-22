@@ -1,0 +1,4 @@
+# Root entry so `docker compose --profile turnaround up -d` works from the repo root.
+# The canonical Compose definition lives in infra/compose/ (monorepo-architecture.md §3).
+include:
+  - infra/compose/docker-compose.yml

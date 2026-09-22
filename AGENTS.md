@@ -69,17 +69,25 @@ Do not start a project before the previous one reaches milestone F5 unless the u
 
 ## 5. Commands
 
-> Fill in during milestone F1 scaffold. Agents must keep this section current.
+> Filled during the F1 scaffold. Keep this section current.
 
 ```bash
-pnpm install            # install dependencies
-pnpm dev                # run all services locally (Docker Compose + dev servers)
-pnpm build              # build all apps/packages
-pnpm lint               # eslint + prettier check
-pnpm typecheck          # tsc --noEmit across workspace
-pnpm test               # unit + integration tests
-pnpm test:e2e           # Playwright end-to-end tests
-pnpm seed               # load synthetic seed data
+pnpm install            # install dependencies (Node 22 via .nvmrc, corepack pnpm 9)
+pnpm dev                # infra via compose profile "infra" (postgres:5433 + redis) + Next dev on :3000
+pnpm build              # build packages (tsup) + apps (next build)
+pnpm lint               # prettier --check + eslint --max-warnings 0
+pnpm typecheck          # tsc --noEmit strict across the workspace
+pnpm test               # vitest unit tests across the workspace
+pnpm test:e2e           # Playwright end-to-end tests (added in F3)
+pnpm seed               # apply migrations + upsert seeded demo users (turnaround-iq)
+pnpm db:generate        # drizzle-kit generate migration SQL from packages/db schema
+pnpm db:migrate         # apply pending migrations
+
+# Full containerized stack (postgres + redis + web on :3001):
+docker compose --profile turnaround up -d      # boot; web self-installs, seeds, serves
+docker compose --profile turnaround down -v    # teardown
+
+# Host-side environment: cp .env.example .env (AUTH_SECRET required for host runs)
 ```
 
 ## 6. Language Policy (decision D-06)

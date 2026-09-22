@@ -1,0 +1,4 @@
+{
+  "extends": "@aviation/config/tsconfig/nextjs.json",
+  "include": ["src"]
+}

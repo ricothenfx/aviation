@@ -1,0 +1,29 @@
+{
+  "name": "@aviation/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared pg/redis client factories + migration runner (monorepo-architecture.md §1).",
+  "exports": {
+    "./client": "./src/client.ts",
+    "./schema": "./src/schema.ts",
+    "./migrate": "./src/migrate.ts"
+  },
+  "scripts": {
+    "generate": "drizzle-kit generate",
+    "migrate": "tsx src/run-migrate.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.44.1",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@aviation/config": "workspace:*",
+    "@types/node": "^22.10.5",
+    "@types/pg": "^8.11.10",
+    "drizzle-kit": "^0.31.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}
