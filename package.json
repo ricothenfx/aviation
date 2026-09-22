@@ -12,6 +12,7 @@
     "format": "prettier --write .",
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",
+    "test:integration": "pnpm -r --if-present test:integration",
     "seed": "pnpm --filter turnaround-iq seed",
     "db:generate": "pnpm --filter @aviation/db generate",
     "db:migrate": "pnpm --filter @aviation/db migrate"

@@ -14,7 +14,7 @@
 | Frontend | Next.js (App Router) + React | 15.x | server components where sensible |
 | Styling | Tailwind CSS | v4 | tokens exported from `packages/ui` |
 | Component base | shadcn/ui patterns, Radix primitives | latest | **must be themed per ui-design-system.md** |
-| Charts | vis-timeline (Gantt) + Recharts or ECharts (KPIs) | latest | decision at F2 |
+| Charts | vis-timeline (Gantt) + Recharts (KPIs) | latest | "Recharts or ECharts" resolved at F2 → **Recharts** (lighter, React-idiomatic, sufficient for the KPI strip; revisit via ADR if F4 needs gauge/heatmap) |
 | API | Next.js API routes (REST) + zod validation | — | contract-first via `packages/contracts` |
 | Realtime | ws (Node) + Redis pub/sub | — | envelopes from `packages/contracts` |
 | Database | PostgreSQL | 16 | one cluster, per-project DBs |

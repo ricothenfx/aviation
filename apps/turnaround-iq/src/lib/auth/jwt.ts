@@ -10,6 +10,9 @@ import { ApiError } from "@aviation/contracts";
 
 export const SESSION_ISSUER = "turnaround-iq";
 export const SESSION_TTL_SECONDS = 8 * 60 * 60;
+/** ws upgrade tokens are short-lived (architecture.md §5). */
+export const WS_TOKEN_TTL_SECONDS = 60;
+export const WS_TOKEN_PURPOSE = "ws";
 
 /** httpOnly session cookie name (architecture.md §5); override via AUTH_COOKIE_NAME. */
 export const SESSION_COOKIE_NAME = process.env.AUTH_COOKIE_NAME ?? "tiq_session";
@@ -60,4 +63,20 @@ export async function verifySessionToken(token: string): Promise<SessionClaims> 
       reason: [err instanceof Error ? err.message : "unknown"],
     });
   }
+}
+
+/**
+ * Short-lived ws upgrade token (architecture.md §5): same signing key and issuer
+ * as the session, but purpose-tagged so it cannot be reused as a session and vice
+ * versa. Verified by the realtime gateway (services/turnaround-iq/realtime-gateway).
+ */
+export async function signWsToken(claims: SessionClaims): Promise<string> {
+  const key = new TextEncoder().encode(getSessionSecret());
+  return new SignJWT({ email: claims.email, role: claims.role, purpose: WS_TOKEN_PURPOSE })
+    .setProtectedHeader({ alg: "HS256" })
+    .setSubject(claims.sub)
+    .setIssuer(SESSION_ISSUER)
+    .setIssuedAt()
+    .setExpirationTime(`${WS_TOKEN_TTL_SECONDS}s`)
+    .sign(key);
 }

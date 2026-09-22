@@ -1,0 +1,30 @@
+{
+  "name": "@aviation/tiq-simulator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Turnaround-iq scenario engine: scenario clock → deterministic ground-task events (architecture.md §2).",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@aviation/contracts": "workspace:*",
+    "@aviation/db": "workspace:*",
+    "@aviation/tiq-domain": "workspace:*",
+    "drizzle-orm": "^0.44.1",
+    "pino": "^9.6.0"
+  },
+  "devDependencies": {
+    "@aviation/config": "workspace:*",
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^3.0.5"
+  }
+}

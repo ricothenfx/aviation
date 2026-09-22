@@ -12,6 +12,7 @@
 |---|---|---|---|---|
 | POST | `/api/v1/auth/login` | — | `{email, password}` | `{user, token}` · sets httpOnly session cookie |
 | POST | `/api/v1/auth/logout` | any | — | 204 |
+| POST | `/api/v1/auth/ws-token` | viewer+ | — | `{token, url}` — short-lived (≤ 60 s) purpose-scoped JWT for the ws upgrade (architecture.md §5); `url` points at the realtime gateway |
 
 ### Board & Flights
 | Method | Path | Role | Description |
@@ -51,7 +52,7 @@ Codes: `VALIDATION_ERROR` 400 · `UNAUTHENTICATED` 401 · `FORBIDDEN` 403 · `NO
 
 ## 3. WebSocket Protocol
 
-- Connect: `GET /api/ws?token=<short-lived jwt>` → channels subscribe: `board`, `flight:{id}`.
+- Connect: `GET /api/ws?token=<short-lived jwt>` → channels subscribe: `board`, `flight:{id}`. The endpoint is served by the realtime-gateway service (architecture.md §2) on its own port (compose publishes 4001; `NEXT_PUBLIC_WS_URL` carries the browser-facing URL).
 - Every frame: envelope `{ id, ts, channel, type, payload, lastEventId }`.
 
 | Type | Payload (essence) |

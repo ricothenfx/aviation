@@ -1,0 +1,433 @@
+{
+  "emptyLogHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fullLogHash": "89ef089574a6bad54def589aa20c69d0bebfd992585a6392ce0b38c20dd94058",
+  "eventCount": 1500,
+  "flights": [
+    {
+      "flightNo": "NX-100",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T06:48:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-101",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T06:55:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-102",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T07:02:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-103",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T07:09:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-104",
+      "status": "off_block",
+      "delayedMin": 8,
+      "estOffBlock": "2026-09-22T07:24:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-105",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T07:23:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-106",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T07:30:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-107",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T07:37:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-108",
+      "status": "off_block",
+      "delayedMin": 15,
+      "estOffBlock": "2026-09-22T07:59:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-109",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T07:51:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-110",
+      "status": "off_block",
+      "delayedMin": 8,
+      "estOffBlock": "2026-09-22T08:06:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-111",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T08:05:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-112",
+      "status": "off_block",
+      "delayedMin": 8,
+      "estOffBlock": "2026-09-22T08:20:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-113",
+      "status": "off_block",
+      "delayedMin": 8,
+      "estOffBlock": "2026-09-22T08:27:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-114",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T08:26:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-115",
+      "status": "off_block",
+      "delayedMin": 3,
+      "estOffBlock": "2026-09-22T08:36:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-116",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T08:40:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-117",
+      "status": "off_block",
+      "delayedMin": 3,
+      "estOffBlock": "2026-09-22T08:50:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-118",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T08:54:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-119",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T09:01:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-200",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T12:18:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-201",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T12:25:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-202",
+      "status": "off_block",
+      "delayedMin": 3,
+      "estOffBlock": "2026-09-22T12:35:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-203",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T12:39:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-204",
+      "status": "off_block",
+      "delayedMin": 12,
+      "estOffBlock": "2026-09-22T12:58:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-205",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T12:53:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-206",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T13:00:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-207",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T13:07:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-208",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T13:14:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-209",
+      "status": "off_block",
+      "delayedMin": 5,
+      "estOffBlock": "2026-09-22T13:26:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-210",
+      "status": "off_block",
+      "delayedMin": 12,
+      "estOffBlock": "2026-09-22T13:40:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-211",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T13:35:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-212",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T13:42:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-213",
+      "status": "off_block",
+      "delayedMin": 15,
+      "estOffBlock": "2026-09-22T14:04:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-214",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T13:56:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-215",
+      "status": "off_block",
+      "delayedMin": 3,
+      "estOffBlock": "2026-09-22T14:06:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-216",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T14:10:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-217",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T14:17:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-218",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T14:24:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-219",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T14:31:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-300",
+      "status": "off_block",
+      "delayedMin": 12,
+      "estOffBlock": "2026-09-22T18:00:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-301",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T17:55:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-302",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T18:02:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-303",
+      "status": "off_block",
+      "delayedMin": 8,
+      "estOffBlock": "2026-09-22T18:17:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-304",
+      "status": "off_block",
+      "delayedMin": 15,
+      "estOffBlock": "2026-09-22T18:31:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-305",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T18:23:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-306",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T18:30:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-307",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T18:37:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-308",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T18:44:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-309",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T18:51:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-310",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T18:58:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-311",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T19:05:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-312",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T19:12:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-313",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T19:19:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-314",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T19:26:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-315",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T19:33:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-316",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T19:40:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-317",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T19:47:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-318",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T19:54:00Z",
+      "doneTasks": 12
+    },
+    {
+      "flightNo": "NX-319",
+      "status": "off_block",
+      "delayedMin": 0,
+      "estOffBlock": "2026-09-22T20:01:00Z",
+      "doneTasks": 12
+    }
+  ],
+  "kpis": {
+    "onTimeDepPct": 73.3,
+    "avgTurnMin": 50.3,
+    "activeAlerts": 0,
+    "delayMinutesSaved": 0
+  }
+}

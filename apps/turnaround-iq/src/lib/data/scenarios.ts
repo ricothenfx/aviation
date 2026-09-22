@@ -1,0 +1,102 @@
+import type { ScenarioListResponse, ScenarioState } from "@aviation/contracts";
+import {
+  SCENARIO_CATALOG,
+  CHAN_SCENARIO_CONTROL,
+  scenarioControlCommandSchema,
+  type ScenarioControlCommand,
+} from "@aviation/tiq-domain";
+import type { RedisClientType } from "@aviation/db/redis";
+
+import { readScenarioState } from "@/lib/data/board";
+import { newRequestId } from "@/lib/api/respond";
+
+/**
+ * Scenario control path (api-contracts.md §1 Scenarios — supervisor only): REST
+ * publishes control commands on Redis; the simulator executes and mirrors the
+ * resulting clock into `scenario:state`, which this module polls back so callers
+ * get the post-command state.
+ */
+
+const COMMAND_SETTLE_TIMEOUT_MS = 4000;
+const POLL_STEP_MS = 60;
+
+async function sleep(ms: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export async function publishControl(
+  redis: RedisClientType,
+  command: ScenarioControlCommand,
+): Promise<void> {
+  // Validate at the boundary: control frames follow the shared zod schema.
+  scenarioControlCommandSchema.parse(command);
+  await redis.publish(CHAN_SCENARIO_CONTROL, JSON.stringify(command));
+}
+
+export async function listScenarios(redis: RedisClientType): Promise<ScenarioListResponse> {
+  const state = await readScenarioState(redis);
+  const scenarios = SCENARIO_CATALOG.map((entry) => ({
+    ...entry,
+    state: {
+      scenarioId: entry.id === state.scenarioId ? state.scenarioId : entry.id,
+      status: entry.id === state.scenarioId ? state.status : ("idle" as const),
+      speed: entry.id === state.scenarioId ? state.speed : 5,
+      scenarioNow: entry.id === state.scenarioId ? state.scenarioNow : null,
+      logHash: entry.id === state.scenarioId ? state.logHash : null,
+    } satisfies ScenarioState,
+  }));
+  return { scenarios };
+}
+
+/** Start + wait until the clock is observed running. */
+export async function startScenario(
+  redis: RedisClientType,
+  scenarioId: string,
+  speed: 1 | 5 | 20,
+): Promise<ScenarioState> {
+  const requestId = newRequestId();
+  await publishControl(redis, { action: "start", scenarioId, speed, requestId });
+  const deadline = Date.now() + COMMAND_SETTLE_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    const state = await readScenarioState(redis);
+    if (state.status === "running" || state.status === "completed") return state;
+    await sleep(POLL_STEP_MS);
+  }
+  return readScenarioState(redis);
+}
+
+/** Reset + wait for the fresh (empty-log) hash. */
+export async function resetScenario(
+  redis: RedisClientType,
+  scenarioId: string,
+): Promise<ScenarioState> {
+  const requestId = newRequestId();
+  const before = await readScenarioState(redis);
+  await publishControl(redis, { action: "reset", scenarioId, requestId });
+  const deadline = Date.now() + COMMAND_SETTLE_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    const state = await readScenarioState(redis);
+    const changed = state.status === "idle" && state.scenarioNow === null;
+    const hashChanged = state.logHash !== null && state.logHash !== before.logHash;
+    if (changed && (hashChanged || before.status === "idle")) return state;
+    await sleep(POLL_STEP_MS);
+  }
+  return readScenarioState(redis);
+}
+
+/** Speed change (valid while running). */
+export async function changeSpeed(
+  redis: RedisClientType,
+  scenarioId: string,
+  speed: 1 | 5 | 20,
+): Promise<ScenarioState> {
+  const requestId = newRequestId();
+  await publishControl(redis, { action: "speed", scenarioId, speed, requestId });
+  const deadline = Date.now() + COMMAND_SETTLE_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    const state = await readScenarioState(redis);
+    if (state.speed === speed) return state;
+    await sleep(POLL_STEP_MS);
+  }
+  return readScenarioState(redis);
+}

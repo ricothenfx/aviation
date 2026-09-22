@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   Button,
@@ -13,17 +13,27 @@ import {
   StatTile,
   StatusBadge,
 } from "@aviation/ui";
-import { boardSnapshotSchema, type BoardSnapshot } from "@aviation/contracts";
+import { boardSnapshotSchema, type BoardSnapshot, type WsFrame } from "@aviation/contracts";
+
+import { EventFeed, type FeedItem } from "./EventFeed";
+import { FlightDrawer } from "./FlightDrawer";
+import { ScenarioPanel } from "./ScenarioPanel";
+import { TurnaroundGantt } from "./TurnaroundGantt";
+import { mergeFrameIntoSnapshot } from "@/lib/board/live-merge";
+import { useBoardSocket } from "@/lib/board/useBoardSocket";
 
 type FetchStatus = "loading" | "success" | "error";
 
+/** Reference-day window (domain constants mirrored for the client viewport). */
+const DAY_START = "2026-09-22T05:00:00.000Z";
+const DAY_END = "2026-09-22T21:00:00.000Z";
+const FEED_LIMIT = 50;
+
 /**
- * Command board shell (ui-design-system.md §5 archetype 1) implementing the four
- * mandatory states (§7): loading skeleton, empty, error+retry, live-updating cue.
- *
- * F1 honesty: the scenario engine, projections and WebSocket land in F2, so the data
- * area renders structured empty states and the KPI tiles show "—". `?state=` forces a
- * state for scaffold review; it is removed once real data flows (F2).
+ * Command board (ui-design-system.md §5 archetype 1): KPI strip → left ⅔ live
+ * Gantt, right ⅓ event feed + alerts. All four mandatory states (§7): loading
+ * skeleton, empty, error+retry, live-updating freshness cue. Realtime via ws
+ * deltas; REST snapshot remains the fallback and catch-up source.
  */
 export function BoardShell({ user }: { user: { displayName: string; role: string } }) {
   const router = useRouter();
@@ -31,14 +41,15 @@ export function BoardShell({ user }: { user: { displayName: string; role: string
   const [snapshot, setSnapshot] = useState<BoardSnapshot | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
-  const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+  const [lastFrameAt, setLastFrameAt] = useState<number | null>(null);
+  const [feed, setFeed] = useState<FeedItem[] | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [reloadToken, setReloadToken] = useState(0);
-
-  const forcedState = useForcedState();
+  const [selectedFlightId, setSelectedFlightId] = useState<string | null>(null);
+  const snapshotRef = useRef<BoardSnapshot | null>(null);
+  snapshotRef.current = snapshot;
 
   const load = useCallback(async () => {
-    setStatus("loading");
     try {
       const res = await fetch("/api/v1/board", { headers: { Accept: "application/json" } });
       if (!res.ok) {
@@ -60,7 +71,6 @@ export function BoardShell({ user }: { user: { displayName: string; role: string
         return;
       }
       setSnapshot(parsed.data);
-      setUpdatedAt(new Date());
       setStatus("success");
     } catch {
       setErrorCode("NETWORK");
@@ -73,15 +83,27 @@ export function BoardShell({ user }: { user: { displayName: string; role: string
     void load();
   }, [load, reloadToken]);
 
+  const onFrame = useCallback((frame: WsFrame) => {
+    setLastFrameAt(Date.now());
+    setFeed((prev) => {
+      const item = toFeedItem(frame);
+      if (!item) return prev;
+      return [item, ...(prev ?? [])].slice(0, FEED_LIMIT);
+    });
+    const current = snapshotRef.current;
+    if (!current) return;
+    setSnapshot(mergeFrameIntoSnapshot(current, frame));
+  }, []);
+
+  const socketStatus = useBoardSocket({
+    onFrame,
+    onReconnect: () => void load(),
+  });
+
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
-
-  const secondsAgo = useMemo(
-    () => (updatedAt ? Math.max(0, Math.floor((now - updatedAt.getTime()) / 1000)) : null),
-    [now, updatedAt],
-  );
 
   async function logout() {
     await fetch("/api/v1/auth/logout", { method: "POST" }).catch(() => null);
@@ -89,15 +111,27 @@ export function BoardShell({ user }: { user: { displayName: string; role: string
     router.refresh();
   }
 
+  const secondsAgo = useMemo(
+    () => (lastFrameAt === null ? null : Math.max(0, Math.floor((now - lastFrameAt) / 1000))),
+    [now, lastFrameAt],
+  );
+  const isLive = snapshot?.live === true && socketStatus === "open";
+
+  const selectedFlight = useMemo(
+    () => snapshot?.flights.find((f) => f.id === selectedFlightId) ?? null,
+    [snapshot, selectedFlightId],
+  );
+
   const view =
-    forcedState ??
-    (status === "loading"
+    status === "loading"
       ? "loading"
       : status === "error"
         ? "error"
         : snapshot && snapshot.flights.length === 0
           ? "empty"
-          : "live");
+          : "live";
+
+  const kpis = snapshot?.kpis ?? null;
 
   return (
     <div className="mx-auto flex min-h-[calc(100dvh-2rem)] w-full max-w-7xl flex-col gap-3 px-4 py-3">
@@ -108,10 +142,15 @@ export function BoardShell({ user }: { user: { displayName: string; role: string
           </div>
           <div>
             <h1 className="text-sm font-semibold text-fg">Turnaround Command Board</h1>
-            <p className="text-xs text-muted">Synthetic airport · reference day</p>
+            <p className="text-xs text-muted">Synthetic airport · reference day · simulated data</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
+          {snapshot ? (
+            <span className="font-mono text-xs tabular-nums text-muted">
+              scenario {snapshot.scenarioTs ? `${snapshot.scenarioTs.slice(11, 19)}Z` : "idle"}
+            </span>
+          ) : null}
           <span className="text-xs text-muted">{user.displayName}</span>
           <StatusBadge
             tone={
@@ -126,7 +165,7 @@ export function BoardShell({ user }: { user: { displayName: string; role: string
         </div>
       </header>
 
-      {/* KPI strip (PRD F-6) — live freshness cue per ui-design-system.md §7 */}
+      {/* KPI strip (PRD F-6) — honest values from live projections, "—" when absent */}
       <section aria-label="Operations KPIs" className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {view === "loading" ? (
           <>
@@ -137,26 +176,61 @@ export function BoardShell({ user }: { user: { displayName: string; role: string
           </>
         ) : (
           <>
-            <StatTile label="On-time departures" value="—" hint="arrives with F2 projections" />
-            <StatTile label="Avg turn time" value="—" hint="arrives with F2 projections" />
-            <StatTile label="Active alerts" value="—" hint="arrives with F3 risk rules" />
-            <StatTile label="Delay minutes saved" value="—" hint="arrives with F3 replan" />
+            <StatTile
+              label="On-time departures"
+              value={kpis ? `${kpis.onTimeDepPct.toFixed(1)}%` : "—"}
+              hint={
+                kpis ? "share of off-block turns on time" : "starts with the first completed turn"
+              }
+            />
+            <StatTile
+              label="Avg turn time"
+              value={kpis && kpis.avgTurnMin > 0 ? `${kpis.avgTurnMin.toFixed(1)} min` : "—"}
+              hint={
+                kpis && kpis.avgTurnMin > 0
+                  ? "actual in-block → off-block"
+                  : "starts with the first completed turn"
+              }
+            />
+            <StatTile
+              label="Active alerts"
+              value={kpis ? String(kpis.activeAlerts) : "—"}
+              hint={kpis ? "raised + acknowledged" : "arrives with F3 risk rules"}
+            />
+            <StatTile
+              label="Delay minutes saved"
+              value={kpis ? String(kpis.delayMinutesSaved) : "—"}
+              hint={kpis ? "replan-attributed (F3)" : "arrives with F3 replan"}
+            />
           </>
         )}
       </section>
 
+      {user.role === "supervisor" ? (
+        <Panel title="Scenario console (supervisor)">
+          <ScenarioPanel onChanged={() => void load()} />
+        </Panel>
+      ) : null}
+
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-3">
-        {/* Turnaround timeline (PRD F-1) — Gantt lanes land in F2 */}
+        {/* Turnaround timeline (PRD F-1) */}
         <Panel
           title="Turnaround timeline · Gantt"
-          className="min-h-[280px] lg:col-span-2"
+          className="min-h-[320px] lg:col-span-2"
+          contentClassName="relative"
           actions={
-            secondsAgo === null ? null : (
-              <LiveDot
-                live={secondsAgo < 5}
-                label={secondsAgo < 5 ? "live" : `updated ${secondsAgo}s ago`}
-              />
-            )
+            <LiveDot
+              live={isLive && secondsAgo !== null && secondsAgo < 5}
+              label={
+                socketStatus !== "open"
+                  ? "ws offline — REST fallback"
+                  : secondsAgo !== null && secondsAgo < 5
+                    ? "live"
+                    : snapshot?.live
+                      ? `waiting for events · ${snapshot.flights.length} flights`
+                      : `updated ${secondsAgo ?? "—"}s ago`
+              }
+            />
           }
         >
           {view === "loading" ? (
@@ -166,7 +240,7 @@ export function BoardShell({ user }: { user: { displayName: string; role: string
               title="Board data unavailable"
               message={
                 errorCode === "NETWORK"
-                  ? "Could not reach the API. Check that the stack is running (postgres + web)."
+                  ? "Could not reach the API. Check that the stack is running (postgres + redis + web)."
                   : `The board request failed with code ${errorCode ?? "UNKNOWN"}. Retry — the request id below helps with tracing.`
               }
               requestId={requestId ?? undefined}
@@ -179,52 +253,81 @@ export function BoardShell({ user }: { user: { displayName: string; role: string
           ) : view === "empty" ? (
             <EmptyState
               title="No turnaround activity"
-              body="The event simulator that produces the reference day lands in F2. Once a scenario runs, every ground task appears here as a live Gantt lane."
-              action={
-                <Button size="sm" variant="ghost" onClick={() => setReloadToken((t) => t + 1)}>
-                  Refresh
-                </Button>
-              }
+              body="The reference day is seeded but holds no flights for this scenario. Run the reference scenario to populate the board."
             />
           ) : (
-            <EmptyState
-              title="Scenario running"
-              body="Live lanes render here once the F2 projection pipeline streams deltas. The KPI strip above shows the current freshness."
-            />
+            <div className="flex h-full min-h-[280px] flex-col gap-2">
+              <div className="min-h-0 flex-1">
+                <TurnaroundGantt
+                  flights={snapshot?.flights ?? []}
+                  windowStart={DAY_START}
+                  windowEnd={DAY_END}
+                  onSelectFlight={setSelectedFlightId}
+                />
+              </div>
+              <StatusLegend />
+            </div>
           )}
         </Panel>
 
-        {/* Event feed + alerts rail (PRD F-2/F-3 preview) */}
+        {/* Event feed + alerts rail */}
         <div className="flex min-h-0 flex-col gap-3">
-          <Panel title="Event feed" className="min-h-[160px]">
-            {view === "loading" ? (
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-2/3" />
-                <Skeleton className="h-4 w-1/2" />
-              </div>
-            ) : (
-              <EmptyState
-                title="No events yet"
-                body="Every state change arrives as an immutable event (ADR-0001). The audit feed streams here from F2."
-              />
-            )}
+          <Panel title="Event feed" className="min-h-[200px] flex-1">
+            <EventFeed items={feed} loading={view === "loading"} />
           </Panel>
-          <Panel title="Alerts" className="min-h-[160px]">
+          <Panel title="Alerts" className="min-h-[140px]">
             <div aria-live="polite" className="h-full">
-              {view === "loading" ? (
-                <Skeleton className="h-4 w-2/3" />
-              ) : (
-                <EmptyState
-                  title="No active alerts"
-                  body="Risk rules raise alerts ≥ 10 min before projected SLA breaches (F3). The lifecycle (raised → acknowledged → resolved) will live here."
-                />
-              )}
+              <EmptyState
+                title="No active alerts"
+                body="Risk rules raise alerts ≥ 10 min before projected SLA breaches (F3). The lifecycle (raised → acknowledged → resolved) will live here."
+              />
             </div>
           </Panel>
         </div>
       </div>
+
+      {selectedFlight && snapshot ? (
+        <FlightDrawer
+          flight={selectedFlight}
+          scenarioTs={snapshot.scenarioTs}
+          onClose={() => setSelectedFlightId(null)}
+        />
+      ) : null}
     </div>
+  );
+}
+
+function toFeedItem(frame: WsFrame): FeedItem | null {
+  const payload = frame.payload as {
+    flightId?: string;
+    taskId?: string;
+    scenarioTs?: string;
+    state?: string;
+  };
+  let label = "";
+  if (payload.state) label = `${payload.state}`;
+  else if (payload.scenarioTs) label = `${payload.scenarioTs.slice(11, 19)}Z`;
+  else if (payload.taskId) label = payload.taskId.slice(0, 8);
+  return { id: frame.id, ts: frame.ts, type: frame.type, label };
+}
+
+function StatusLegend() {
+  const entries: [string, string][] = [
+    ["tiq-item-scheduled", "scheduled"],
+    ["tiq-item-inblock", "in block"],
+    ["tiq-item-turnaround", "turnaround"],
+    ["tiq-item-delayed", "delayed"],
+    ["tiq-item-offblock", "off block"],
+  ];
+  return (
+    <ul className="flex flex-wrap items-center gap-3" aria-label="Status legend">
+      {entries.map(([cls, label]) => (
+        <li key={cls} className="flex items-center gap-1.5 text-xs text-muted">
+          <span aria-hidden className={`inline-block h-2.5 w-4 rounded-sm ${cls}`} />
+          {label}
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -239,16 +342,4 @@ function TimelineSkeleton() {
       ))}
     </div>
   );
-}
-
-/** Scaffold review helper: /board?state=loading|empty|error forces a visual state. */
-function useForcedState(): "loading" | "empty" | "error" | "live" | null {
-  const [forced, setForced] = useState<"loading" | "empty" | "error" | "live" | null>(null);
-  useEffect(() => {
-    const raw = new URLSearchParams(window.location.search).get("state");
-    setForced(
-      raw === "loading" || raw === "empty" || raw === "error" || raw === "live" ? raw : null,
-    );
-  }, []);
-  return forced;
 }

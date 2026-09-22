@@ -9,18 +9,23 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
     "seed": "tsx seed/seed.ts"
   },
   "dependencies": {
     "@aviation/contracts": "workspace:*",
     "@aviation/db": "workspace:*",
+    "@aviation/tiq-domain": "workspace:*",
     "@aviation/ui": "workspace:*",
     "@node-rs/argon2": "^2.0.2",
     "drizzle-orm": "^0.44.1",
     "jose": "^5.9.6",
     "next": "^15.3.0",
+    "pino": "^9.6.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "vis-data": "^7.1.9",
+    "vis-timeline": "^7.7.3",
     "zod": "^3.25.0"
   },
   "devDependencies": {

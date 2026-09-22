@@ -8,6 +8,13 @@
       "when": 1790044992978,
       "tag": "0000_brown_sabretooth",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790063642670,
+      "tag": "0001_luxuriant_trish_tilby",
+      "breakpoints": true
     }
   ]
 }

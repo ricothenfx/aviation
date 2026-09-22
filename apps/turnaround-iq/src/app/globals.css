@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "@aviation/ui/styles.css";
+@import "vis-timeline/styles/vis-timeline-graph2d.min.css";
 
 /* Base layer: mission-control dark theme (ui-design-system.md §1). */
 @layer base {
@@ -22,4 +23,78 @@
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
   }
+}
+
+/*
+ * vis-timeline theming (ui-design-system.md §2/§8): the library ships default
+ * styling that fights the design system — recolor every surface via semantic
+ * tokens. Charts must never look like an unthemed default (§8.1).
+ */
+.tiq-timeline .vis-timeline {
+  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--color-fg);
+}
+
+.tiq-timeline .vis-panel {
+  border-color: var(--color-border);
+  background-color: var(--color-surface);
+}
+
+.tiq-timeline .vis-time-axis .vis-text {
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+}
+
+.tiq-timeline .vis-time-axis .vis-grid.vis-minor,
+.tiq-timeline .vis-time-axis .vis-grid.vis-major {
+  border-color: color-mix(in oklab, var(--color-border) 70%, transparent);
+}
+
+.tiq-timeline .vis-labelset .vis-label {
+  border-color: var(--color-border);
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+}
+
+.tiq-timeline .vis-item {
+  border-color: var(--color-border);
+  color: #06121f;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.tiq-timeline .vis-item.vis-selected {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 1px var(--color-accent);
+  background-color: var(--color-accent);
+  color: #06121f;
+  z-index: 2;
+}
+
+.tiq-timeline .vis-item.tiq-item-scheduled {
+  background-color: color-mix(in oklab, var(--color-muted) 55%, var(--color-surface));
+  border-color: var(--color-muted);
+}
+
+.tiq-timeline .vis-item.tiq-item-inblock,
+.tiq-timeline .vis-item.tiq-item-turnaround {
+  background-color: color-mix(in oklab, var(--color-accent) 75%, white);
+  border-color: var(--color-accent);
+}
+
+.tiq-timeline .vis-item.tiq-item-delayed {
+  background-color: var(--color-warn);
+  border-color: var(--color-warn);
+}
+
+.tiq-timeline .vis-item.tiq-item-offblock {
+  background-color: color-mix(in oklab, var(--color-ok) 80%, white);
+  border-color: var(--color-ok);
+}
+
+.tiq-timeline .vis-current-time {
+  background-color: var(--color-warn);
 }

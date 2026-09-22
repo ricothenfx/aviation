@@ -11,7 +11,7 @@ Singapore aviation companies.
 
 | # | Project | Status | Spec |
 |---|---|---|---|
-| 1 | **turnaround-iq** — AI-assisted aircraft turnaround command center | F1 scaffold | `docs/04-projects/turnaround-iq/` |
+| 1 | **turnaround-iq** — AI-assisted aircraft turnaround command center | F2 core domain (events · projections · live board) | `docs/04-projects/turnaround-iq/` |
 | 2 | **mro-copilot** — maintenance-manual RAG copilot + engine health | spec pending | `docs/04-projects/mro-copilot/PRD.md` |
 | 3 | **rebook-ai** — passenger disruption concierge | spec pending | `docs/04-projects/rebook-ai/PRD.md` |
 
@@ -32,14 +32,21 @@ pnpm seed                                      # migrations + seeded users (view
 
 Sign in on http://localhost:3000 with a seeded account, e.g. coordinator
 `maya.tan@nx-sim.example` / `coordinator-nx-01` (all accounts are fictional demo data).
+Supervisor (scenario start/reset + speed control): `priya.nair@nx-sim.example` / `supervisor-nx-01`.
 
 Full containerized mode (no host Node needed at runtime) — postgres + redis + web on
-**http://localhost:3001**; the web container installs, seeds and serves by itself:
+**http://localhost:3001**, plus the simulator (scenario clock → event log) and the
+realtime gateway (projection worker + ws on **ws://localhost:4001/api/ws**); containers
+install, seed and serve by themselves:
 
 ```bash
 docker compose --profile turnaround up -d
 docker compose --profile turnaround down -v
 ```
+
+Start the reference scenario (supervisor) from the board's scenario console, or via REST:
+`POST /api/v1/scenarios/reference-day/start {"speed": 20}` — the board then updates live
+over WebSocket from the event-sourced ground-task log.
 
 All operational data is simulated (see `docs/02-standards/data-ethics.md`); every screen
 carries the disclaimer. For host-side runs, copy `.env.example` to `.env` and set a real
@@ -58,19 +65,22 @@ carries the disclaimer. For host-side runs, copy `.env.example` to `.env` and se
 ## Commands
 
 ```bash
-pnpm dev          # infra (compose profile "infra") + Next dev server on :3000
-pnpm build        # build packages (tsup) + apps (next build)
-pnpm lint         # prettier --check + eslint (zero warnings)
-pnpm typecheck    # tsc --noEmit strict across the workspace
-pnpm test         # vitest unit tests across the workspace
-pnpm seed         # apply migrations + upsert seeded demo users
-pnpm db:generate  # drizzle-kit generate migration SQL
-pnpm db:migrate   # apply pending migrations
+pnpm dev                 # infra (compose profile "infra") + Next dev server on :3000
+pnpm build               # build packages (tsup) + apps (next build)
+pnpm lint                # prettier --check + eslint (zero warnings)
+pnpm typecheck           # tsc --noEmit strict across the workspace
+pnpm test                # vitest unit tests across the workspace (no DB)
+pnpm test:integration    # vitest integration tests against the compose stack
+pnpm seed                # apply migrations + reference day + seeded demo users
+pnpm db:generate         # drizzle-kit generate migration SQL
+pnpm db:migrate          # apply pending migrations
 ```
 
 CI (`.github/workflows/ci.yml`) runs lint → typecheck → unit → build, plus a
-compose-stack smoke job that boots the full `turnaround` profile and logs in as a
-seeded coordinator on every push/PR.
+compose-stack job that boots the full `turnaround` profile (postgres · redis · web ·
+simulator · realtime-gateway), logs in as a seeded coordinator, runs the integration
+suite (ADR-0001 golden replay, idempotency, worker latency, RBAC matrix) and the
+board-latency benchmark (p95 < 1 s target) on every push/PR.
 
 ## Evidence & Traceability
 

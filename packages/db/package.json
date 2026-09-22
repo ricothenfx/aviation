@@ -5,7 +5,10 @@
   "type": "module",
   "description": "Shared pg/redis client factories + migration runner (monorepo-architecture.md §1).",
   "exports": {
+    "./baseline": "./src/baseline.ts",
     "./client": "./src/client.ts",
+    "./health": "./src/health.ts",
+    "./redis": "./src/redis.ts",
     "./schema": "./src/schema.ts",
     "./migrate": "./src/migrate.ts"
   },
@@ -16,7 +19,8 @@
   },
   "dependencies": {
     "drizzle-orm": "^0.44.1",
-    "pg": "^8.13.1"
+    "pg": "^8.13.1",
+    "redis": "^4.7.0"
   },
   "devDependencies": {
     "@aviation/config": "workspace:*",

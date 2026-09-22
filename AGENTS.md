@@ -77,13 +77,14 @@ pnpm dev                # infra via compose profile "infra" (postgres:5433 + red
 pnpm build              # build packages (tsup) + apps (next build)
 pnpm lint               # prettier --check + eslint --max-warnings 0
 pnpm typecheck          # tsc --noEmit strict across the workspace
-pnpm test               # vitest unit tests across the workspace
+pnpm test               # vitest unit tests across the workspace (no DB)
+pnpm test:integration   # vitest integration tests (needs compose stack: DATABASE_URL, REDIS_URL, TIQ_BASE_URL)
 pnpm test:e2e           # Playwright end-to-end tests (added in F3)
-pnpm seed               # apply migrations + upsert seeded demo users (turnaround-iq)
+pnpm seed               # apply migrations + reference day + upsert seeded demo users (turnaround-iq)
 pnpm db:generate        # drizzle-kit generate migration SQL from packages/db schema
 pnpm db:migrate         # apply pending migrations
 
-# Full containerized stack (postgres + redis + web on :3001):
+# Full containerized stack (postgres + redis + web on :3001, simulator :4101, realtime-gateway ws :4001):
 docker compose --profile turnaround up -d      # boot; web self-installs, seeds, serves
 docker compose --profile turnaround down -v    # teardown
 

@@ -47,9 +47,12 @@ services:
              pnpm --filter turnaround-iq dev"
     environment:
       DATABASE_URL: postgresql://turnaround:turnaround@postgres:5432/turnaround_iq
+      REDIS_URL: redis://redis:6379
       AUTH_SECRET: dev-only-insecure-secret-0123456789abcdef
       AUTH_COOKIE_NAME: tiq_session
       LLM_PROVIDER: mock
+      # Browser → gateway ws (published on host loopback 4001).
+      NEXT_PUBLIC_WS_URL: ws://localhost:4001/api/ws
       NEXT_TELEMETRY_DISABLED: "1"
     ports:
       - "127.0.0.1:3001:3000"
@@ -75,7 +78,103 @@ services:
       retries: 24
       start_period: 180s
 
+  # Scenario engine (architecture.md §2): scenario clock → deterministic events
+  # into PostgreSQL event_log, published for the projection worker. The browser
+  # never talks to it; control flows through Redis from the web API.
+  simulator:
+    image: node:22-bookworm-slim
+    profiles: ["turnaround"]
+    working_dir: /repo
+    command: >-
+      sh -c "corepack enable &&
+             pnpm install --frozen-lockfile &&
+             pnpm --filter @aviation/tiq-simulator dev"
+    environment:
+      DATABASE_URL: postgresql://turnaround:turnaround@postgres:5432/turnaround_iq
+      REDIS_URL: redis://redis:6379
+      LOG_LEVEL: info
+      SIMULATOR_PORT: "4101"
+      TICK_INTERVAL_MS: "250"
+    ports:
+      - "127.0.0.1:4101:4101"
+    volumes:
+      - ../..:/repo
+      - simulator_node_modules:/repo/node_modules
+      - simulator_pkg_node_modules:/repo/services/turnaround-iq/simulator/node_modules
+      - simulator_domain_node_modules:/repo/services/turnaround-iq/domain/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4101/healthz').then((r)=>{if(!r.ok)throw new Error('unhealthy')}).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 24
+      start_period: 180s
+
+  # Realtime gateway (architecture.md §2–4): projection worker → Redis read
+  # models + ws delta broadcast on /api/ws (short-lived token auth, §5).
+  realtime-gateway:
+    image: node:22-bookworm-slim
+    profiles: ["turnaround"]
+    working_dir: /repo
+    command: >-
+      sh -c "corepack enable &&
+             pnpm install --frozen-lockfile &&
+             pnpm --filter @aviation/tiq-realtime-gateway dev"
+    environment:
+      DATABASE_URL: postgresql://turnaround:turnaround@postgres:5432/turnaround_iq
+      REDIS_URL: redis://redis:6379
+      AUTH_SECRET: dev-only-insecure-secret-0123456789abcdef
+      LOG_LEVEL: info
+      GATEWAY_PORT: "4001"
+      PROJECTION_POLL_MS: "400"
+    ports:
+      # ws + health on one port; the browser connects directly (different origin
+      # from the web app — minted ws tokens are purpose-scoped, architecture §5).
+      - "127.0.0.1:4001:4001"
+    volumes:
+      - ../..:/repo
+      - gateway_node_modules:/repo/node_modules
+      - gateway_pkg_node_modules:/repo/services/turnaround-iq/realtime-gateway/node_modules
+      - gateway_domain_node_modules:/repo/services/turnaround-iq/domain/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4001/healthz').then((r)=>{if(!r.ok)throw new Error('unhealthy')}).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 24
+      start_period: 180s
+
 volumes:
   pgdata_turnaround:
   web_node_modules:
   web_app_node_modules:
+  simulator_node_modules:
+  simulator_pkg_node_modules:
+  simulator_domain_node_modules:
+  gateway_node_modules:
+  gateway_pkg_node_modules:
+  gateway_domain_node_modules:

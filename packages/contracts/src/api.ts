@@ -1,23 +1,19 @@
 import { z } from "zod";
 
+import { flightProjectionSchema, kpisSchema } from "./projections";
+
 /**
  * Board snapshot (api-contracts.md §1 GET /api/v1/board) — REST fallback when WS is down.
- * F1 ships the envelope with empty collections; the F2 schema adds flight/task projections
- * and is expected to EXTEND this schema (additive, non-breaking).
+ * F2 extends this schema ADDITIVELY (never broken): `flights` now carries full flight
+ * projections and `kpis` the PRD F-6 strip. F1 consumers that only ever saw empty
+ * flights + null kpis still validate unchanged.
  */
 export const boardSnapshotSchema = z.object({
   generatedAt: z.string().datetime({ offset: true }),
   scenarioTs: z.string().datetime({ offset: true }).nullable(),
   live: z.boolean(),
-  flights: z.array(z.never()),
-  kpis: z
-    .object({
-      onTimeDepPct: z.number(),
-      avgTurnMin: z.number(),
-      activeAlerts: z.number().int(),
-      delayMinutesSaved: z.number(),
-    })
-    .nullable(),
+  flights: z.array(flightProjectionSchema),
+  kpis: kpisSchema.nullable(),
 });
 export type BoardSnapshot = z.infer<typeof boardSnapshotSchema>;
 

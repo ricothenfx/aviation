@@ -3,22 +3,18 @@ import { z } from "zod";
 
 import { ApiError, ERROR_STATUS, type ErrorCode } from "@aviation/contracts";
 
-/**
- * REST response helpers enforcing the standard error envelope (api-contracts.md §2).
- * Logs are structured JSON lines (engineering-standards.md §5); pino arrives with the
- * F2 services — the `module`/`requestId` fields are already pino-shaped.
- */
+import { getSession } from "@/lib/auth/session";
+import { logger } from "@/lib/logger";
+import { roleAtLeast, type Role } from "@/lib/auth/rbac";
 
-export type Logger = { info: (msg: string, fields?: Record<string, unknown>) => void };
+/**
+ * REST response helpers enforcing the standard error envelope (api-contracts.md §2)
+ * plus server-side RBAC guards (architecture.md §5: authorization is checked in the
+ * route handlers, middleware only guards routes).
+ */
 
 export function newRequestId(): string {
   return `req_${crypto.randomUUID()}`;
-}
-
-export function logInfo(module: string, msg: string, fields: Record<string, unknown> = {}): void {
-  console.info(
-    JSON.stringify({ ts: new Date().toISOString(), level: "info", module, msg, ...fields }),
-  );
 }
 
 export function jsonResponse(data: unknown, status = 200): NextResponse {
@@ -32,7 +28,7 @@ export function errorResponse(
 ): NextResponse {
   const requestId = options.requestId ?? newRequestId();
   const status = options.status ?? ERROR_STATUS[code];
-  logInfo("api", "error_response", { requestId, code, status });
+  logger.info({ msg: "error_response", requestId, code, status });
   return NextResponse.json(
     {
       error: { code, message, ...(options.details ? { details: options.details } : {}), requestId },
@@ -54,9 +50,29 @@ export function handleRouteError(err: unknown, requestId?: string): NextResponse
     }
     return errorResponse("VALIDATION_ERROR", "request validation failed", { details, requestId });
   }
-  logInfo("api", "unhandled_error", {
+  logger.error({
+    msg: "unhandled_error",
     requestId,
     err: err instanceof Error ? err.message : String(err),
   });
   return errorResponse("INTERNAL", "unexpected server error", { requestId });
+}
+
+export type Session = { sub: string; email: string; name: string; role: Role };
+
+/**
+ * Server-side RBAC guard: 401 when unauthenticated, 403 when the role ladder is
+ * violated (PRD F-7). Throws ApiError — render via handleRouteError.
+ */
+export async function requireSession(minimumRole: Role): Promise<Session> {
+  const session = await getSession();
+  if (!session) {
+    throw new ApiError("UNAUTHENTICATED", "sign in required");
+  }
+  if (!roleAtLeast(session.role, minimumRole)) {
+    throw new ApiError("FORBIDDEN", `requires ${minimumRole} role`, {
+      requiredRole: [minimumRole],
+    });
+  }
+  return session;
 }

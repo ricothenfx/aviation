@@ -46,10 +46,12 @@ jobs:
 
   # Milestone F1 DoD: `pnpm install && docker compose --profile turnaround up -d`
   # works from a clean clone and a seeded coordinator can log in.
+  # Milestone F2 DoD: integration tests (golden replay, idempotency, worker
+  # latency, RBAC matrix) + the ws board-latency benchmark run against the stack.
   compose-smoke:
-    name: compose stack smoke (F1 DoD)
+    name: compose stack smoke + integration (F1/F2 DoD)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
@@ -63,7 +65,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Boot the turnaround stack (postgres + redis + web)
+      - name: Boot the turnaround stack (postgres + redis + web + simulator + gateway)
         run: docker compose --profile turnaround up -d --wait --wait-timeout 420
 
       - name: Health + seeded login smoke
@@ -80,6 +82,19 @@ jobs:
             -d '{"email":"maya.tan@nx-sim.example","password":"coordinator-nx-01"}' \
             | grep -o '"role":"coordinator"'
           echo "seeded coordinator login OK"
+
+      - name: Integration tests (golden replay · idempotency · worker latency · RBAC matrix)
+        env:
+          DATABASE_URL: postgresql://turnaround:turnaround@localhost:5433/turnaround_iq
+          REDIS_URL: redis://localhost:6379
+          TIQ_BASE_URL: http://localhost:3001
+        run: pnpm test:integration
+
+      - name: Board latency benchmark (ws end-to-end, p95 < 1 s)
+        env:
+          TIQ_BASE_URL: http://localhost:3001
+          TIQ_WS_URL: ws://localhost:4001/api/ws
+        run: node scripts/benchmarks/board-latency.mjs
 
       - name: Teardown
         if: always()

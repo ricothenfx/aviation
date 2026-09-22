@@ -2,9 +2,10 @@ import type { NextRequest } from "next/server";
 
 import { loginRequestSchema } from "@aviation/contracts";
 
-import { handleRouteError, jsonResponse, logInfo } from "@/lib/api/respond";
+import { handleRouteError, jsonResponse } from "@/lib/api/respond";
 import { createLocalAuthProvider } from "@/lib/auth/local-provider";
 import { signSessionToken } from "@/lib/auth/jwt";
+import { logger } from "@/lib/logger";
 import { setSessionCookie } from "@/lib/auth/session";
 
 /**
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest) {
       role: user.role,
     });
     await setSessionCookie(token);
-    logInfo("auth", "login_succeeded", { role: user.role });
+    logger.info({ msg: "login_succeeded", role: user.role });
     return jsonResponse({
       user: { email: user.email, displayName: user.displayName, role: user.role },
       token,
