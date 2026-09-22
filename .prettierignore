@@ -2,8 +2,10 @@ docs/
 .github/
 pnpm-lock.yaml
 **/*.md
+**/*.sql
 .next/
 node_modules/
+.pnpm-store/
 dist/
 coverage/
 next-env.d.ts

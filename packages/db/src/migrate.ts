@@ -5,7 +5,8 @@ import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { createDb, resolveDatabaseUrl } from "./client";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
-export const migrationsFolder = path.resolve(currentDir, "../../drizzle");
+// src/ → packages/db/drizzle (generated SQL + meta/_journal.json live here)
+export const migrationsFolder = path.resolve(currentDir, "../drizzle");
 
 /** Forward-only migrations (engineering-standards.md §8). Safe to call repeatedly. */
 export async function runMigrations(connectionString?: string): Promise<void> {

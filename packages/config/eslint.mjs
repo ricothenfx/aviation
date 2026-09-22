@@ -11,6 +11,7 @@ export default [
   {
     ignores: [
       "**/node_modules/**",
+      "**/.pnpm-store/**",
       "**/dist/**",
       "**/.next/**",
       "**/coverage/**",

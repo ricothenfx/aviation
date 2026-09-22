@@ -64,7 +64,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Boot the turnaround stack (postgres + redis + web)
-        run: docker compose --profile turnaround up -d --wait
+        run: docker compose --profile turnaround up -d --wait --wait-timeout 420
 
       - name: Health + seeded login smoke
         run: |

@@ -11,7 +11,9 @@ services:
       POSTGRES_PASSWORD: turnaround
       POSTGRES_DB: turnaround_iq
     ports:
-      - "5433:5432"
+      # Bind to loopback only — safe on public VPS/dev machines; CI and host dev
+      # both use localhost. A public demo binding is an F5 deployment concern.
+      - "127.0.0.1:5433:5432"
     volumes:
       - pgdata_turnaround:/var/lib/postgresql/data
     healthcheck:
@@ -24,7 +26,7 @@ services:
     image: redis:7-alpine
     profiles: ["turnaround", "infra"]
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -50,7 +52,7 @@ services:
       LLM_PROVIDER: mock
       NEXT_TELEMETRY_DISABLED: "1"
     ports:
-      - "3001:3000"
+      - "127.0.0.1:3001:3000"
     volumes:
       - ../..:/repo
       - web_node_modules:/repo/node_modules
