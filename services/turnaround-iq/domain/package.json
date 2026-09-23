@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Pure turnaround-iq domain logic: deterministic reference day, projection apply, event building (monorepo-architecture.md §2).",
+  "description": "Pure turnaround-iq domain logic: deterministic reference day, projection apply, event building (monorepo-architecture.md \u00a72).",
   "exports": {
     ".": "./src/index.ts"
   },
@@ -22,6 +22,7 @@
     "@aviation/config": "workspace:*",
     "@types/node": "^22.10.5",
     "typescript": "^5.6.3",
-    "vitest": "^3.0.5"
+    "vitest": "^3.0.5",
+    "tsx": "^4.19.2"
   }
 }
