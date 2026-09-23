@@ -53,6 +53,14 @@ jobs:
           path: apps/turnaround-iq/test-results/
           retention-days: 7
 
+      - name: Upload visual smoke screenshots (F4 DoD evidence)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-smoke-screenshots
+          path: apps/turnaround-iq/test-results/visual-smoke/
+          retention-days: 30
+
       - name: Teardown
         if: always()
         run: docker compose --profile turnaround down -v --remove-orphans

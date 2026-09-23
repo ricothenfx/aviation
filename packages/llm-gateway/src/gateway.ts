@@ -22,14 +22,21 @@ export class LlmGateway {
 
   /** Factory honoring LLM_PROVIDER; "mock" is the mandatory offline default. */
   static fromEnv(env: NodeJS.ProcessEnv = process.env): LlmGateway {
-    const requested = (env.LLM_PROVIDER ?? "mock") as ProviderName;
+    const requested = (env.LLM_PROVIDER ?? "mock") as ProviderName | "off";
     switch (requested) {
       case "mock":
         return LlmGateway.forProvider(new MockProvider());
+      case "off":
+        // Explicit "no LLM provider configured" — copilot callers must degrade
+        // to the rules engine and label the answer source (ADR-0003).
+        throw new ProviderUnavailableError(
+          "LLM provider disabled by configuration (LLM_PROVIDER=off); " +
+            "falling back to rule-based answers is expected behaviour",
+        );
       case "openai-compatible":
       case "bedrock-shape":
         throw new ProviderUnavailableError(
-          `LLM provider "${requested}" is registered but not implemented until F4; ` +
+          `LLM provider "${requested}" is registered but not implemented; ` +
             "set LLM_PROVIDER=mock for offline development",
         );
     }

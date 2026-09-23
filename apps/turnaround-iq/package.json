@@ -16,6 +16,7 @@
   "dependencies": {
     "@aviation/contracts": "workspace:*",
     "@aviation/db": "workspace:*",
+    "@aviation/llm-gateway": "workspace:*",
     "@aviation/tiq-domain": "workspace:*",
     "@aviation/ui": "workspace:*",
     "@node-rs/argon2": "^2.0.2",

@@ -12,5 +12,8 @@ export default defineConfig({
     environment: "node",
     testTimeout: 60_000,
     hookTimeout: 60_000,
+    // Suites share the stack's mutable scenario state (start/reset) — run
+    // files sequentially (engineering-standards.md §3 determinism).
+    fileParallelism: false,
   },
 });

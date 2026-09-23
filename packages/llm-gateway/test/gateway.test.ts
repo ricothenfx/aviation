@@ -42,4 +42,8 @@ describe("LlmGateway.fromEnv (ADR-0003)", () => {
       ProviderUnavailableError,
     );
   });
+
+  it("supports an explicit provider-off switch for degrade-to-rules (ADR-0003)", () => {
+    expect(() => LlmGateway.fromEnv({ LLM_PROVIDER: "off" })).toThrow(ProviderUnavailableError);
+  });
 });

@@ -42,8 +42,20 @@ export async function loadBaselineState(db: Db): Promise<BoardProjectionState> {
 
   const state = initialStateFromReferenceDay({
     seed: 0,
-    stands: [],
-    aircraftTypes: [],
+    // Pass the seeded reference data through: the baseline builder resolves the
+    // human-readable stand/aircraft codes from these (F2 defect fix — with
+    // empty arrays every lane rendered "?" on the board).
+    stands: standRows.map((row) => ({
+      id: row.id,
+      code: row.code,
+      standType: row.standType,
+      constraints: row.constraints as Record<string, never>,
+    })),
+    aircraftTypes: typeRows.map((row) => ({
+      id: row.id,
+      code: row.code,
+      turnSlaDefaults: row.turnSlaDefaults as { turnTargetMin: number; bufferMin: number },
+    })),
     dependencies: [],
     flights: flightRows.map((row) => {
       const taskList = (tasksByFlight.get(row.id) ?? []).slice();

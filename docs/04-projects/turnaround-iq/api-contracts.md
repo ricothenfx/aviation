@@ -30,12 +30,12 @@
 | POST | `/api/v1/flights/{id}/replan` | coordinator+ | — | computes proposal (PRD F-4); **does not apply** |
 | POST | `/api/v1/replans/{id}/approve` | coordinator+ | — | applies approved plan |
 | POST | `/api/v1/replans/{id}/reject` | coordinator+ | `{reason}` | audit-recorded |
-| GET | `/api/v1/replans/{id}/explanation` | viewer+ | — | copilot text + `{source: "llm"\|"rules"}` label (ADR-0003) |
+| GET | `/api/v1/replans/{id}/explanation` | coordinator+ | — | copilot text + `{source: "llm"\|"rules"}` label (ADR-0003). F4: role corrected viewer+ → coordinator+ to sit on the same RBAC ladder as the replan decision endpoints (user decision 2026-09-23, supersedes the original F0 draft line). |
 
 ### Scenarios (supervisor only)
 | Method | Path | Description |
 |---|---|---|
-| GET | `/api/v1/scenarios` | list scripted scenarios + status |
+| GET | `/api/v1/scenarios` | list scripted scenarios + status; F4 additively returns `disruptions[]` (injectable script catalog for the console UI; absent/`[]` in F3 payloads still validates) |
 | POST | `/api/v1/scenarios/{id}/start` | `{speed: 1\|5\|20}` |
 | POST | `/api/v1/scenarios/{id}/inject` | `{disruptionId}` (loader breakdown, gate swap, …) |
 | POST | `/api/v1/scenarios/{id}/reset` | stops clock, truncates projections, replays seed; returns new `logHash` |

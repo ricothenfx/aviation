@@ -12,7 +12,7 @@
     "format": "prettier --write .",
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",
-    "test:integration": "pnpm -r --if-present test:integration",
+    "test:integration": "pnpm -r --workspace-concurrency=1 --if-present test:integration",
     "test:e2e": "pnpm --filter turnaround-iq test:e2e",
     "bench:replan": "node scripts/benchmarks/replan-delay.mjs",
     "seed": "pnpm --filter turnaround-iq seed",

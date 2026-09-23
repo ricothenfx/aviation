@@ -1,5 +1,6 @@
 import type { ScenarioListResponse, ScenarioState } from "@aviation/contracts";
 import {
+  DISRUPTION_CATALOG,
   SCENARIO_CATALOG,
   CHAN_SCENARIO_CONTROL,
   scenarioControlCommandSchema,
@@ -46,7 +47,14 @@ export async function listScenarios(redis: RedisClientType): Promise<ScenarioLis
       logHash: entry.id === state.scenarioId ? state.logHash : null,
     } satisfies ScenarioState,
   }));
-  return { scenarios };
+  // F4 (additive contract): the injectable script catalog for the scenario console.
+  const disruptions = DISRUPTION_CATALOG.map((definition) => ({
+    id: definition.id,
+    title: definition.title,
+    description: definition.description,
+    targetTaskType: definition.targetTaskType,
+  }));
+  return { scenarios, disruptions };
 }
 
 /** Start + wait until the clock is observed running. */

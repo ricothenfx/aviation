@@ -47,7 +47,9 @@ export async function openStack(): Promise<Stack> {
         headers: { cookie },
       });
       if (!res.ok) throw new Error(`scenario reset failed: HTTP ${res.status}`);
-      const deadline = Date.now() + 10_000;
+      // 30s: shared-stack suites run back-to-back; settle detection must not
+      // give up while the simulator is still replaying under load.
+      const deadline = Date.now() + 30_000;
       for (;;) {
         const state = await redis.hGetAll("scenario:state");
         const settled =

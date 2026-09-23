@@ -83,7 +83,8 @@ test("seed → inject loader breakdown → alert → replan → approve → boar
     await postWithRetry(request, "/api/v1/scenarios/reference-day/start", { speed: 20 }),
   ).toBeTruthy();
 
-  // 2. Wait for a live turn, then inject the loader-breakdown script.
+  // 2. Wait for a live turn, then inject the loader-breakdown script — through
+  //    the scenario console UI (F4; PRD F-5 demonstrable in the same run).
   await pollFor(async () => {
     const flights = await board(request);
     return flights?.some((flight) =>
@@ -92,11 +93,15 @@ test("seed → inject loader breakdown → alert → replan → approve → boar
       ? true
       : null;
   }, 480_000);
-  expect(
-    await postWithRetry(request, "/api/v1/scenarios/reference-day/inject", {
-      disruptionId: "loader-breakdown",
-    }),
-  ).toBeTruthy();
+
+  // F-6 KPI strip + F-5 scenario console are visible for the supervisor.
+  await expect(page.getByRole("region", { name: "Operations KPIs" })).toBeVisible();
+  const scenarioConsole = page.getByLabel("Scenario control");
+  await expect(scenarioConsole).toBeVisible();
+  await scenarioConsole.getByRole("button", { name: "Baggage loader breakdown" }).click();
+  await expect(scenarioConsole.getByText(/Injected loader-breakdown/)).toBeVisible({
+    timeout: 30_000,
+  });
 
   // The injected turn is the one with a blocked load task.
   const flight = await pollFor(async () => {
@@ -132,6 +137,17 @@ test("seed → inject loader breakdown → alert → replan → approve → boar
   await expect(proposal.getByText("proposed", { exact: true })).toBeVisible({ timeout: 30_000 });
   await expect(proposal.getByText(/\d+ min delay/)).toBeVisible();
   await expect(proposal.getByText(/vs \d+ unmanaged/)).toBeVisible();
+
+  // 4b. F4 DoD: every proposal carries the copilot explanation, labeled by
+  // source (llm via the gateway — mock in this stack — or rules fallback).
+  const explanation = proposal.getByLabel("Copilot explanation");
+  await expect(explanation).toBeVisible({ timeout: 30_000 });
+  await expect(explanation.getByText(/^(copilot · \S+|rules engine)$/)).toBeVisible({
+    timeout: 30_000,
+  });
+  await expect(
+    explanation.getByText(/Constraint scheduler rationale|constraint|mock/i).first(),
+  ).toBeVisible();
 
   // 5. Human approves — the plan applies; the board shifts to the new schedule.
   await proposal.getByRole("button", { name: "Approve" }).click();

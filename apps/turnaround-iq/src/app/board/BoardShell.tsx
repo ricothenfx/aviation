@@ -195,12 +195,12 @@ export function BoardShell({ user }: { user: { displayName: string; role: string
             <StatTile
               label="Active alerts"
               value={kpis ? String(kpis.activeAlerts) : "—"}
-              hint={kpis ? "raised + acknowledged" : "arrives with F3 risk rules"}
+              hint={kpis ? "raised + acknowledged" : "risk rules raise alerts during the day"}
             />
             <StatTile
               label="Delay minutes saved"
               value={kpis ? String(kpis.delayMinutesSaved) : "—"}
-              hint={kpis ? "replan-attributed (F3)" : "arrives with F3 replan"}
+              hint={kpis ? "replan-attributed vs do-nothing" : "counts approved replans"}
             />
           </>
         )}
@@ -266,6 +266,11 @@ export function BoardShell({ user }: { user: { displayName: string; role: string
                 />
               </div>
               <StatusLegend />
+              <FlightChips
+                flights={snapshot?.flights ?? []}
+                selectedFlightId={selectedFlightId}
+                onSelect={setSelectedFlightId}
+              />
             </div>
           )}
         </Panel>
@@ -441,6 +446,49 @@ function StatusLegend() {
         <li key={cls} className="flex items-center gap-1.5 text-xs text-muted">
           <span aria-hidden className={`inline-block h-2.5 w-4 rounded-sm ${cls}`} />
           {label}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * Keyboard-accessible flight selector (ui-design-system.md §9): the Gantt is a
+ * mouse-first surface, so every flight also gets a focusable chip here — the
+ * drawer must be reachable by keyboard alone.
+ */
+function FlightChips({
+  flights,
+  selectedFlightId,
+  onSelect,
+}: {
+  flights: BoardSnapshot["flights"];
+  selectedFlightId: string | null;
+  onSelect: (flightId: string) => void;
+}) {
+  if (flights.length === 0) return null;
+  return (
+    <ul aria-label="Flights" className="flex max-h-14 flex-wrap items-center gap-1 overflow-y-auto">
+      {flights.map((flight) => (
+        <li key={flight.id}>
+          <button
+            type="button"
+            aria-label={`Open flight ${flight.flightNo} details`}
+            aria-pressed={flight.id === selectedFlightId}
+            onClick={() => onSelect(flight.id)}
+            className={`rounded border px-1.5 py-0.5 font-mono text-[11px] transition-colors duration-150 ease-out ${
+              flight.id === selectedFlightId
+                ? "border-accent bg-accent text-[#06121f]"
+                : "border-border bg-surface text-fg hover:bg-raised"
+            }`}
+          >
+            {flight.flightNo}
+            {flight.delayedMin > 0 ? (
+              <span className={flight.id === selectedFlightId ? "" : "text-warn"}>
+                {` +${flight.delayedMin}m`}
+              </span>
+            ) : null}
+          </button>
         </li>
       ))}
     </ul>

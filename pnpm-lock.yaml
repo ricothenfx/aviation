@@ -32,6 +32,9 @@ importers:
       '@aviation/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@aviation/llm-gateway':
+        specifier: workspace:*
+        version: link:../../packages/llm-gateway
       '@aviation/tiq-domain':
         specifier: workspace:*
         version: link:../../services/turnaround-iq/domain

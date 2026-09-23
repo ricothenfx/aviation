@@ -46,7 +46,9 @@ async function supervisorCookie(baseUrl: string): Promise<string> {
 }
 
 async function waitIdle(baseUrl: string, cookie: string): Promise<void> {
-  const deadline = Date.now() + 10_000;
+  // 30s: back-to-back integration suites (unit lane + e2e + other packages)
+  // spike the web/simulator containers; 10s was observed to time out there.
+  const deadline = Date.now() + 30_000;
   while (Date.now() < deadline) {
     const res = await fetch(`${baseUrl}/api/v1/scenarios`, { headers: { cookie } });
     if (res.ok) {

@@ -88,6 +88,22 @@ export const replanSchema = z.object({
 });
 export type Replan = z.infer<typeof replanSchema>;
 
+/**
+ * GET /api/v1/replans/{id}/explanation (api-contracts.md §1, PRD F-4, ADR-0003).
+ * F4. `source` is the honesty label: "llm" when the gateway served the answer,
+ * "rules" after graceful degradation to the deterministic rationale — the
+ * constraint engine always decided the schedule, the copilot only narrates it.
+ * `provider` names the gateway provider ("mock" offline) or null for rules.
+ */
+export const replanExplanationSchema = z.object({
+  replanId: uuid,
+  source: z.enum(["llm", "rules"]),
+  provider: z.string().nullable(),
+  text: z.string().min(1),
+  generatedAt: isoTs,
+});
+export type ReplanExplanation = z.infer<typeof replanExplanationSchema>;
+
 /** GET /api/v1/flights/{id} (api-contracts.md §1): flight + tasks + alert lifecycle. */
 export const flightDetailSchema = z.object({
   flight: flightProjectionSchema,
@@ -127,7 +143,23 @@ export type ScenarioStartRequest = z.infer<typeof scenarioStartRequestSchema>;
 export const scenarioResetResponseSchema = z.object({ scenario: scenarioStateSchema });
 export type ScenarioResetResponse = z.infer<typeof scenarioResetResponseSchema>;
 
-export const scenarioListResponseSchema = z.object({ scenarios: z.array(scenarioSummarySchema) });
+/** One scripted disruption as listed by GET /api/v1/scenarios (PRD F-5). F4 (additive). */
+export const disruptionSummarySchema = z.object({
+  id: z.string().min(1),
+  title: z.string().min(1),
+  description: z.string().min(1),
+  targetTaskType: z.string().min(1),
+});
+export type DisruptionSummary = z.infer<typeof disruptionSummarySchema>;
+
+/**
+ * F4 extends this ADDITIVELY: `disruptions` (the injectable script catalog for
+ * the scenario console) defaults to [] so F3 payloads still validate unchanged.
+ */
+export const scenarioListResponseSchema = z.object({
+  scenarios: z.array(scenarioSummarySchema),
+  disruptions: z.array(disruptionSummarySchema).default([]),
+});
 export type ScenarioListResponse = z.infer<typeof scenarioListResponseSchema>;
 
 // ---------------------------------------------------------------------------
