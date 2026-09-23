@@ -2,7 +2,7 @@ import { and, asc, eq, gt, inArray } from "drizzle-orm";
 import { z } from "zod";
 
 import type { Db } from "@aviation/db/client";
-import { alerts, events, flights, groundTasks } from "@aviation/db/schema";
+import { alerts, events, flights, groundTasks, replanScenarios } from "@aviation/db/schema";
 import {
   ApiError,
   domainEventSchema,
@@ -57,17 +57,24 @@ export async function getFlightDetail(db: Db, flight: FlightProjection): Promise
   return flightDetailSchema.parse({ flight, alerts: alertProjections });
 }
 
-/** Cursor-paginated audit replay for one flight (its own + its tasks' events). */
+/**
+ * Cursor-paginated audit replay for one flight: its own + its tasks' + its
+ * replans' events (PRD F-4: the approve/reject decision trail must be visible
+ * in the flight context; replan events aggregate on the replan id).
+ */
 export async function listFlightEvents(
   db: Db,
   flightId: string,
   cursor: number | null,
 ): Promise<CursorPage<DomainEvent>> {
-  const taskIds = await db
-    .select({ id: groundTasks.id })
-    .from(groundTasks)
-    .where(eq(groundTasks.flightId, flightId));
-  const aggregateIds = [flightId, ...taskIds.map((t) => t.id)];
+  const [taskIds, replanIds] = await Promise.all([
+    db.select({ id: groundTasks.id }).from(groundTasks).where(eq(groundTasks.flightId, flightId)),
+    db
+      .select({ id: replanScenarios.id })
+      .from(replanScenarios)
+      .where(eq(replanScenarios.flightId, flightId)),
+  ]);
+  const aggregateIds = [flightId, ...taskIds.map((t) => t.id), ...replanIds.map((r) => r.id)];
 
   const conditions = [inArray(events.aggregateId, aggregateIds)];
   if (cursor !== null) conditions.push(gt(events.seq, cursor));

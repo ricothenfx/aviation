@@ -39,7 +39,10 @@ export function useBoardSocket({
     let retryTimer: ReturnType<typeof setTimeout> | null = null;
     let backoffMs = 500;
     let currentSocket: WebSocket | null = null;
-    const subscribed = new Set<string>(["board"]);
+    // Channels whose subscribe frame was sent on THIS socket (starts empty —
+    // the pre-seeded variant never sent "board" and the hub never subscribed
+    // us; caught by the F3 e2e).
+    const subscribed = new Set<string>();
 
     const sendSubscribe = (socket: WebSocket, channel: string): void => {
       if (!subscribed.has(channel)) {

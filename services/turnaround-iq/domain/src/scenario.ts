@@ -38,6 +38,17 @@ export const SCENARIO_CATALOG: readonly ScenarioCatalogEntry[] = [
 
 export type ScenarioStatus = "idle" | "running" | "completed";
 
+/** Outcome of a disruption injection, mirrored for the REST caller (F3). */
+export interface InjectOutcome {
+  requestId: string;
+  disruptionId: string;
+  status: "applied" | "no_target";
+  /** Flight the script hit (null when no active turnaround matched). */
+  flightNo: string | null;
+  /** Wall-clock instant of the attempt (control-plane metadata, not scenario time). */
+  at: string;
+}
+
 /**
  * Scenario state mirrored into Redis (`scenario:state`) so the REST layer can
  * report status without talking to the simulator process directly.
@@ -52,6 +63,8 @@ export interface ScenarioClockState {
   lastWallMs: number | null;
   /** sha256 over the canonical event log (event-log-hash.ts). */
   logHash: string | null;
+  /** Last disruption-injection outcome (F3, additive). */
+  lastInject: InjectOutcome | null;
 }
 
 export function initialScenarioState(scenarioId: string): ScenarioClockState {
@@ -62,6 +75,7 @@ export function initialScenarioState(scenarioId: string): ScenarioClockState {
     scenarioNow: null,
     lastWallMs: null,
     logHash: null,
+    lastInject: null,
   };
 }
 

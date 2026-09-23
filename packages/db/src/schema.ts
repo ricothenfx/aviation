@@ -161,6 +161,10 @@ export const eventProducerEnum = pgEnum("event_producer", [
   "user_action",
 ]);
 
+/** Derived enum unions for typed call sites (replan-engine, REST writers). */
+export type AggregateType = (typeof aggregateTypeEnum.enumValues)[number];
+export type EventProducer = (typeof eventProducerEnum.enumValues)[number];
+
 export const events = pgTable(
   "events",
   {

@@ -24,6 +24,9 @@ export async function loadScenarioState(redis: RedisClientType): Promise<Scenari
     scenarioNow: raw.scenarioNow || null,
     lastWallMs: raw.lastWallMs ? Number(raw.lastWallMs) : null,
     logHash: raw.logHash || null,
+    lastInject: raw.lastInject
+      ? (JSON.parse(raw.lastInject) as ScenarioClockState["lastInject"])
+      : null,
   };
 }
 
@@ -38,6 +41,7 @@ export async function saveScenarioState(
     scenarioNow: state.scenarioNow ?? "",
     lastWallMs: state.lastWallMs === null ? "" : String(state.lastWallMs),
     logHash: state.logHash ?? "",
+    lastInject: state.lastInject ? JSON.stringify(state.lastInject) : "",
   });
 }
 

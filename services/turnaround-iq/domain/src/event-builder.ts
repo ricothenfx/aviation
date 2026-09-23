@@ -6,14 +6,24 @@ import type { ReferenceDay } from "./reference-day";
  * Deterministic event builder (architecture.md §3): given the reference day and a
  * scenario-time horizon, produce exactly the events whose scenario timestamp has
  * passed, honoring per-aggregate watermarks (ADR-0001 idempotency). Pure — the
- * same day + horizon + watermarks always yield byte-identical events.
+ * same day + horizon + watermarks + overrides always yield byte-identical events.
  *
- * Only genuine state changes enter the log (turn.started, task.state_changed in F2;
- * alert and replan events join in F3 from their producers). kpi / scenario.tick /
- * delay_risk are wire-only derived frames, never logged.
+ * Only genuine state changes enter the log (turn.started, task.state_changed in
+ * F2; alert/replan/task.rescheduled events join in F3 from their producers).
+ * kpi / scenario.tick / delay_risk are wire-only derived frames, never logged.
+ *
+ * F3 `overrides`: amended planned windows (disruption cascade, approved replans).
+ * Overridden tasks emit with dynamic sequences (a blocked event may already
+ * occupy sequence 1 or 2) — watermarks keep every emission idempotent.
  */
 
 export type AggregateWatermarks = ReadonlyMap<string, number>;
+
+/** Amended planned window for one task (plannedStart/plannedEnd ISO). */
+export interface PlanOverride {
+  plannedStart: string;
+  plannedEnd: string;
+}
 
 const SCENARIO_TS_PATTERN = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})/;
 
@@ -52,6 +62,7 @@ export function buildEventsUpTo(
   day: ReferenceDay,
   upToScenarioMs: number,
   watermarks: AggregateWatermarks = new Map(),
+  overrides: ReadonlyMap<string, PlanOverride> = new Map(),
 ): DomainEvent[] {
   const events: DomainEvent[] = [];
   const lastOf = (aggregateId: string): number => watermarks.get(aggregateId) ?? 0;
@@ -76,10 +87,58 @@ export function buildEventsUpTo(
     }
 
     // Per-task sequences: 1 = in_progress at plannedStart, 2 = done at plannedEnd.
+    // Overridden tasks (disruption/replan) use watermark-relative sequences so a
+    // blocked event already in the log never collides.
     for (const task of [...flight.tasks].sort((a, b) => a.order - b.order)) {
-      const startMs = Date.parse(task.plannedStart);
-      const endMs = Date.parse(task.plannedEnd);
-      const wm = lastOf(task.id);
+      const override = overrides.get(task.id);
+      const startIso = override?.plannedStart ?? task.plannedStart;
+      const endIso = override?.plannedEnd ?? task.plannedEnd;
+      const startMs = Date.parse(startIso);
+      const endMs = Date.parse(endIso);
+      let wm = lastOf(task.id);
+
+      if (override) {
+        if (wm < 1 && startMs <= upToScenarioMs) {
+          events.push(
+            buildEvent({
+              type: "task.state_changed",
+              occurredAt: startIso,
+              aggregateId: task.id,
+              aggregateType: "task",
+              sequence: wm + 1,
+              payload: {
+                flightId: flight.id,
+                taskId: task.id,
+                state: "in_progress",
+                scenarioTs: wholeSecond(startIso),
+                slaRemainingMin: task.slaMinutes,
+              },
+            }),
+          );
+          wm += 1;
+        }
+        // Done may follow a blocked (wm=1) or running (wm=2) event; cap at 3.
+        if (wm >= 1 && wm < 3 && endMs <= upToScenarioMs) {
+          events.push(
+            buildEvent({
+              type: "task.state_changed",
+              occurredAt: endIso,
+              aggregateId: task.id,
+              aggregateType: "task",
+              sequence: wm + 1,
+              payload: {
+                flightId: flight.id,
+                taskId: task.id,
+                state: "done",
+                scenarioTs: wholeSecond(endIso),
+                slaRemainingMin: 0,
+              },
+            }),
+          );
+        }
+        continue;
+      }
+
       if (startMs <= upToScenarioMs && wm < 1) {
         events.push(
           buildEvent({

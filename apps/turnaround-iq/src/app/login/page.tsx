@@ -41,8 +41,10 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
       if (res.ok) {
+        // replace() only: the board page is dynamic (force-dynamic) so it always
+        // renders fresh server data — refreshing the *login* route here would
+        // re-render /login and race the navigation away from it.
         router.replace("/board");
-        router.refresh();
         return;
       }
       const body: unknown = await res.json().catch(() => null);

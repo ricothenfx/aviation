@@ -68,6 +68,26 @@ export const kpisSchema = z.object({
 });
 export type Kpis = z.infer<typeof kpisSchema>;
 
+/** Replan proposal as exposed over REST (api-contracts.md §1 replans). F3. */
+export const replanSchema = z.object({
+  id: uuid,
+  flightId: uuid,
+  status: z.enum(["proposed", "approved", "rejected"]),
+  delta: z.array(
+    z.object({
+      taskId: uuid,
+      newStart: isoTs,
+      newEnd: isoTs,
+    }),
+  ),
+  totalDelayMin: z.number(),
+  baselineDelayMin: z.number().nullable(),
+  rationale: z.string().min(1),
+  planHash: z.string().nullable(),
+  computedAt: isoTs,
+});
+export type Replan = z.infer<typeof replanSchema>;
+
 /** GET /api/v1/flights/{id} (api-contracts.md §1): flight + tasks + alert lifecycle. */
 export const flightDetailSchema = z.object({
   flight: flightProjectionSchema,

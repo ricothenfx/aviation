@@ -15,18 +15,34 @@ export interface Stack {
   close: () => Promise<void>;
   baseUrl: string;
   resetScenario: () => Promise<void>;
+  /** Session cookie for a seeded user (RBAC matrix + flows). */
+  cookieFor: (email: string, password: string) => Promise<string>;
 }
 
-async function supervisorCookie(baseUrl: string): Promise<string> {
+export const SEED_USERS = {
+  supervisor: { email: "priya.nair@nx-sim.example", password: "supervisor-nx-01" },
+  coordinator: { email: "maya.tan@nx-sim.example", password: "coordinator-nx-01" },
+  viewer: { email: "arif.rahman@nx-sim.example", password: "viewer-nx-01" },
+} as const;
+
+export async function loginCookie(
+  baseUrl: string,
+  email: string,
+  password: string,
+): Promise<string> {
   const res = await fetch(`${baseUrl}/api/v1/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: "priya.nair@nx-sim.example", password: "supervisor-nx-01" }),
+    body: JSON.stringify({ email, password }),
   });
-  if (!res.ok) throw new Error(`supervisor login failed: HTTP ${res.status}`);
+  if (!res.ok) throw new Error(`login failed for ${email}: HTTP ${res.status}`);
   const setCookie = res.headers.get("set-cookie");
   if (!setCookie) throw new Error("login response missing set-cookie");
   return setCookie.split(";")[0] as string;
+}
+
+async function supervisorCookie(baseUrl: string): Promise<string> {
+  return loginCookie(baseUrl, SEED_USERS.supervisor.email, SEED_USERS.supervisor.password);
 }
 
 async function waitIdle(baseUrl: string, cookie: string): Promise<void> {
@@ -62,6 +78,7 @@ export async function openStack(): Promise<Stack> {
       await closeRedis();
       await closeDb();
     },
+    cookieFor: (email: string, password: string) => loginCookie(baseUrl, email, password),
     resetScenario: async () => {
       const res = await fetch(`${baseUrl}/api/v1/scenarios/reference-day/reset`, {
         method: "POST",

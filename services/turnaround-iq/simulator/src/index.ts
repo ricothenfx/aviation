@@ -65,6 +65,9 @@ async function main(): Promise<void> {
           case "reset":
             await engine.reset();
             break;
+          case "inject":
+            await engine.inject(command.disruptionId, command.requestId);
+            break;
         }
       })
       .catch((err: unknown) => {

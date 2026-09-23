@@ -3,6 +3,7 @@ import {
   SCENARIO_CATALOG,
   CHAN_SCENARIO_CONTROL,
   scenarioControlCommandSchema,
+  type DisruptionId,
   type ScenarioControlCommand,
 } from "@aviation/tiq-domain";
 import type { RedisClientType } from "@aviation/db/redis";
@@ -99,4 +100,38 @@ export async function changeSpeed(
     await sleep(POLL_STEP_MS);
   }
   return readScenarioState(redis);
+}
+
+/** Inject outcome as reported by the simulator's clock mirror (F3). */
+export interface InjectOutcomeView {
+  disruptionId: string;
+  status: "applied" | "no_target";
+  flightNo: string | null;
+}
+
+/**
+ * Disruption injection (api-contracts.md §1 POST /scenarios/{id}/inject —
+ * supervisor only): publish the control command, then wait for the simulator to
+ * mirror the outcome under the same request id.
+ */
+export async function injectDisruption(
+  redis: RedisClientType,
+  scenarioId: string,
+  disruptionId: DisruptionId,
+): Promise<InjectOutcomeView> {
+  const requestId = newRequestId();
+  await publishControl(redis, { action: "inject", scenarioId, disruptionId, requestId });
+  const deadline = Date.now() + COMMAND_SETTLE_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    const state = await readScenarioState(redis);
+    if (state.lastInject && state.lastInject.requestId === requestId) {
+      return {
+        disruptionId: state.lastInject.disruptionId,
+        status: state.lastInject.status,
+        flightNo: state.lastInject.flightNo,
+      };
+    }
+    await sleep(POLL_STEP_MS);
+  }
+  throw new Error("simulator did not acknowledge the injection in time");
 }

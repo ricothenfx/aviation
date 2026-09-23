@@ -79,7 +79,8 @@ pnpm lint               # prettier --check + eslint --max-warnings 0
 pnpm typecheck          # tsc --noEmit strict across the workspace
 pnpm test               # vitest unit tests across the workspace (no DB)
 pnpm test:integration   # vitest integration tests (needs compose stack: DATABASE_URL, REDIS_URL, TIQ_BASE_URL)
-pnpm test:e2e           # Playwright end-to-end tests (added in F3)
+pnpm test:e2e           # Playwright end-to-end tests (needs compose stack; added in F3)
+pnpm bench:replan       # loader-breakdown replan benchmark: 47 → ≤ 9 min, < 2 s (pure, no stack)
 pnpm seed               # apply migrations + reference day + upsert seeded demo users (turnaround-iq)
 pnpm db:generate        # drizzle-kit generate migration SQL from packages/db schema
 pnpm db:migrate         # apply pending migrations

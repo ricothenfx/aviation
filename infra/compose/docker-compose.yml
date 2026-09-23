@@ -168,6 +168,50 @@ services:
       retries: 24
       start_period: 180s
 
+  # Replan engine (architecture.md §2, F3): risk rules + constraint scheduler as
+  # an event-tailing worker. Decisions read PostgreSQL only; REST talks to it via
+  # the chan:replan:control channel + result keys.
+  replan-engine:
+    image: node:22-bookworm-slim
+    profiles: ["turnaround"]
+    working_dir: /repo
+    command: >-
+      sh -c "corepack enable &&
+             pnpm install --frozen-lockfile &&
+             pnpm --filter @aviation/tiq-replan-engine dev"
+    environment:
+      DATABASE_URL: postgresql://turnaround:turnaround@postgres:5432/turnaround_iq
+      REDIS_URL: redis://redis:6379
+      LOG_LEVEL: info
+      REPLAN_ENGINE_PORT: "4102"
+      REPLAN_POLL_MS: "300"
+    ports:
+      - "127.0.0.1:4102:4102"
+    volumes:
+      - ../..:/repo
+      - replan_node_modules:/repo/node_modules
+      - replan_pkg_node_modules:/repo/services/turnaround-iq/replan-engine/node_modules
+      - replan_domain_node_modules:/repo/services/turnaround-iq/domain/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4102/healthz').then((r)=>{if(!r.ok)throw new Error('unhealthy')}).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 24
+      start_period: 180s
+
 volumes:
   pgdata_turnaround:
   web_node_modules:
@@ -178,3 +222,6 @@ volumes:
   gateway_node_modules:
   gateway_pkg_node_modules:
   gateway_domain_node_modules:
+  replan_node_modules:
+  replan_pkg_node_modules:
+  replan_domain_node_modules:

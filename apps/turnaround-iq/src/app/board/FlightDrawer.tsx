@@ -6,8 +6,10 @@ import {
   cursorPageSchema,
   domainEventSchema,
   flightDetailSchema,
+  replanSchema,
   type FlightDetail,
   type FlightProjection,
+  type Replan,
 } from "@aviation/contracts";
 import { Button, EmptyState, Skeleton, StatusBadge } from "@aviation/ui";
 
@@ -57,10 +59,12 @@ function fmtTime(iso: string): string {
 export function FlightDrawer({
   flight,
   scenarioTs,
+  userRole,
   onClose,
 }: {
   flight: FlightProjection;
   scenarioTs: string | null;
+  userRole: string;
   onClose: () => void;
 }) {
   const [alerts, setAlerts] = useState<FlightDetail["alerts"] | null>(null);
@@ -68,6 +72,7 @@ export function FlightDrawer({
     null,
   );
   const [eventsError, setEventsError] = useState(false);
+  const canReplan = userRole !== "viewer";
 
   const loadHistory = useCallback(async () => {
     setEventsError(false);
@@ -250,17 +255,163 @@ export function FlightDrawer({
                     {alert.state}
                   </StatusBadge>
                   <span className="font-mono text-fg">{alert.ruleId}</span>
+                  {alert.leadTimeMin !== null ? (
+                    <span className="text-muted">+{alert.leadTimeMin} min lead</span>
+                  ) : null}
                 </li>
               ))}
             </ul>
           ) : (
             <EmptyState
               title="No active alerts"
-              body="Risk rules raise alerts ≥ 10 min before projected SLA breaches — arriving with F3."
+              body="Risk rules raise alerts ≥ 10 min before projected SLA breaches (PRD F-3)."
             />
           )}
         </section>
+
+        {canReplan ? (
+          <ReplanPanel flightId={flight.id} onApplied={() => void loadHistory()} />
+        ) : null}
       </div>
     </aside>
+  );
+}
+
+/**
+ * One-click replan (PRD F-4, human-in-the-loop): propose via the constraint
+ * engine, show the delta + honest delay math, approve/reject. The engine decides
+ * the schedule; the LLM copilot explanation arrives with F4 (ADR-0003).
+ */
+function ReplanPanel({ flightId, onApplied }: { flightId: string; onApplied: () => void }) {
+  const [replan, setReplan] = useState<Replan | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function propose() {
+    setBusy(true);
+    setError(null);
+    setReplan(null);
+    try {
+      const res = await fetch(`/api/v1/flights/${flightId}/replan`, { method: "POST" });
+      const body: unknown = await res.json();
+      if (!res.ok) {
+        const err =
+          body && typeof body === "object" && "error" in body
+            ? (body as { error: { code: string; message: string } }).error
+            : null;
+        setError(err ? `${err.code}: ${err.message}` : `HTTP ${res.status}`);
+        return;
+      }
+      setReplan(replanSchema.parse((body as { replan: unknown }).replan));
+    } catch {
+      setError("replan request failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function decide(kind: "approve" | "reject") {
+    if (!replan) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/v1/replans/${replan.id}/${kind}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body:
+          kind === "approve" ? undefined : JSON.stringify({ reason: "rejected from board drawer" }),
+      });
+      if (!res.ok) {
+        const body: unknown = await res.json().catch(() => null);
+        const err =
+          body && typeof body === "object" && "error" in body
+            ? (body as { error: { message: string } }).error
+            : null;
+        setError(err?.message ?? `HTTP ${res.status}`);
+        return;
+      }
+      setReplan({ ...replan, status: kind === "approve" ? "approved" : "rejected" });
+      onApplied();
+    } catch {
+      setError("decision request failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section aria-label="Replan">
+      <div className="mb-2 flex items-center justify-between">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted">
+          Replan (constraint engine)
+        </h3>
+        {replan === null || replan.status !== "proposed" ? (
+          <Button variant="ghost" size="sm" disabled={busy} onClick={() => void propose()}>
+            Propose plan
+          </Button>
+        ) : null}
+      </div>
+      {error ? (
+        <p
+          role="alert"
+          className="rounded-md border border-danger/40 bg-surface px-2.5 py-2 text-xs text-danger"
+        >
+          {error}
+        </p>
+      ) : null}
+      {replan === null ? (
+        <p className="text-xs text-muted">
+          Re-sequences remaining tasks under dependencies, unit availability, fueling/boarding
+          safety and the stand deadline. Nothing applies without your approval.
+        </p>
+      ) : (
+        <div className="space-y-2 rounded-md border border-border bg-surface px-2.5 py-2">
+          <div className="flex items-center gap-2">
+            <StatusBadge
+              tone={
+                replan.status === "approved"
+                  ? "ok"
+                  : replan.status === "rejected"
+                    ? "muted"
+                    : "warn"
+              }
+            >
+              {replan.status}
+            </StatusBadge>
+            <span className="font-mono text-xs text-fg">{replan.totalDelayMin} min delay</span>
+            {replan.baselineDelayMin !== null ? (
+              <span className="text-xs text-muted">vs {replan.baselineDelayMin} unmanaged</span>
+            ) : null}
+            <span className="ml-auto text-[11px] text-muted">
+              {replan.delta.length} task{replan.delta.length === 1 ? "" : "s"} moved
+            </span>
+          </div>
+          <p className="text-xs text-muted">{replan.rationale}</p>
+          <ul className="space-y-0.5 font-mono text-[11px] text-fg">
+            {replan.delta.map((item) => (
+              <li key={item.taskId}>
+                move {item.taskId.slice(0, 8)} → {item.newStart.slice(11, 16)}–
+                {item.newEnd.slice(11, 16)}Z
+              </li>
+            ))}
+          </ul>
+          {replan.status === "proposed" ? (
+            <div className="flex gap-2 pt-1">
+              <Button size="sm" disabled={busy} onClick={() => void decide("approve")}>
+                Approve
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                disabled={busy}
+                onClick={() => void decide("reject")}
+              >
+                Reject
+              </Button>
+            </div>
+          ) : null}
+        </div>
+      )}
+    </section>
   );
 }

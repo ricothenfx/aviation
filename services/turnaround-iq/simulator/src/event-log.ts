@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { and, eq, gt, sql } from "drizzle-orm";
 
 import type { Db } from "@aviation/db/client";
 import { events } from "@aviation/db/schema";
@@ -49,6 +49,38 @@ export async function loadWatermarks(db: Db): Promise<Map<string, number>> {
   return new Map(rows.map((row) => [row.aggregateId, row.last]));
 }
 
+/** Events after a log position, optionally filtered by type (tail polling). */
+export async function readEventsAfterSeq(
+  db: Db,
+  afterSeq: number,
+  limit: number,
+  type?: string,
+): Promise<Array<DomainEvent & { seq: number }>> {
+  const conditions = [];
+  if (type) conditions.push(eq(events.type, type));
+  conditions.push(gt(events.seq, afterSeq));
+  const rows = await db
+    .select()
+    .from(events)
+    .where(and(...conditions))
+    .orderBy(events.seq)
+    .limit(limit);
+  return rows.map(toDomainEvent);
+}
+
+function toDomainEvent(row: typeof events.$inferSelect): DomainEvent & { seq: number } {
+  return {
+    seq: Number(row.seq),
+    id: row.id,
+    type: row.type as DomainEvent["type"],
+    occurredAt: row.occurredAt.toISOString(),
+    aggregateId: row.aggregateId,
+    aggregateType: row.aggregateType,
+    sequence: row.sequence,
+    payload: row.payload,
+  };
+}
+
 /** Full log in seq order — the replay source of truth (architecture.md §4). */
 export async function readAllEvents(db: Db): Promise<Array<DomainEvent & { seq: number }>> {
   const rows = await db.select().from(events).orderBy(events.seq);
@@ -71,11 +103,14 @@ export async function truncateEventLog(db: Db): Promise<void> {
 
 /**
  * Scenario reset also rewinds the PG projection columns (data-model.md §2) to
- * their seeded defaults. This is an operator action behind the supervisor-only
- * reset endpoint — runtime projection writes stay inside the event handler
- * (ADR-0001).
+ * their seeded defaults. Alerts + replan_scenarios are event-derived projections
+ * too (F3), so they truncate with the log. This is an operator action behind the
+ * supervisor-only reset endpoint — runtime projection writes stay inside the
+ * event handler (ADR-0001).
  */
 export async function resetProjectionColumns(db: Db): Promise<void> {
   await db.execute(sql`update flights set status = 'scheduled', est_off_block = null`);
   await db.execute(sql`update ground_tasks set state = 'pending'`);
+  await db.execute(sql`truncate table alerts`);
+  await db.execute(sql`truncate table replan_scenarios`);
 }

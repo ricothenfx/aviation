@@ -72,6 +72,81 @@ export function mergeFrameIntoSnapshot(snapshot: BoardSnapshot, frame: WsFrame):
         return displayStatus({ ...flight, tasks, estOffBlock, status, delayedMin });
       });
     }
+    case "task.rescheduled": {
+      // Approved replan (architecture.md §3 step 5): shift the planned window so
+      // the Gantt shows the new schedule, and recompute the projected off-block.
+      const payload = frame.payload as {
+        flightId?: string;
+        taskId?: string;
+        newStart?: string;
+        newEnd?: string;
+      };
+      if (!payload.flightId || !payload.taskId || !payload.newStart || !payload.newEnd)
+        return snapshot;
+      return updateFlight(snapshot, payload.flightId, (flight) => {
+        const tasks = flight.tasks.map((task) =>
+          task.id === payload.taskId
+            ? {
+                ...task,
+                plannedStart: payload.newStart as string,
+                plannedEnd: payload.newEnd as string,
+              }
+            : task,
+        );
+        const pushback = tasks.find((task) => task.type === PUSHBACK_TASK_TYPE);
+        let estOffBlock = flight.estOffBlock;
+        let delayedMin = flight.delayedMin;
+        if (pushback && pushback.state !== "done") {
+          estOffBlock = pushback.plannedEnd;
+          delayedMin = Math.max(0, minutesBetween(flight.schedOffBlock, estOffBlock));
+        }
+        return displayStatus({ ...flight, tasks, estOffBlock, delayedMin });
+      });
+    }
+    case "alert.raised": {
+      const payload = frame.payload as {
+        alertId?: string;
+        flightId?: string;
+        ruleId?: string;
+        severity?: "info" | "warning" | "critical";
+        leadTimeMin?: number | null;
+      };
+      if (!payload.alertId || !payload.flightId || !payload.ruleId || !payload.severity)
+        return snapshot;
+      const alert: BoardSnapshot["alerts"][number] = {
+        id: payload.alertId,
+        flightId: payload.flightId,
+        ruleId: payload.ruleId,
+        severity: payload.severity,
+        state: "raised",
+        raisedAt: frame.ts,
+        leadTimeMin: payload.leadTimeMin ?? null,
+      };
+      return {
+        ...snapshot,
+        alerts: [alert, ...snapshot.alerts.filter((entry) => entry.id !== alert.id)],
+      };
+    }
+    case "alert.acknowledged":
+    case "alert.resolved": {
+      const payload = frame.payload as { alertId?: string };
+      if (!payload.alertId) return snapshot;
+      const state = frame.type === "alert.acknowledged" ? "acknowledged" : "resolved";
+      return {
+        ...snapshot,
+        alerts: snapshot.alerts.map((alert) =>
+          alert.id === payload.alertId ? { ...alert, state } : alert,
+        ),
+      };
+    }
+    case "replan.proposed":
+    case "replan.approved":
+    case "replan.rejected": {
+      // Proposal cards arrive via the drawer's own REST reads (F4 polish);
+      // the board snapshot itself only shifts when the plan is applied, which
+      // flows in as task.rescheduled frames.
+      return snapshot;
+    }
     case "flight.delay_risk": {
       const payload = frame.payload as {
         flightId?: string;

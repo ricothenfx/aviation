@@ -17,6 +17,8 @@ export default [
       "**/coverage/**",
       "**/next-env.d.ts",
       "**/drizzle/**",
+      // Agent Manager / kilo worktrees carry a full repo copy — never lint those.
+      "**/.kilo/**",
     ],
   },
   ...tseslint.configs.recommended,

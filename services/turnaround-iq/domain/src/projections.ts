@@ -7,8 +7,11 @@ import {
   type FlightDelayRiskPayload,
   type FlightStatus,
   type KpiUpdatedPayload,
+  type ReplanApprovedPayload,
   type ReplanProposedPayload,
+  type ReplanRejectedPayload,
   type ScenarioTickPayload,
+  type TaskRescheduledPayload,
   type TaskStateChangedPayload,
   type TurnStartedPayload,
 } from "@aviation/contracts";
@@ -68,12 +71,18 @@ export interface Kpis {
   delayMinutesSaved: number;
 }
 
+/** Replan proposal tracked in the projection (F3 lifecycle proposed|approved|rejected). */
+export interface ReplanProjection {
+  payload: ReplanProposedPayload;
+  status: "proposed" | "approved" | "rejected";
+}
+
 export interface BoardProjectionState {
   scenarioTs: string | null;
   scenarioSpeed: number | null;
   flights: Map<string, FlightProjection>;
   alerts: Map<string, AlertProjection>;
-  replans: Map<string, ReplanProposedPayload>;
+  replans: Map<string, ReplanProjection>;
   kpis: Kpis | null;
 }
 
@@ -138,6 +147,19 @@ function displayStatus(flight: FlightProjection): FlightStatus {
   if (flight.status === "off_block") return "off_block";
   if (flight.delayedMin > 0) return "delayed";
   return flight.status;
+}
+
+/**
+ * After an approved replan moves remaining tasks, the projected off-block is the
+ * (possibly shifted) pushback planned end — unless the aircraft already left.
+ */
+function refreshProjectedDeparture(flight: FlightProjection): void {
+  if (flight.status === "off_block") return;
+  const pushback = flight.tasks.find((task) => task.type === PUSHBACK_TASK_TYPE);
+  if (!pushback || pushback.state === "done") return;
+  flight.estOffBlock = pushback.plannedEnd;
+  flight.delayedMin = Math.max(0, minutesBetween(flight.schedOffBlock, flight.estOffBlock));
+  flight.status = displayStatus(flight);
 }
 
 /**
@@ -211,9 +233,29 @@ export function applyEvent<K extends EventType>(
       });
       break;
     }
+    case "task.rescheduled": {
+      const payload = event.payload as TaskRescheduledPayload;
+      const flight = state.flights.get(payload.flightId);
+      const task = flight?.tasks.find((t) => t.id === payload.taskId);
+      if (flight && task && task.state !== "done") {
+        task.plannedStart = payload.newStart;
+        task.plannedEnd = payload.newEnd;
+        refreshProjectedDeparture(flight);
+      }
+      break;
+    }
     case "replan.proposed": {
       const payload = event.payload as ReplanProposedPayload;
-      state.replans.set(payload.replanId, payload);
+      state.replans.set(payload.replanId, { payload, status: "proposed" });
+      break;
+    }
+    case "replan.approved":
+    case "replan.rejected": {
+      const payload = event.payload as ReplanApprovedPayload | ReplanRejectedPayload;
+      const existing = state.replans.get(payload.replanId);
+      if (existing) {
+        existing.status = event.type === "replan.approved" ? "approved" : "rejected";
+      }
       break;
     }
     case "kpi.updated": {
@@ -256,7 +298,9 @@ export function applyRawEvent(
  * - onTimeDepPct: share of off-block flights that left on time (delayedMin == 0).
  * - avgTurnMin: mean actual turn (estOffBlock − schedInBlock) of off-block flights.
  * - activeAlerts: alerts in raised/acknowledged state.
- * - delayMinutesSaved: replan-attributed minutes — always 0 until F3 replans run.
+ * - delayMinutesSaved: Σ over APPROVED replans of (baseline − applied) — the
+ *   departure slip the do-nothing trajectory would have produced minus the slip
+ *   the approved plan applies. Zero until F3 replans are approved.
  */
 export function deriveKpis(state: BoardProjectionState): Kpis {
   let departed = 0;
@@ -272,11 +316,17 @@ export function deriveKpis(state: BoardProjectionState): Kpis {
   for (const alert of state.alerts.values()) {
     if (alert.state !== "resolved") activeAlerts += 1;
   }
+  let delayMinutesSaved = 0;
+  for (const replan of state.replans.values()) {
+    if (replan.status !== "approved") continue;
+    const baseline = replan.payload.baselineDelayMin ?? replan.payload.totalDelayMin;
+    delayMinutesSaved += Math.max(0, baseline - replan.payload.totalDelayMin);
+  }
   return {
     onTimeDepPct: departed === 0 ? 0 : Math.round((onTime / departed) * 1000) / 10,
     avgTurnMin: departed === 0 ? 0 : Math.round((turnTotalMin / departed) * 10) / 10,
     activeAlerts,
-    delayMinutesSaved: 0,
+    delayMinutesSaved,
   };
 }
 

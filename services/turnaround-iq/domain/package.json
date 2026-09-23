@@ -11,7 +11,8 @@
   "types": "./src/index.ts",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "bench:replan": "tsx src/replan-bench-cli.ts"
   },
   "dependencies": {
     "@aviation/contracts": "workspace:*",

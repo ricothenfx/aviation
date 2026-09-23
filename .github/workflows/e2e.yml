@@ -1,0 +1,58 @@
+# E2E pipeline (milestones.md §F3 DoD): Playwright drives the full command
+# center against the compose stack — seed → inject disruption → alert → replan →
+# approve → board reflects the new schedule.
+name: e2e
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+      - ".gitignore"
+  pull_request:
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+      - ".gitignore"
+
+jobs:
+  playwright:
+    name: playwright (command board e2e)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Boot the turnaround stack (postgres + redis + web + simulator + gateway + replan-engine)
+        run: docker compose --profile turnaround up -d --wait --wait-timeout 420
+
+      - name: Install Playwright browsers
+        run: pnpm --filter turnaround-iq exec playwright install --with-deps chromium
+
+      - name: Run e2e (seed → inject → alert → replan → approve → board)
+        env:
+          TIQ_E2E_BASE_URL: http://localhost:3001
+        run: pnpm test:e2e
+
+      - name: Upload traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: apps/turnaround-iq/test-results/
+          retention-days: 7
+
+      - name: Teardown
+        if: always()
+        run: docker compose --profile turnaround down -v --remove-orphans

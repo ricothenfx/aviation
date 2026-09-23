@@ -277,9 +277,37 @@ export function BoardShell({ user }: { user: { displayName: string; role: string
           </Panel>
           <Panel title="Alerts" className="min-h-[140px]">
             <div aria-live="polite" className="h-full">
-              <EmptyState
-                title="No active alerts"
-                body="Risk rules raise alerts ≥ 10 min before projected SLA breaches (F3). The lifecycle (raised → acknowledged → resolved) will live here."
+              <AlertsRail
+                alerts={snapshot?.alerts ?? []}
+                flights={snapshot?.flights ?? []}
+                canAct={user.role !== "viewer"}
+                onAct={async (alertId, kind) => {
+                  const res = await fetch(`/api/v1/alerts/${alertId}/${kind}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body:
+                      kind === "resolve"
+                        ? JSON.stringify({ note: "resolved from board" })
+                        : undefined,
+                  });
+                  if (res.ok) {
+                    setSnapshot((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            alerts: prev.alerts.map((alert) =>
+                              alert.id === alertId
+                                ? {
+                                    ...alert,
+                                    state: kind === "acknowledge" ? "acknowledged" : "resolved",
+                                  }
+                                : alert,
+                            ),
+                          }
+                        : prev,
+                    );
+                  }
+                }}
               />
             </div>
           </Panel>
@@ -290,10 +318,98 @@ export function BoardShell({ user }: { user: { displayName: string; role: string
         <FlightDrawer
           flight={selectedFlight}
           scenarioTs={snapshot.scenarioTs}
+          userRole={user.role}
           onClose={() => setSelectedFlightId(null)}
         />
       ) : null}
     </div>
+  );
+}
+
+type RailAlert = BoardSnapshot["alerts"][number];
+
+/** Alert lifecycle rail (PRD F-3): severity, rule, lead time + ack/resolve. */
+function AlertsRail({
+  alerts,
+  flights,
+  canAct,
+  onAct,
+}: {
+  alerts: RailAlert[];
+  flights: BoardSnapshot["flights"];
+  canAct: boolean;
+  onAct: (alertId: string, kind: "acknowledge" | "resolve") => Promise<void>;
+}) {
+  const [busy, setBusy] = useState<string | null>(null);
+  if (alerts.length === 0) {
+    return (
+      <EmptyState
+        title="No active alerts"
+        body="Risk rules raise alerts ≥ 10 min before projected SLA breaches (PRD F-3). Inject a disruption to see the engine work."
+      />
+    );
+  }
+  const flightNoById = new Map(flights.map((flight) => [flight.id, flight.flightNo]));
+  return (
+    <ul className="space-y-1.5">
+      {alerts.map((alert) => (
+        <li
+          key={alert.id}
+          className="flex items-center justify-between gap-2 rounded-md border border-border bg-surface px-2.5 py-1.5"
+        >
+          <div className="flex min-w-0 items-center gap-2">
+            <StatusBadge
+              tone={
+                alert.severity === "critical"
+                  ? "danger"
+                  : alert.severity === "warning"
+                    ? "warn"
+                    : "info"
+              }
+            >
+              {alert.state}
+            </StatusBadge>
+            <div className="min-w-0">
+              <p className="truncate font-mono text-xs text-fg">{alert.ruleId}</p>
+              <p className="truncate text-[11px] text-muted">
+                {flightNoById.get(alert.flightId) ?? "flight"}
+                {alert.leadTimeMin !== null ? ` · leads breach by ${alert.leadTimeMin} min` : ""}
+              </p>
+            </div>
+          </div>
+          {canAct ? (
+            <div className="flex shrink-0 gap-1">
+              {alert.state === "raised" ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={busy !== null}
+                  onClick={() => {
+                    setBusy(alert.id);
+                    void onAct(alert.id, "acknowledge").finally(() => setBusy(null));
+                  }}
+                >
+                  Ack
+                </Button>
+              ) : null}
+              {alert.state !== "resolved" ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={busy !== null}
+                  onClick={() => {
+                    setBusy(alert.id);
+                    void onAct(alert.id, "resolve").finally(() => setBusy(null));
+                  }}
+                >
+                  Resolve
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
+        </li>
+      ))}
+    </ul>
   );
 }
 

@@ -20,3 +20,7 @@ coverage/
 
 # os
 .DS_Store
+
+# Playwright artifacts (F3 e2e)
+apps/turnaround-iq/test-results/
+apps/turnaround-iq/playwright-report/

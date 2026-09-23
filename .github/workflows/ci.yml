@@ -96,6 +96,10 @@ jobs:
           TIQ_WS_URL: ws://localhost:4001/api/ws
         run: node scripts/benchmarks/board-latency.mjs
 
+      # Milestone F3 DoD: loader-breakdown replan 47 → ≤ 9 min, computation < 2 s.
+      - name: Replan benchmark (loader breakdown, 47 → ≤ 9 min in < 2 s)
+        run: node scripts/benchmarks/replan-delay.mjs
+
       - name: Teardown
         if: always()
         run: docker compose --profile turnaround down -v --remove-orphans

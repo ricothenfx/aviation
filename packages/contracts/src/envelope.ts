@@ -4,14 +4,24 @@ import { z } from "zod";
  * Event vocabulary shared by the event log (ADR-0001), the realtime gateway and the UI.
  * Sources: api-contracts.md §3, data-model.md §1 (event_log.type).
  */
+/**
+ * F3 extends the vocabulary ADDITIVELY (never in-place mutation, api-contracts.md §3):
+ * - `task.rescheduled` — emitted by the replan engine when an approved plan moves
+ *   remaining tasks (architecture.md §3 step 5: "simulator adopts new schedule").
+ * - `replan.approved` / `replan.rejected` — the human-in-the-loop decision trail
+ *   (architecture.md §3, data-model.md §2 replan lifecycle proposed|approved|rejected).
+ */
 export const EVENT_TYPES = [
   "turn.started",
   "task.state_changed",
+  "task.rescheduled",
   "flight.delay_risk",
   "alert.raised",
   "alert.acknowledged",
   "alert.resolved",
   "replan.proposed",
+  "replan.approved",
+  "replan.rejected",
   "kpi.updated",
   "scenario.tick",
 ] as const;

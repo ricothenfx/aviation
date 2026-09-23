@@ -26,7 +26,11 @@ import {
   WS_CHANNEL_BOARD,
   wsChanFlight,
 } from "./frames";
-import { persistProjectionToPg } from "./pg-projections";
+import {
+  persistAlertEventToPg,
+  persistProjectionToPg,
+  persistReplanEventToPg,
+} from "./pg-projections";
 import type { Logger } from "./logger";
 import {
   clearWatermarks,
@@ -214,7 +218,38 @@ export class ProjectionWorker {
     this.deps.broadcast([WS_CHANNEL_BOARD], frames[0]);
     if (frames[1]) this.deps.broadcast([wsChanFlight(taskFlightId(event))], frames[1]);
 
-    void this.persistAffected(event.aggregateId, ts);
+    void this.persistForEvent(event, ts);
+  }
+
+  /**
+   * Persist the applied event: alert/replan lifecycle rows for their aggregates,
+   * flight/task projections (incl. approved-replan planned shifts) otherwise.
+   */
+  private async persistForEvent(event: DomainEvent, ts: string): Promise<void> {
+    try {
+      if (event.type.startsWith("alert.")) {
+        await persistAlertEventToPg(
+          this.deps.db,
+          event as Parameters<typeof persistAlertEventToPg>[1],
+        );
+        return;
+      }
+      if (event.type.startsWith("replan.")) {
+        await persistReplanEventToPg(
+          this.deps.db,
+          event as Parameters<typeof persistReplanEventToPg>[1],
+        );
+        return;
+      }
+    } catch (err) {
+      this.deps.logger.error({
+        msg: "pg lifecycle projection failed",
+        eventId: event.id,
+        err: err instanceof Error ? err.message : String(err),
+      });
+      return;
+    }
+    await this.persistAffected(event.aggregateId, ts);
   }
 
   /** Persist the affected flight projection + derived KPIs to Redis and PG. */
@@ -293,6 +328,7 @@ async function readScenarioState(redis: RedisClientType): Promise<ScenarioClockS
       scenarioNow: null,
       lastWallMs: null,
       logHash: null,
+      lastInject: null,
     };
   }
   return {
@@ -302,6 +338,9 @@ async function readScenarioState(redis: RedisClientType): Promise<ScenarioClockS
     scenarioNow: raw.scenarioNow || null,
     lastWallMs: raw.lastWallMs ? Number(raw.lastWallMs) : null,
     logHash: raw.logHash || null,
+    lastInject: raw.lastInject
+      ? (JSON.parse(raw.lastInject) as ScenarioClockState["lastInject"])
+      : null,
   };
 }
 

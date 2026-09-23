@@ -13,15 +13,19 @@ import {
   KEY_PROJ_BOARD_SUMMARY,
   KEY_SCENARIO_STATE,
   projFlightKey,
+  type InjectOutcome,
   type ScenarioClockState,
 } from "@aviation/tiq-domain";
 import type { RedisClientType } from "@aviation/db/redis";
+
+import { listActiveAlerts } from "@/lib/data/alerts";
 
 /**
  * Board read path (api-contracts.md §1 GET /api/v1/board): live projections come
  * from Redis (data-model.md §3); when no scenario has run yet, the planned day is
  * served from the PostgreSQL seed baseline. WS is the primary transport — this
- * endpoint is the REST fallback + initial snapshot.
+ * endpoint is the REST fallback + initial snapshot. F3 adds the active alerts
+ * for the board rail (event-derived `alerts` projection rows).
  */
 
 export async function readScenarioState(redis: RedisClientType): Promise<ScenarioClockState> {
@@ -34,6 +38,7 @@ export async function readScenarioState(redis: RedisClientType): Promise<Scenari
       scenarioNow: null,
       lastWallMs: null,
       logHash: null,
+      lastInject: null,
     };
   }
   return {
@@ -43,6 +48,7 @@ export async function readScenarioState(redis: RedisClientType): Promise<Scenari
     scenarioNow: raw.scenarioNow || null,
     lastWallMs: raw.lastWallMs ? Number(raw.lastWallMs) : null,
     logHash: raw.logHash || null,
+    lastInject: raw.lastInject ? (JSON.parse(raw.lastInject) as InjectOutcome) : null,
   };
 }
 
@@ -79,12 +85,15 @@ export async function getBoardSnapshot(db: Db, redis: RedisClientType): Promise<
     if (parsed.success) kpis = parsed.data;
   }
 
+  const alerts = await listActiveAlerts(db);
+
   return boardSnapshotSchema.parse({
     generatedAt: new Date().toISOString(),
     scenarioTs: scenario.scenarioNow,
     live: scenario.status === "running",
     flights: flightProjections,
     kpis,
+    alerts,
   });
 }
 
