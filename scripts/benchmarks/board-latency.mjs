@@ -79,18 +79,23 @@ let waitLogged = 0;
 let lastLogAt = benchStart;
 
 ws.onmessage = (event) => {
-  let frame;
+  let parsed;
   try {
-    frame = JSON.parse(event.data);
+    parsed = JSON.parse(event.data);
   } catch {
     return;
   }
-  if (!frame.ts || !frame.lastEventId) return; // derived frames carry ts but no event id — still measurable
-  const arrival = Date.now();
-  const processedAt = Date.parse(frame.ts);
-  if (Number.isNaN(processedAt)) return;
-  if (latencies.length < SAMPLES) {
-    latencies.push(Math.max(0, arrival - processedAt));
+  // ADR-0008: a flush with multiple frames arrives wrapped in board.batch —
+  // each inner frame keeps its own ts/lastEventId.
+  const frames = parsed.type === "board.batch" ? parsed.payload.frames : [parsed];
+  for (const frame of frames) {
+    if (!frame.ts || !frame.lastEventId) return; // derived frames carry ts but no event id — still measurable
+    const arrival = Date.now();
+    const processedAt = Date.parse(frame.ts);
+    if (Number.isNaN(processedAt)) return;
+    if (latencies.length < SAMPLES) {
+      latencies.push(Math.max(0, arrival - processedAt));
+    }
   }
   const now = Date.now();
   if (latencies.length === 0 && now - lastLogAt > 15000) {
