@@ -1,0 +1,7 @@
+# mro-copilot ai-service runtime dependencies (ADR-0012).
+# Pinned exactly — the compose service and CI install this file verbatim.
+fastapi==0.115.13
+uvicorn==0.34.2
+pydantic==2.10.6
+psycopg[binary]==3.2.9
+prometheus-client==0.21.1
