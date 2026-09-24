@@ -96,3 +96,4 @@ re-verification.
 1. Milestone report: what shipped, DoD checklist with evidence links, doc sections relied upon (AGENTS.md §3).
 2. Deviations: any spec mismatch found → STOP, report, propose doc fix. Docs win over code until the user says otherwise.
 3. Next milestone starts only on the user's go.
+4. Commit and push every completed step/milestone to `origin/main` (conventional commits, `mro` scope) — standing user instruction 2026-09-24.
