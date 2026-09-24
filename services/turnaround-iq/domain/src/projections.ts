@@ -65,8 +65,9 @@ export interface AlertProjection {
 }
 
 export interface Kpis {
-  onTimeDepPct: number;
-  avgTurnMin: number;
+  /** null until the first off-block turn — 0% would falsely read as "all late". */
+  onTimeDepPct: number | null;
+  avgTurnMin: number | null;
   activeAlerts: number;
   delayMinutesSaved: number;
 }
@@ -297,6 +298,8 @@ export function applyRawEvent(
  * KPI derivation (PRD F-6: honest definitions, counts derived from projections).
  * - onTimeDepPct: share of off-block flights that left on time (delayedMin == 0).
  * - avgTurnMin: mean actual turn (estOffBlock − schedInBlock) of off-block flights.
+ * - Both are null while no flight has departed: 0% / 0 min would present
+ *   "no data yet" as a (bad) measurement (PRD F-6 honesty).
  * - activeAlerts: alerts in raised/acknowledged state.
  * - delayMinutesSaved: Σ over APPROVED replans of (baseline − applied) — the
  *   departure slip the do-nothing trajectory would have produced minus the slip
@@ -323,8 +326,8 @@ export function deriveKpis(state: BoardProjectionState): Kpis {
     delayMinutesSaved += Math.max(0, baseline - replan.payload.totalDelayMin);
   }
   return {
-    onTimeDepPct: departed === 0 ? 0 : Math.round((onTime / departed) * 1000) / 10,
-    avgTurnMin: departed === 0 ? 0 : Math.round((turnTotalMin / departed) * 10) / 10,
+    onTimeDepPct: departed === 0 ? null : Math.round((onTime / departed) * 1000) / 10,
+    avgTurnMin: departed === 0 ? null : Math.round((turnTotalMin / departed) * 10) / 10,
     activeAlerts,
     delayMinutesSaved,
   };

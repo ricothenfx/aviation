@@ -76,8 +76,8 @@ export async function getBoardSnapshot(db: Db, redis: RedisClientType): Promise<
   if (summaryRaw.kpis) {
     const parsed = z
       .object({
-        onTimeDepPct: z.number(),
-        avgTurnMin: z.number(),
+        onTimeDepPct: z.number().nullable(),
+        avgTurnMin: z.number().nullable(),
         activeAlerts: z.number().int(),
         delayMinutesSaved: z.number(),
       })

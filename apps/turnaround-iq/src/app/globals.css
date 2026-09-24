@@ -59,42 +59,168 @@
   font-family: var(--font-mono);
 }
 
+/*
+ * Bars (ui-design-system.md §2/§6): status colors are token-derived and shared
+ * by the Gantt bars AND the legend swatches (§2: color never stands alone —
+ * every chip is labeled in the legend). Depth comes from token color-mixes,
+ * never raw hex.
+ */
 .tiq-timeline .vis-item {
   border-color: var(--color-border);
   color: #06121f;
   font-family: var(--font-mono);
   font-size: 11px;
+  box-shadow: inset 0 1px 0 color-mix(in oklab, white 22%, transparent);
+  transition:
+    background-color 200ms ease-out,
+    border-color 200ms ease-out,
+    box-shadow 200ms ease-out;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  /* New items enter with fade+slide (§6); existing DOM nodes are reused by
+   * vis-data on delta updates, so only genuinely new flights animate. */
+  .tiq-timeline .vis-item {
+    animation: tiq-item-in 180ms ease-out;
+  }
+}
+
+@keyframes tiq-item-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Selection keeps the status fill visible and adds an accent ring + soft glow
+ * instead of overwriting the bar with the accent color. */
 .tiq-timeline .vis-item.vis-selected {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 1px var(--color-accent);
-  background-color: var(--color-accent);
-  color: #06121f;
+  animation: none;
+  box-shadow:
+    0 0 0 2px var(--color-accent),
+    0 0 12px color-mix(in oklab, var(--color-accent) 35%, transparent);
   z-index: 2;
 }
 
-.tiq-timeline .vis-item.tiq-item-scheduled {
+.tiq-timeline .vis-item.tiq-item-scheduled,
+.tiq-item-scheduled {
   background-color: color-mix(in oklab, var(--color-muted) 55%, var(--color-surface));
   border-color: var(--color-muted);
 }
 
+/* In block: arrival handled, dimmer cyan. */
 .tiq-timeline .vis-item.tiq-item-inblock,
-.tiq-timeline .vis-item.tiq-item-turnaround {
-  background-color: color-mix(in oklab, var(--color-accent) 75%, white);
+.tiq-item-inblock {
+  background-color: color-mix(in oklab, var(--color-accent) 45%, var(--color-surface));
+  border-color: color-mix(in oklab, var(--color-accent) 60%, var(--color-border));
+}
+
+/* Turnaround in progress: brighter cyan with a subtle vertical depth gradient. */
+.tiq-timeline .vis-item.tiq-item-turnaround,
+.tiq-item-turnaround {
+  background-color: color-mix(in oklab, var(--color-accent) 70%, white);
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--color-accent) 88%, white),
+    color-mix(in oklab, var(--color-accent) 60%, var(--color-surface))
+  );
   border-color: var(--color-accent);
 }
 
-.tiq-timeline .vis-item.tiq-item-delayed {
+.tiq-timeline .vis-item.tiq-item-delayed,
+.tiq-item-delayed {
   background-color: var(--color-warn);
   border-color: var(--color-warn);
 }
 
-.tiq-timeline .vis-item.tiq-item-offblock {
+/* Delayed bars carry a danger edge (breach projected) … */
+.tiq-timeline .vis-item.tiq-item-delayed {
+  box-shadow:
+    inset 3px 0 0 var(--color-danger),
+    inset 0 1px 0 color-mix(in oklab, white 22%, transparent);
+}
+
+/* … and a calm breathing glow — attention without flashing (§6), disabled for
+ * reduced motion and while selected (the ring takes over). */
+@media (prefers-reduced-motion: no-preference) {
+  .tiq-timeline .vis-item.tiq-item-delayed:not(.vis-selected) {
+    animation: tiq-delayed-pulse 2.4s ease-in-out infinite;
+  }
+}
+
+@keyframes tiq-delayed-pulse {
+  0%,
+  100% {
+    box-shadow:
+      inset 3px 0 0 var(--color-danger),
+      inset 0 1px 0 color-mix(in oklab, white 22%, transparent),
+      0 0 0 0 color-mix(in oklab, var(--color-warn) 40%, transparent);
+  }
+  50% {
+    box-shadow:
+      inset 3px 0 0 var(--color-danger),
+      inset 0 1px 0 color-mix(in oklab, white 22%, transparent),
+      0 0 0 5px color-mix(in oklab, var(--color-warn) 0%, transparent);
+  }
+}
+
+.tiq-timeline .vis-item.tiq-item-offblock,
+.tiq-item-offblock {
   background-color: color-mix(in oklab, var(--color-ok) 80%, white);
   border-color: var(--color-ok);
 }
 
+/* Departed but late: green would read as "healthy" — honest history uses warn. */
+.tiq-timeline .vis-item.tiq-item-offblock-late,
+.tiq-item-offblock-late {
+  background-color: color-mix(in oklab, var(--color-warn) 78%, white);
+  border-color: var(--color-warn);
+}
+
+.tiq-timeline .vis-item.tiq-item-offblock-late {
+  box-shadow:
+    inset 3px 0 0 var(--color-danger),
+    inset 0 1px 0 color-mix(in oklab, white 22%, transparent);
+}
+
+/* Alternating lane shading helps the eye track a stand across the day (§5). */
+.tiq-timeline .vis-labelset .vis-label:nth-of-type(even),
+.tiq-timeline .vis-content .vis-group:nth-of-type(even) {
+  background-color: color-mix(in oklab, var(--color-raised) 35%, var(--color-surface));
+}
+
+/* Scenario-clock marker (not the wall clock): warm line + mono UTC chip. */
+.tiq-timeline .vis-custom-time {
+  background-color: var(--color-warn);
+  color: #06121f;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  pointer-events: none;
+}
+
 .tiq-timeline .vis-current-time {
   background-color: var(--color-warn);
+}
+
+/* Live feed items arrive with a short fade+slide (§6). */
+@media (prefers-reduced-motion: no-preference) {
+  .tiq-feed-item {
+    animation: tiq-feed-in 150ms ease-out;
+  }
+}
+
+@keyframes tiq-feed-in {
+  from {
+    opacity: 0;
+    transform: translateX(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }

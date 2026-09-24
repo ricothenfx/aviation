@@ -16,6 +16,10 @@ type TimelineInstance = {
   on: (event: string, handler: (...args: never[]) => void) => void;
   destroy: () => void;
   redraw: () => void;
+  addCustomTime: (time: Date | number | string, id?: string | number) => unknown;
+  removeCustomTime: (id: string | number) => void;
+  setCustomTime: (time: Date | number | string, id: string | number) => void;
+  setCustomTimeTitle: (title: string, id: string | number) => void;
 };
 
 interface GanttItem {
@@ -36,19 +40,38 @@ const STATUS_CLASS: Record<FlightProjection["status"], string> = {
   delayed: "tiq-item-delayed",
 };
 
+/** Natural stand order: A1, A2, … A9, A10 (localeCompare alone gives A1, A10, A2). */
+const standCollator = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
+
+/** Late departures keep their history honest (green = healthy is a false signal). */
+function statusClass(flight: FlightProjection): string {
+  const base = STATUS_CLASS[flight.status];
+  return flight.status === "off_block" && flight.delayedMin > 0
+    ? `${base} tiq-item-offblock-late`
+    : base;
+}
+
+const SCENARIO_MARKER_ID = "scenario";
+
 export function TurnaroundGantt({
   flights,
   windowStart,
   windowEnd,
+  scenarioTs,
   onSelectFlight,
 }: {
   flights: FlightProjection[];
   windowStart: string;
   windowEnd: string;
+  scenarioTs: string | null;
   onSelectFlight: (flightId: string) => void;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const timelineRef = useRef<TimelineInstance | null>(null);
+  const readyRef = useRef<Promise<TimelineInstance | null> | null>(null);
+  const markerRef = useRef(false);
+  const scenarioTsRef = useRef(scenarioTs);
+  scenarioTsRef.current = scenarioTs;
   const selectRef = useRef(onSelectFlight);
   selectRef.current = onSelectFlight;
 
@@ -57,12 +80,12 @@ export function TurnaroundGantt({
     if (!container) return;
     let disposed = false;
 
-    void (async () => {
+    const created = (async () => {
       const [{ Timeline, DataSet }, groupsById] = await Promise.all([
         import("vis-timeline/standalone"),
         Promise.resolve(buildGroups(flights)),
       ]);
-      if (disposed || !containerRef.current) return;
+      if (disposed || !containerRef.current) return null;
 
       const groups = new DataSet(
         [...groupsById.entries()].map(([id, label]) => ({ id, content: label })),
@@ -90,14 +113,19 @@ export function TurnaroundGantt({
         if (first) selectRef.current(first);
       }) as never);
       timelineRef.current = timeline;
+      markerRef.current = false;
+      applyScenarioMarker(timeline, markerRef, scenarioTsRef.current);
+      return timeline;
     })();
+    readyRef.current = created;
 
     return () => {
       disposed = true;
-      timelineRef.current?.destroy();
+      void created.then((timeline) => timeline?.destroy());
       timelineRef.current = null;
+      readyRef.current = null;
     };
-    // The timeline is created once; data updates flow through the effect below.
+    // The timeline is created once; data updates flow through the effects below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -111,6 +139,14 @@ export function TurnaroundGantt({
     })();
   }, [flights]);
 
+  useEffect(() => {
+    void (async () => {
+      const timeline = await readyRef.current;
+      if (!timeline) return;
+      applyScenarioMarker(timeline, markerRef, scenarioTs);
+    })();
+  }, [scenarioTs]);
+
   return (
     <div
       ref={containerRef}
@@ -122,9 +158,35 @@ export function TurnaroundGantt({
   );
 }
 
+/** Drives the scenario-clock marker (a fake wall clock must never be shown). */
+function applyScenarioMarker(
+  timeline: TimelineInstance,
+  markerRef: { current: boolean },
+  scenarioTs: string | null,
+): void {
+  if (!scenarioTs) {
+    if (markerRef.current) {
+      timeline.removeCustomTime(SCENARIO_MARKER_ID);
+      markerRef.current = false;
+    }
+    return;
+  }
+  const ms = Date.parse(scenarioTs);
+  if (Number.isNaN(ms)) return;
+  if (!markerRef.current) {
+    timeline.addCustomTime(ms, SCENARIO_MARKER_ID);
+    markerRef.current = true;
+  } else {
+    timeline.setCustomTime(ms, SCENARIO_MARKER_ID);
+  }
+  timeline.setCustomTimeTitle(`${scenarioTs.slice(11, 19)}Z`, SCENARIO_MARKER_ID);
+}
+
 function buildGroups(flights: FlightProjection[]): Map<string, string> {
   const groups = new Map<string, string>();
-  for (const flight of [...flights].sort((a, b) => a.standCode.localeCompare(b.standCode))) {
+  for (const flight of [...flights].sort((a, b) =>
+    standCollator.compare(a.standCode, b.standCode),
+  )) {
     if (!groups.has(flight.standId)) groups.set(flight.standId, flight.standCode);
   }
   return groups;
@@ -143,7 +205,7 @@ function buildItems(flights: FlightProjection[]): GanttItem[] {
       content: flight.flightNo,
       start: flight.schedInBlock,
       end,
-      className: STATUS_CLASS[flight.status],
+      className: statusClass(flight),
       title: `${flight.flightNo} · ${flight.status}${delay} · ${flight.standCode}`,
     };
   });

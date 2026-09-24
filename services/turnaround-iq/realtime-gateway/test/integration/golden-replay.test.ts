@@ -10,6 +10,7 @@ import {
   deriveKpis,
   eventLogHash,
   initialStateFromReferenceDay,
+  type Kpis,
 } from "@aviation/tiq-domain";
 import { events as eventsTable } from "@aviation/db/schema";
 
@@ -55,12 +56,7 @@ interface GoldenState {
   fullLogHash: string;
   eventCount: number;
   flights: GoldenFlight[];
-  kpis: {
-    onTimeDepPct: number;
-    avgTurnMin: number;
-    activeAlerts: number;
-    delayMinutesSaved: number;
-  };
+  kpis: Kpis;
 }
 
 describe("golden replay (ADR-0001 compliance, milestones §F2)", () => {

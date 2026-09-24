@@ -12,6 +12,7 @@ import {
   Skeleton,
   StatTile,
   StatusBadge,
+  useCountUp,
 } from "@aviation/ui";
 import { boardSnapshotSchema, type BoardSnapshot, type WsFrame } from "@aviation/contracts";
 
@@ -133,6 +134,12 @@ export function BoardShell({ user }: { user: { displayName: string; role: string
 
   const kpis = snapshot?.kpis ?? null;
 
+  // §6 count-up: values animate on KPI changes only; "—" (no data yet) never animates.
+  const onTimeShown = useCountUp(kpis?.onTimeDepPct ?? 0);
+  const avgTurnShown = useCountUp(kpis?.avgTurnMin ?? 0);
+  const alertsShown = useCountUp(kpis?.activeAlerts ?? 0);
+  const savedShown = useCountUp(kpis?.delayMinutesSaved ?? 0);
+
   return (
     <div className="mx-auto flex min-h-[calc(100dvh-2rem)] w-full max-w-7xl flex-col gap-3 px-4 py-3">
       <header className="flex items-center justify-between gap-3">
@@ -152,13 +159,7 @@ export function BoardShell({ user }: { user: { displayName: string; role: string
             </span>
           ) : null}
           <span className="text-xs text-muted">{user.displayName}</span>
-          <StatusBadge
-            tone={
-              user.role === "supervisor" ? "warn" : user.role === "coordinator" ? "info" : "muted"
-            }
-          >
-            {user.role}
-          </StatusBadge>
+          <StatusBadge tone={user.role === "viewer" ? "muted" : "info"}>{user.role}</StatusBadge>
           <Button variant="ghost" size="sm" onClick={logout}>
             Sign out
           </Button>
@@ -178,28 +179,30 @@ export function BoardShell({ user }: { user: { displayName: string; role: string
           <>
             <StatTile
               label="On-time departures"
-              value={kpis ? `${kpis.onTimeDepPct.toFixed(1)}%` : "—"}
+              value={kpis && kpis.onTimeDepPct != null ? `${onTimeShown.toFixed(1)}%` : "—"}
               hint={
-                kpis ? "share of off-block turns on time" : "starts with the first completed turn"
+                kpis && kpis.onTimeDepPct != null
+                  ? "share of off-block turns on time"
+                  : "starts with the first completed turn"
               }
             />
             <StatTile
               label="Avg turn time"
-              value={kpis && kpis.avgTurnMin > 0 ? `${kpis.avgTurnMin.toFixed(1)} min` : "—"}
+              value={kpis && kpis.avgTurnMin != null ? `${avgTurnShown.toFixed(1)} min` : "—"}
               hint={
-                kpis && kpis.avgTurnMin > 0
+                kpis && kpis.avgTurnMin != null
                   ? "actual in-block → off-block"
                   : "starts with the first completed turn"
               }
             />
             <StatTile
               label="Active alerts"
-              value={kpis ? String(kpis.activeAlerts) : "—"}
+              value={kpis ? String(Math.round(alertsShown)) : "—"}
               hint={kpis ? "raised + acknowledged" : "risk rules raise alerts during the day"}
             />
             <StatTile
               label="Delay minutes saved"
-              value={kpis ? String(kpis.delayMinutesSaved) : "—"}
+              value={kpis ? String(Math.round(savedShown)) : "—"}
               hint={kpis ? "replan-attributed vs do-nothing" : "counts approved replans"}
             />
           </>
@@ -228,7 +231,9 @@ export function BoardShell({ user }: { user: { displayName: string; role: string
                     ? "live"
                     : snapshot?.live
                       ? `waiting for events · ${snapshot.flights.length} flights`
-                      : `updated ${secondsAgo ?? "—"}s ago`
+                      : secondsAgo === null
+                        ? "connected — awaiting events"
+                        : `updated ${secondsAgo}s ago`
               }
             />
           }
@@ -262,6 +267,7 @@ export function BoardShell({ user }: { user: { displayName: string; role: string
                   flights={snapshot?.flights ?? []}
                   windowStart={DAY_START}
                   windowEnd={DAY_END}
+                  scenarioTs={snapshot?.scenarioTs ?? null}
                   onSelectFlight={setSelectedFlightId}
                 />
               </div>
@@ -439,15 +445,19 @@ function StatusLegend() {
     ["tiq-item-turnaround", "turnaround"],
     ["tiq-item-delayed", "delayed"],
     ["tiq-item-offblock", "off block"],
+    ["tiq-item-offblock-late", "off block · late"],
   ];
   return (
     <ul className="flex flex-wrap items-center gap-3" aria-label="Status legend">
       {entries.map(([cls, label]) => (
         <li key={cls} className="flex items-center gap-1.5 text-xs text-muted">
-          <span aria-hidden className={`inline-block h-2.5 w-4 rounded-sm ${cls}`} />
+          <span aria-hidden className={`inline-block h-2.5 w-4 rounded-sm border ${cls}`} />
           {label}
         </li>
       ))}
+      <li className="text-xs text-muted" aria-hidden>
+        · axis in browser-local time · scenario clock UTC
+      </li>
     </ul>
   );
 }

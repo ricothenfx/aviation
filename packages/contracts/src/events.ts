@@ -110,8 +110,8 @@ export const replanRejectedPayloadSchema = z.object({
 export type ReplanRejectedPayload = z.infer<typeof replanRejectedPayloadSchema>;
 
 export const kpiUpdatedPayloadSchema = z.object({
-  onTimeDepPct: z.number(),
-  avgTurnMin: z.number(),
+  onTimeDepPct: z.number().nullable(),
+  avgTurnMin: z.number().nullable(),
   activeAlerts: z.number().int(),
   delayMinutesSaved: z.number(),
 });

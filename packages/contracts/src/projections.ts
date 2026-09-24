@@ -62,8 +62,8 @@ export const alertProjectionSchema = z.object({
 export type AlertProjection = z.infer<typeof alertProjectionSchema>;
 
 export const kpisSchema = z.object({
-  onTimeDepPct: z.number(),
-  avgTurnMin: z.number(),
+  onTimeDepPct: z.number().nullable(),
+  avgTurnMin: z.number().nullable(),
   activeAlerts: z.number().int(),
   delayMinutesSaved: z.number(),
 });

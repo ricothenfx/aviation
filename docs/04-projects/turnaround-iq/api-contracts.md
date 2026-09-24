@@ -61,7 +61,7 @@ Codes: `VALIDATION_ERROR` 400 · `UNAUTHENTICATED` 401 · `FORBIDDEN` 403 · `NO
 | `flight.delay_risk` | `{flightId, projectedOffBlock, delayMin, causeTaskId}` |
 | `alert.raised` / `alert.acknowledged` / `alert.resolved` | `{alertId, flightId, ruleId, severity, leadTimeMin}` |
 | `replan.proposed` | `{replanId, flightId, delta: [{taskId, newStart, newEnd}], totalDelayMin, rationale}` |
-| `kpi.updated` | `{onTimeDep %, avgTurnMin, activeAlerts, delayMinutesSaved}` |
+| `kpi.updated` | `{onTimeDepPct, avgTurnMin, activeAlerts, delayMinutesSaved}` — `onTimeDepPct`/`avgTurnMin` are `null` until the first off-block turn (no measurement must render as 0) |
 | `scenario.tick` | `{scenarioTs, speed}` |
 | `board.batch` (ADR-0008, F5) | `{frames: [<envelope>...]}` — wire-only transport optimization: when a client's flush holds multiple frames, the gateway sends ONE message wrapping them in delivery order. Inner frames are ordinary envelopes with their own `ts`/`lastEventId`; clients that ignore the type self-heal via the REST snapshot. |
 

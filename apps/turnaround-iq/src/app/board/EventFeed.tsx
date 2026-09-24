@@ -44,7 +44,7 @@ export function EventFeed({ items, loading }: { items: FeedItem[] | null; loadin
   return (
     <ul aria-live="polite" className="max-h-full space-y-1 overflow-y-auto">
       {items.map((item) => (
-        <li key={item.id} className="flex items-center gap-2 font-mono text-xs">
+        <li key={item.id} className="tiq-feed-item flex items-center gap-2 font-mono text-xs">
           <span className="shrink-0 text-muted tabular-nums">{item.ts.slice(11, 19)}Z</span>
           <StatusBadge tone={toneForType(item.type)}>{item.type}</StatusBadge>
           <span className="truncate text-muted" title={item.label}>
