@@ -80,14 +80,18 @@ pnpm typecheck          # tsc --noEmit strict across the workspace
 pnpm test               # vitest unit tests across the workspace (no DB)
 pnpm test:integration   # vitest integration tests (needs compose stack: DATABASE_URL, REDIS_URL, TIQ_BASE_URL)
 pnpm test:e2e           # Playwright end-to-end tests (needs compose stack; added in F3)
-pnpm bench:replan       # loader-breakdown replan benchmark: 47 → ≤ 9 min, < 2 s (pure, no stack)
+pnpm bench:replan       # loader-breakdown replan benchmark: 47 → ≤ 9 min in < 2 s (pure, no stack)
+pnpm loadtest           # ×10 load gate: k6 (200 ws consumers) + independent latency probe (F5; needs compose stack; --prom feeds Grafana evidence profile)
 pnpm seed               # apply migrations + reference day + upsert seeded demo users (turnaround-iq)
 pnpm db:generate        # drizzle-kit generate migration SQL from packages/db schema
 pnpm db:migrate         # apply pending migrations
 
-# Full containerized stack (postgres + redis + web on :3001, simulator :4101, realtime-gateway ws :4001):
+# Full containerized stack (postgres + redis + web on :3001, simulator :4101, realtime-gateway ws :4001, replan-engine :4102):
 docker compose --profile turnaround up -d      # boot; web self-installs, seeds, serves
 docker compose --profile turnaround down -v    # teardown
+
+# Ephemeral evidence stack for load runs only (Prometheus :9090, Grafana :3002 — ADR-0007, never part of the demo stack):
+docker compose --profile evidence up -d
 
 # Host-side environment: cp .env.example .env (AUTH_SECRET required for host runs)
 ```
