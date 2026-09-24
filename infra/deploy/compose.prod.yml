@@ -1,0 +1,130 @@
+# Production topology (ADR-0006) — the six services behind Caddy with
+# automatic TLS. Data services bind to the compose network only (loopback on
+# the host); Caddy is the single public entrypoint (80/443).
+#
+#   cp env.example .env   # set DOMAIN, ACME_EMAIL, AUTH_SECRET, POSTGRES_PASSWORD
+#   docker compose -f compose.prod.yml up -d --build
+#
+# Status: structure reviewed and load-validated in shape (load-report-f5.md);
+# execution pending a user-owned host + domain (ADR-0006). Secrets live in the
+# server-side .env only — never in the repository.
+
+name: turnaround-prod
+
+services:
+  caddy:
+    image: caddy:2.10.0
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: turnaround
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: turnaround_iq
+    volumes:
+      - pgdata_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U turnaround -d turnaround_iq"]
+      interval: 5s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 12
+
+  web:
+    build:
+      context: ..
+      dockerfile: apps/turnaround-iq/Dockerfile
+      args:
+        NEXT_PUBLIC_WS_URL: ${PUBLIC_WS_URL:-wss://${DOMAIN:-localhost}/api/ws}
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://turnaround:${POSTGRES_PASSWORD}@postgres:5432/turnaround_iq
+      REDIS_URL: redis://redis:6379
+      AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env}
+      AUTH_COOKIE_NAME: tiq_session
+      NEXT_PUBLIC_WS_URL: ${PUBLIC_WS_URL:-wss://${DOMAIN:-localhost}/api/ws}
+      LLM_PROVIDER: mock
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  simulator:
+    build:
+      context: ..
+      dockerfile: services/turnaround-iq/Dockerfile
+      args:
+        SERVICE: simulator
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://turnaround:${POSTGRES_PASSWORD}@postgres:5432/turnaround_iq
+      REDIS_URL: redis://redis:6379
+      SIMULATOR_PORT: "4101"
+      TICK_INTERVAL_MS: "250"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  realtime-gateway:
+    build:
+      context: ..
+      dockerfile: services/turnaround-iq/Dockerfile
+      args:
+        SERVICE: realtime-gateway
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://turnaround:${POSTGRES_PASSWORD}@postgres:5432/turnaround_iq
+      REDIS_URL: redis://redis:6379
+      GATEWAY_PORT: "4001"
+      AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  replan-engine:
+    build:
+      context: ..
+      dockerfile: services/turnaround-iq/Dockerfile
+      args:
+        SERVICE: replan-engine
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://turnaround:${POSTGRES_PASSWORD}@postgres:5432/turnaround_iq
+      REDIS_URL: redis://redis:6379
+      LLM_PROVIDER: mock
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  pgdata_prod:
+  caddy_data:
+  caddy_config:

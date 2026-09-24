@@ -1,0 +1,21 @@
+# Caddy entrypoint (ADR-0006): automatic Let's Encrypt TLS for the demo domain.
+# Web (REST + pages) and the realtime WebSocket share one hostname — path-based
+# routing keeps cookies and CORS trivial.
+
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	# Realtime gateway — WebSocket upgrade passes through unchanged.
+	handle /api/ws* {
+		reverse_proxy realtime-gateway:4001
+	}
+
+	# Everything else: Next.js web (pages + /api/v1 REST).
+	handle {
+		reverse_proxy web:3000
+	}
+
+	encode gzip
+}

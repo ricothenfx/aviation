@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Status | Active — snapshot reference for portfolio alignment |
-| Snapshot date | 2026-09-22 (verified via live fetch of career portals) |
+| Snapshot date | 2026-09-22 (verified via live fetch of career portals) — **re-verified 2026-09-24 (F5): no material change** |
 | Caveat | Job listings change weekly. Re-verify before each application. Links are the source of truth, not the tables below. |
 
 ## 1. Purpose
@@ -26,7 +26,16 @@ This document justifies every product decision in the portfolio; see `traceabili
 | Drones / emerging | Wing (Alphabet), H3 Dynamics, Avetics; note: Jetstar Asia ceased 2025-07, Volocopter insolvent/acquired | Niche | — |
 | Associations / events | AAIS, Singapore Airshow (Experia Events) | Networking channel only | — |
 
-## 3. Verified Openings Snapshot (2026-09-22)
+## 3. Verified Openings Snapshot (2026-09-22; re-verified 2026-09-24)
+
+> Re-verification 2026-09-24 (F5): CAG still lists 13 tech-related openings —
+> Senior Software Engineer, Machine Learning Engineer, Full Stack Developer,
+> Data Engineering & IoT, Airside Automation, Digital Infrastructure, Commercial
+> Systems, Power Platform CoE all still open. SIA still lists 10 software/IT
+> roles (AOS Application Developer and Lead SWE AI Ops included; eOps Senior SWE
+> now visible). STE still lists 125 software roles in SG (Aero 507 Software
+> Engineer, UAS Software Engineer, Frontend/Full-stack roles included). SATS not
+> re-checked (portal blocks bots — verify manually via MyCareersFuture).
 
 ### Changi Airport Group — 13 tech-related openings (posted Aug–Sep 2026)
 | Role | Req | Division | Note |
