@@ -63,6 +63,7 @@ Codes: `VALIDATION_ERROR` 400 · `UNAUTHENTICATED` 401 · `FORBIDDEN` 403 · `NO
 | `replan.proposed` | `{replanId, flightId, delta: [{taskId, newStart, newEnd}], totalDelayMin, rationale}` |
 | `kpi.updated` | `{onTimeDep %, avgTurnMin, activeAlerts, delayMinutesSaved}` |
 | `scenario.tick` | `{scenarioTs, speed}` |
+| `board.batch` (ADR-0008, F5) | `{frames: [<envelope>...]}` — wire-only transport optimization: when a client's flush holds multiple frames, the gateway sends ONE message wrapping them in delivery order. Inner frames are ordinary envelopes with their own `ts`/`lastEventId`; clients that ignore the type self-heal via the REST snapshot. |
 
 - Coalescing: ≤ 10 Hz per client per channel; clients catch up via `/api/v1/events?after=lastEventId`.
 - Breaking envelope changes = new `type` version suffix (`task.state_changed.v2`), never in-place mutation.

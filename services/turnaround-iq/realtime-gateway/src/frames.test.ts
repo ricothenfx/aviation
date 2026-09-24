@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { wsFrameSchema, type WsFrame } from "@aviation/contracts";
+import { serverFrameSchema, wsFrameSchema, type WsFrame } from "@aviation/contracts";
 
 import {
+  buildBatchFrame,
   buildEventFrame,
   buildKpiFrame,
   buildTickFrame,
@@ -109,5 +110,27 @@ describe("outbound queue (backpressure per architecture.md §6)", () => {
     const first = queue.flush();
     expect(first).toHaveLength(2);
     expect(queue.size()).toBe(3);
+  });
+});
+
+describe("batch delivery (ADR-0008)", () => {
+  it("wraps inner frames in a contract-valid board.batch envelope", () => {
+    const frames: WsFrame[] = [
+      buildEventFrame(taskEvent(1, "in_progress"), "board", TS),
+      buildKpiFrame(
+        { onTimeDepPct: 50, avgTurnMin: 48, activeAlerts: 0, delayMinutesSaved: 0 },
+        null,
+        TS,
+      ),
+    ];
+    const batch = buildBatchFrame(frames, TS);
+    const parsed = serverFrameSchema.safeParse(batch);
+    expect(parsed.success).toBe(true);
+    if (parsed.success && parsed.data.type === "board.batch") {
+      expect(parsed.data.payload.frames).toHaveLength(2);
+      expect(parsed.data.payload.frames[0]?.lastEventId).toContain("evt:task:");
+    }
+    // Wire-only: the batch type is not part of the event vocabulary.
+    expect(wsFrameSchema.safeParse(batch).success).toBe(false);
   });
 });

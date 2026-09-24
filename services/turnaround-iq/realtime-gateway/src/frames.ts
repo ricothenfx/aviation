@@ -1,4 +1,4 @@
-import type { DomainEvent, WsFrame, EventType } from "@aviation/contracts";
+import type { DomainEvent, WsBatchFrame, WsFrame, EventType } from "@aviation/contracts";
 
 /**
  * Pure ws frame plumbing (api-contracts.md §3): build envelope frames per event,
@@ -60,6 +60,23 @@ export function buildTickFrame(scenarioTs: string, speed: 1 | 5 | 20, ts: string
     channel: WS_CHANNEL_BOARD,
     type: "scenario.tick" satisfies EventType,
     payload: { scenarioTs, speed },
+    lastEventId: null,
+  };
+}
+
+/**
+ * Wire-only batch envelope (ADR-0008): one socket write per client flush
+ * instead of one per frame. Inner frames are ordinary WsFrames — per-frame
+ * causality and latency semantics unchanged.
+ */
+export function buildBatchFrame(frames: WsFrame[], ts: string): WsBatchFrame {
+  frameCounter += 1;
+  return {
+    id: `f:${frameCounter}`,
+    ts,
+    channel: WS_CHANNEL_BOARD,
+    type: "board.batch",
+    payload: { frames },
     lastEventId: null,
   };
 }

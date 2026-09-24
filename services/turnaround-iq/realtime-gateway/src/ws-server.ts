@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { WebSocketServer, type WebSocket } from "ws";
 
 import { verifySessionToken } from "./ws-auth";
-import { OutboundQueue } from "./frames";
+import { buildBatchFrame, OutboundQueue } from "./frames";
 import type { Logger } from "./logger";
 
 /**
@@ -125,9 +125,12 @@ export class RealtimeHub {
   private flushAll(): void {
     for (const session of this.clients.values()) {
       if (session.socket.readyState !== session.socket.OPEN) continue;
-      for (const frame of session.queue.flush()) {
-        session.socket.send(JSON.stringify(frame));
-      }
+      const frames = session.queue.flush();
+      if (frames.length === 0) continue;
+      // ADR-0008: one socket write per client flush (batch envelope) instead
+      // of one write per frame — the write count dominated fan-out latency.
+      const wire = JSON.stringify(buildBatchFrame(frames, new Date().toISOString()));
+      session.socket.send(wire);
     }
   }
 }

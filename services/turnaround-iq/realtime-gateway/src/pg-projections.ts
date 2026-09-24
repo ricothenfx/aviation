@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 import type { Db } from "@aviation/db/client";
 import { alerts, flights, groundTasks, replanScenarios } from "@aviation/db/schema";
@@ -14,6 +14,11 @@ import type { FlightProjection } from "@aviation/contracts";
  * F3: `alerts` and `replan_scenarios` join the event-derived projections
  * (data-model.md §2: alert lifecycle derived from alert.* events; replan rows
  * from replan.* events), plus approved replans shift `ground_tasks.planned_*`.
+ *
+ * F5 hardening (load-report-f5.md): the per-task UPDATE loop cost 13 sequential
+ * round-trips per event — at ×10 scale that saturated the connection pool,
+ * delayed the ws flush timer and stretched projection rebuilds to minutes.
+ * Tasks now persist as ONE bulk statement per flight.
  */
 export async function persistProjectionToPg(db: Db, flight: FlightProjection): Promise<void> {
   await db
@@ -24,16 +29,21 @@ export async function persistProjectionToPg(db: Db, flight: FlightProjection): P
     })
     .where(eq(flights.id, flight.id));
 
-  for (const task of flight.tasks) {
-    await db
-      .update(groundTasks)
-      .set({
-        state: task.state,
-        plannedStart: new Date(task.plannedStart),
-        plannedEnd: new Date(task.plannedEnd),
-      })
-      .where(eq(groundTasks.id, task.id));
-  }
+  if (flight.tasks.length === 0) return;
+  const rows = flight.tasks.map(
+    (task) =>
+      sql`(${task.id}::uuid, ${task.state}::task_state, ${new Date(task.plannedStart)}::timestamptz, ${new Date(task.plannedEnd)}::timestamptz)`,
+  );
+  await db.execute(sql`
+    update ${groundTasks} as gt
+    set state = v.state,
+        planned_start = v.planned_start,
+        planned_end = v.planned_end
+    from (
+      values ${sql.join(rows, sql`, `)}
+    ) as v(id, state, planned_start, planned_end)
+    where gt.id = v.id
+  `);
 }
 
 type AlertLifecycleEvent = {

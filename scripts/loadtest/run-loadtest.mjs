@@ -11,7 +11,7 @@
  * (compose profile `evidence`, ADR-0007) for the Grafana dashboard.
  */
 import { spawn, spawnSync } from "node:child_process";
-import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -38,15 +38,6 @@ async function checkHealth(url) {
   } catch {
     return false;
   }
-}
-
-async function waitFor(url, label, timeoutMs = 300000) {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    if (await checkHealth(url)) return;
-    await sleep(1000);
-  }
-  throw new Error(`${label} at ${url} did not become healthy in time`);
 }
 
 function quote(part) {
@@ -112,6 +103,26 @@ function runK6() {
   return spawn(args[0], args.slice(1), { cwd: repoRoot, stdio: "inherit" });
 }
 
+async function waitForProducerArmed(port, isChildAlive) {
+  const deadline = Date.now() + 300000;
+  while (Date.now() < deadline) {
+    if (!isChildAlive()) {
+      throw new Error(
+        "load producer died during prepare (stale producer on the port? kill it and re-run)",
+      );
+    }
+    try {
+      const response = await fetch(`http://localhost:${port}/healthz`);
+      const body = await response.json();
+      if (body.phase === "armed" || body.phase === "running") return;
+    } catch {
+      /* not listening yet */
+    }
+    await sleep(1000);
+  }
+  throw new Error("load producer did not reach the armed phase in time");
+}
+
 mkdirSync(resultsDir, { recursive: true });
 
 if (!(await checkHealth(`${TIQ_BASE_URL}/healthz`))) {
@@ -143,8 +154,11 @@ if (!directK6) {
     process.exit(1);
   }
 }
-const producer = spawn("pnpm", ["--filter", "@aviation/tiq-simulator", "produce:load"], {
-  cwd: repoRoot,
+// Spawn tsx directly: signals must reach the producer process itself. Going
+// through `pnpm run` orphaned the producer on SIGTERM (F5 run-3 lesson).
+const simDir = join(repoRoot, "services", "turnaround-iq", "simulator");
+const producer = spawn(join(simDir, "node_modules", ".bin", "tsx"), ["src/loadtest/producer.ts"], {
+  cwd: simDir,
   stdio: "inherit",
   env: {
     ...process.env,
@@ -155,8 +169,38 @@ const producer = spawn("pnpm", ["--filter", "@aviation/tiq-simulator", "produce:
     TIQ_BASE_URL,
   },
 });
+let producerCrashed = false;
+producer.on("exit", (code) => {
+  if (code !== 0 && code !== null) producerCrashed = true;
+});
 try {
-  await waitFor(`http://localhost:${producerPort}/healthz`, "load producer");
+  await waitForProducerArmed(producerPort, () => !producerCrashed);
+
+  // Remove any previous summary so a failed k6 run can never be mistaken for
+  // fresh results.
+  try {
+    rmSync(join(resultsDir, "k6-summary.json"));
+  } catch {
+    /* absent — fine */
+  }
+
+  // Independent latency oracle: a lightweight single-socket consumer measuring
+  // arrival − frame.ts for EVERY event frame. k6's in-process latency trend is
+  // invalidated by generator self-starvation on small hosts (200 goja VUs +
+  // ~14k metric adds/s compete for the same cores — measured skew: negative
+  // deltas, p95 inflation vs this probe; see load-report-f5.md). k6 remains
+  // the prescribed 200-consumer load generator; the probe is the clock.
+  const probeProcess = spawn(process.execPath, ["scripts/loadtest/probe-latency.mjs"], {
+    cwd: repoRoot,
+    stdio: "inherit",
+    env: {
+      ...process.env,
+      TIQ_BASE_URL,
+      PROBE_OUT: join(resultsDir, "probe-latency.json"),
+      PROBE_WINDOW_MS: String((durationS + 15) * 1000),
+    },
+  });
+  const probeDone = new Promise((resolve) => probeProcess.on("exit", resolve));
 
   const k6 = runK6();
   const k6Exit = await new Promise((resolve) => k6.on("exit", resolve));
@@ -166,19 +210,42 @@ try {
   writeFileSync(join(resultsDir, "load-manifest.json"), JSON.stringify(manifest, null, 2));
   console.info("[runner] manifest written to scripts/loadtest/results/load-manifest.json");
 
+  // The probe writes its results on its own window — give it a moment past the
+  // k6 exit, then proceed regardless (missing probe file fails the verdict).
+  await Promise.race([probeDone, sleep(20000)]);
+
   if (k6Exit !== 0) process.exitCode = k6Exit;
 } finally {
   producer.kill("SIGTERM");
-  await sleep(2000);
+  // The producer's async cleanup (replica delete + pool close) keeps the shared
+  // stdio pipe open — wait for a real exit so callers don't hang on the pipe.
+  await Promise.race([
+    new Promise((resolve) => producer.once("exit", resolve)),
+    sleep(20000).then(() => {
+      try {
+        producer.kill("SIGKILL");
+      } catch {
+        /* already gone */
+      }
+    }),
+  ]);
 }
 
 try {
+  const probe = JSON.parse(readFileSync(join(resultsDir, "probe-latency.json"), "utf8"));
   const summary = JSON.parse(readFileSync(join(resultsDir, "k6-summary.json"), "utf8"));
-  const p95 = summary.metrics?.ingest_to_board_ms?.["p(95)"];
-  const gate = summary.metrics?.ingest_to_board_ms?.thresholds?.["p(95)<1000"]?.ok;
+  const delivered = summary.metrics?.board_frames_received?.count ?? 0;
+  const expectedFrames = 15000 * Number(process.env.CONSUMERS ?? 200);
+  const verdict = probe.p95 !== null && probe.p95 < 1000 ? "PASS" : "FAIL";
   console.info(
-    `[runner] ingestion→board p95=${p95 === undefined ? "?" : Math.round(p95) + "ms"} — DoD gate ${gate ? "PASS" : "FAIL"} (details: scripts/loadtest/results/k6-summary.json)`,
+    `[runner] ingestion→board (probe, ${probe.samples} samples): p50=${probe.p50}ms p95=${probe.p95}ms p99=${probe.p99}ms max=${probe.max}ms — DoD gate ${verdict}`,
+  );
+  console.info(
+    `[runner] frame delivery: ${delivered}/${expectedFrames} across ${process.env.CONSUMERS ?? 200} consumers (${((delivered / expectedFrames) * 100).toFixed(1)}%)`,
+  );
+  console.info(
+    "[runner] raw numbers: scripts/loadtest/results/ (k6-summary, probe-latency, load-manifest)",
   );
 } catch (err) {
-  console.warn(`[runner] could not summarize k6 results: ${err.message}`);
+  console.warn(`[runner] could not summarize results: ${err.message}`);
 }

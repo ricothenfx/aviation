@@ -67,6 +67,21 @@ export class ProjectionWorker {
   private lastKpis: string | null = null;
   private pollTimer: NodeJS.Timeout | null = null;
   private running = false;
+  /**
+   * pub/sub subscriptions must be registered exactly once per connection:
+   * stop()/start() cycles (every scenario reset) previously re-subscribed,
+   * stacking handlers so the Nth reset was processed N times — each spawning a
+   * concurrent full rebuild. Found by the F5 load run (load-report-f5.md).
+   */
+  private subscribed = false;
+  /**
+   * PG projection writes are coalesced per flight (500 ms drain): at ×10 scale
+   * the per-event writes (13 round-trips each) saturated the pool, starved the
+   * ws flush timer and stretched rebuilds to minutes. Found by the F5 load run
+   * (load-report-f5.md). Redis stays per-event — it is the live read model.
+   */
+  private dirtyFlights = new Set<string>();
+  private pgFlushTimer: NodeJS.Timeout | null = null;
 
   constructor(private readonly deps: WorkerDeps) {}
 
@@ -108,19 +123,25 @@ export class ProjectionWorker {
   async start(): Promise<void> {
     if (this.running) return;
     this.running = true;
-    await this.deps.subscriber.subscribe(CHAN_EVENTS, (raw) => {
-      void this.onPublishedEvent(raw);
-    });
-    await this.deps.subscriber.subscribe(CHAN_SCENARIO_CONTROL, (raw) => {
-      void this.onControl(raw);
-    });
+    if (!this.subscribed) {
+      await this.deps.subscriber.subscribe(CHAN_EVENTS, (raw) => {
+        void this.onPublishedEvent(raw);
+      });
+      await this.deps.subscriber.subscribe(CHAN_SCENARIO_CONTROL, (raw) => {
+        void this.onControl(raw);
+      });
+      this.subscribed = true;
+    }
     this.pollTimer = setInterval(() => void this.poll(), this.deps.pollIntervalMs);
+    this.pgFlushTimer = setInterval(() => void this.flushDirtyFlights(), 500);
   }
 
   stop(): void {
     this.running = false;
     if (this.pollTimer) clearInterval(this.pollTimer);
     this.pollTimer = null;
+    if (this.pgFlushTimer) clearInterval(this.pgFlushTimer);
+    this.pgFlushTimer = null;
   }
 
   /** Reset (scenario control): drop everything and rebuild from the empty log. */
@@ -137,6 +158,7 @@ export class ProjectionWorker {
       requestId: command.requestId,
     });
     this.stop();
+    this.dirtyFlights.clear();
     await this.deps.redis.del(KEY_PROJ_BOARD_INDEX);
     await this.deps.redis.del(KEY_PROJ_BOARD_SUMMARY);
     for (const key of await this.deps.redis.keys(PROJECTION_KEY_PATTERN)) {
@@ -262,16 +284,8 @@ export class ProjectionWorker {
     if (flight) {
       await this.deps.redis.hSet(projFlightKey(flight.id), { data: JSON.stringify(flight) });
       await this.deps.redis.sAdd(KEY_PROJ_BOARD_INDEX, flight.id);
-      // PG projection columns follow the same handler (data-model.md §2).
-      try {
-        await persistProjectionToPg(this.deps.db, flight);
-      } catch (err) {
-        this.deps.logger.error({
-          msg: "pg projection update failed",
-          flightId: flight.id,
-          err: err instanceof Error ? err.message : String(err),
-        });
-      }
+      // PG projection columns follow, coalesced per flight (data-model.md §2).
+      this.dirtyFlights.add(flight.id);
     }
     const kpis: Kpis = state.kpis ?? deriveKpis(state);
     const serialized = JSON.stringify(kpis);
@@ -283,6 +297,29 @@ export class ProjectionWorker {
         updatedAt: ts,
       });
       this.deps.broadcast([WS_CHANNEL_BOARD], buildKpiFrame(kpis, null, ts));
+    }
+  }
+
+  /** Drain coalesced PG projection writes — one bulk pass per dirty flight. */
+  private async flushDirtyFlights(): Promise<void> {
+    if (!this.state || this.dirtyFlights.size === 0) return;
+    const state = this.state;
+    const ids = [...this.dirtyFlights];
+    this.dirtyFlights.clear();
+    for (const id of ids) {
+      const flight =
+        state.flights.get(id) ??
+        [...state.flights.values()].find((f) => f.tasks.some((t) => t.id === id));
+      if (!flight) continue;
+      try {
+        await persistProjectionToPg(this.deps.db, flight);
+      } catch (err) {
+        this.deps.logger.error({
+          msg: "pg projection update failed",
+          flightId: id,
+          err: err instanceof Error ? err.message : String(err),
+        });
+      }
     }
   }
 

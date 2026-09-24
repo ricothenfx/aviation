@@ -91,6 +91,9 @@ const manifest: LoadManifest = {
 /** Durable-append wall-clock instants by event id (k6 correlation anchor). */
 const appendTimes = new Map<string, number>();
 
+/** Lifecycle phase surfaced via /healthz so the runner arms k6 at the right time. */
+let phase: "preparing" | "resetting" | "armed" | "running" | "done" = "preparing";
+
 /** Replica world: deterministic uuidV5 clones of the reference day. */
 function buildReplicaDay(day: ReferenceDay, replica: number): ReferenceDay {
   const flightId = new Map<string, string>();
@@ -143,7 +146,7 @@ async function main(): Promise<void> {
     const url = new URL(request.url ?? "/", `http://127.0.0.1:${LOAD_PRODUCER_PORT}`);
     if (url.pathname === "/healthz") {
       response.writeHead(200, { "content-type": "application/json" });
-      response.end(JSON.stringify({ ok: true, phase: manifest.resetAt ? "armed" : "preparing" }));
+      response.end(JSON.stringify({ ok: true, phase }));
       return;
     }
     if (url.pathname === "/append-time") {
@@ -180,6 +183,17 @@ async function main(): Promise<void> {
   process.on("SIGTERM", () => shutdown("SIGTERM"));
   process.on("SIGINT", () => shutdown("SIGINT"));
 
+  // Bind FIRST: a stale producer on this port must fail the run loudly here,
+  // not after minutes of prepare work (F5 run-3 lesson — orphaned producer).
+  await new Promise<void>((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(LOAD_PRODUCER_PORT, "127.0.0.1", () => {
+      const address = server.address() as AddressInfo;
+      logger.info({ msg: "load producer listening", port: address.port });
+      resolve();
+    });
+  });
+
   // Phase 1 — prepare: clean slate for replicas, enlarged baseline, gateway
   // rebuild via the operator reset endpoint.
   await deleteReplicaBaseline(db);
@@ -204,6 +218,7 @@ async function main(): Promise<void> {
     tasks: manifest.tasksUpserted,
   });
 
+  phase = "resetting";
   const session = await fetch(`${TIQ_BASE_URL}/api/v1/auth/login`, {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -226,11 +241,14 @@ async function main(): Promise<void> {
   // Reset rebuilds the gateway projection (empty log) — wait for the idle hash.
   const idleDeadline = Date.now() + 90_000;
   for (;;) {
-    const listResponse = await fetch(`${TIQ_BASE_URL}/api/v1/scenarios`);
+    const listResponse = await fetch(`${TIQ_BASE_URL}/api/v1/scenarios`, {
+      headers: { cookie: cookieHeader },
+    });
+    if (!listResponse.ok) throw new Error(`scenario list failed: ${listResponse.status}`);
     const list = (await listResponse.json()) as {
-      scenarios: Array<{ id: string; state: { status: string; logHash: string | null } }>;
+      scenarios?: Array<{ id: string; state: { status: string; logHash: string | null } }>;
     };
-    const state = list.scenarios.find((entry) => entry.id === "reference-day")?.state;
+    const state = list.scenarios?.find((entry) => entry.id === "reference-day")?.state;
     if (state && state.status === "idle" && state.logHash === emptyLogHash()) break;
     if (Date.now() > idleDeadline) throw new Error("scenario reset did not settle in time");
     await new Promise((resolve) => setTimeout(resolve, 500));
@@ -239,6 +257,7 @@ async function main(): Promise<void> {
 
   // Phase 2 — the ×10 event log, deterministically built by the same pure
   // builder the simulator uses (event-builder.ts), interleaved across banks.
+  phase = "armed";
   const events: DomainEvent[] = [];
   for (const clone of replicaDays) {
     events.push(...buildEventsUpTo(clone, DAY_END_MS));
@@ -257,6 +276,7 @@ async function main(): Promise<void> {
 
   let appendChain: Promise<void> = Promise.resolve();
   const startAppending = async (): Promise<void> => {
+    phase = "running";
     const startWall = performance.now();
     manifest.appendStartedAt = new Date().toISOString();
     const batchCount = Math.ceil(events.length / LOAD_BATCH_SIZE);
@@ -280,6 +300,7 @@ async function main(): Promise<void> {
       manifest.wallWindowMs > 0
         ? Math.round((manifest.appended / manifest.wallWindowMs) * 1000 * 100) / 100
         : null;
+    phase = "done";
     logger.info({
       msg: "×10 event replay complete",
       appended: manifest.appended,
@@ -289,17 +310,11 @@ async function main(): Promise<void> {
   };
   setTimeout(() => void startAppending(), LOAD_START_DELAY_S * 1000);
 
-  await new Promise<void>((resolve) => {
-    server.listen(LOAD_PRODUCER_PORT, "127.0.0.1", () => {
-      const address = server.address() as AddressInfo;
-      logger.info({
-        msg: "load producer ready — appends begin after the consumer ramp",
-        port: address.port,
-        startDelayS: LOAD_START_DELAY_S,
-        totalEvents: manifest.totalEvents,
-      });
-      resolve();
-    });
+  logger.info({
+    msg: "load producer armed — appends begin after the consumer ramp",
+    port: LOAD_PRODUCER_PORT,
+    startDelayS: LOAD_START_DELAY_S,
+    totalEvents: manifest.totalEvents,
   });
 }
 

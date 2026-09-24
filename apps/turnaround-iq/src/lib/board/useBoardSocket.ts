@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { wsFrameSchema, type WsFrame } from "@aviation/contracts";
+import { serverFrameSchema, wsFrameSchema, type WsFrame } from "@aviation/contracts";
 
 /**
  * Board websocket lifecycle (api-contracts.md §3, architecture.md §4): fetch a
@@ -77,8 +77,16 @@ export function useBoardSocket({
           socket.onmessage = (event: MessageEvent<string>) => {
             if (disposed) return;
             try {
-              const parsed = wsFrameSchema.safeParse(JSON.parse(event.data));
-              if (parsed.success) frameHandler.current(parsed.data);
+              const parsed = serverFrameSchema.safeParse(JSON.parse(event.data));
+              if (!parsed.success) return;
+              // ADR-0008: `board.batch` wraps ordinary frames — process each
+              // with unchanged semantics.
+              const frames: WsFrame[] =
+                parsed.data.type === "board.batch" ? parsed.data.payload.frames : [parsed.data];
+              for (const frame of frames) {
+                const checked = wsFrameSchema.safeParse(frame);
+                if (checked.success) frameHandler.current(checked.data);
+              }
             } catch {
               // Malformed frame: ignore — next poll/REST refresh self-heals.
             }

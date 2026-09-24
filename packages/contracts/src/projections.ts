@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { wsFrameSchema } from "./envelope";
 import { taskStateSchema, alertSeveritySchema } from "./events";
 
 /**
@@ -179,3 +180,23 @@ export const wsClientMessageSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("unsubscribe"), channel: z.string().min(1) }),
 ]);
 export type WsClientMessage = z.infer<typeof wsClientMessageSchema>;
+
+/**
+ * Wire-only batch envelope (ADR-0008, additive): when a client's flush holds
+ * more than one frame, the gateway sends ONE `board.batch` message whose
+ * payload carries the ordinary frames in order. Per-frame `ts`/`lastEventId`
+ * semantics are unchanged; wire-only — never enters the event log.
+ */
+export const wsBatchFrameSchema = z.object({
+  id: z.string().min(1),
+  ts: z.string().datetime({ offset: true }),
+  channel: z.string().min(1),
+  type: z.literal("board.batch"),
+  payload: z.object({ frames: z.array(wsFrameSchema).min(1) }),
+  lastEventId: z.null(),
+});
+export type WsBatchFrame = z.infer<typeof wsBatchFrameSchema>;
+
+/** Any server → client message: single frame or batch envelope. */
+export const serverFrameSchema = z.union([wsFrameSchema, wsBatchFrameSchema]);
+export type ServerFrame = z.infer<typeof serverFrameSchema>;

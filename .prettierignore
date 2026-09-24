@@ -9,3 +9,4 @@ node_modules/
 dist/
 coverage/
 next-env.d.ts
+scripts/loadtest/results/
