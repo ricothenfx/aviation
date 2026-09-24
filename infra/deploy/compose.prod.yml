@@ -29,7 +29,9 @@ services:
       - web
 
   postgres:
-    image: postgres:16-alpine
+    # Same image as CI-validated dev runs (ADR-0006 topological identity) —
+    # the data model requires the TimescaleDB extension (data-model.md §2).
+    image: timescale/timescaledb:latest-pg16
     restart: unless-stopped
     environment:
       POSTGRES_USER: turnaround
@@ -53,7 +55,7 @@ services:
 
   web:
     build:
-      context: ..
+      context: ../..
       dockerfile: apps/turnaround-iq/Dockerfile
       args:
         NEXT_PUBLIC_WS_URL: ${PUBLIC_WS_URL:-wss://${DOMAIN:-localhost}/api/ws}
@@ -73,7 +75,7 @@ services:
 
   simulator:
     build:
-      context: ..
+      context: ../..
       dockerfile: services/turnaround-iq/Dockerfile
       args:
         SERVICE: simulator
@@ -91,7 +93,7 @@ services:
 
   realtime-gateway:
     build:
-      context: ..
+      context: ../..
       dockerfile: services/turnaround-iq/Dockerfile
       args:
         SERVICE: realtime-gateway
@@ -109,7 +111,7 @@ services:
 
   replan-engine:
     build:
-      context: ..
+      context: ../..
       dockerfile: services/turnaround-iq/Dockerfile
       args:
         SERVICE: replan-engine

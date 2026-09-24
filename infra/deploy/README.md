@@ -1,10 +1,34 @@
 # Demo Deployment — Runbook (ADR-0006)
 
-Status: **structure ready, execution pending a user-owned host + domain** —
-per tech-stack.md §2 (locked): F5 validates the deployment *structure*, not a
-live AWS deployment. The AWS service mapping (tech-stack.md §2) remains the
-interview narrative; this directory is the IaC-ready equivalent for a single
-VPS.
+Status: **deployed and live** — `https://turnaround-iq.aviation.ricothen.com`
+(since 2026-09-24). Per tech-stack.md §2 (locked): F5 validates the deployment
+*structure*, not a live AWS deployment. The AWS service mapping (tech-stack.md
+§2) remains the interview narrative; this directory is the IaC-ready equivalent
+for a single VPS.
+
+## Live host (as executed, 2026-09-24)
+
+- **Host**: single VPS (`194.233.67.201`), Ubuntu, Docker + Compose v2.
+- **DNS** (zone `ricothen.com`, both → `194.233.67.201`):
+  - `turnaround-iq.aviation` — the live demo (this deploy).
+  - `aviation` — reserved for the future portfolio landing page (not yet
+    configured in the Caddyfile; dormant record).
+- **URL scheme**: one hostname per project (`turnaround-iq.aviation.ricothen.com`,
+  later `mro-copilot.…`, `rebook-ai.…`), landing page at
+  `aviation.ricothen.com` — recorded in ADR-0006 §Execution record. `DOMAIN`
+  in the server-side `.env` selects the hostname; the Caddyfile is generic.
+- **Public surface**: ports 22/80/443 only. The production compose publishes
+  nothing except Caddy (80/443); postgres/redis are compose-network-internal;
+  the dev stack on this box binds to loopback only.
+- **Firewall** (host step, run as root): `ufw` is active on this box — allow
+  exactly `sudo ufw allow 22,80,443/tcp` and review with
+  `sudo ufw status verbose`. Docker-published ports bypass ufw INPUT rules,
+  so the compose-level guarantee (only Caddy publishes) is the real boundary.
+- **TLS evidence (2026-09-24)**: Caddy solved the ACME `tls-alpn-01` challenge
+  and logged `certificate obtained successfully` for
+  `turnaround-iq.aviation.ricothen.com` (issuer Let's Encrypt, valid to
+  2026-12-23); cert renews automatically (`caddy_data` volume persists).
+
 
 ## Layout
 
@@ -40,7 +64,7 @@ mechanical, not architectural:
 6. `docker compose -f compose.prod.yml up -d --build` — Caddy obtains the
    certificate automatically.
 7. Seed + boot the demo: `docker compose -f compose.prod.yml exec web sh -c
-   "pnpm --filter turnaround-iq db:migrate && pnpm --filter turnaround-iq seed"`
+   "pnpm --filter @aviation/db migrate && pnpm --filter turnaround-iq seed"`
    then start the scenario via the UI (supervisor login) so the board is live.
 
 ## Deploy (update)

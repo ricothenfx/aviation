@@ -1,0 +1,11 @@
+# BuildKit Dockerfile-specific ignore (applies only to apps/turnaround-iq/Dockerfile).
+# Keeps host state (dev node_modules, VCS, docs, secrets) out of the context and
+# out of the image layers — server-side .env files must never enter a build.
+.git
+.github
+**/node_modules
+**/.next
+**/.env
+**/.env.*
+docs
+infra

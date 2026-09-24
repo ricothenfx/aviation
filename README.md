@@ -183,11 +183,15 @@ smoke at two viewports.
 
 ## Deployment
 
+**Live demo: <https://turnaround-iq.aviation.ricothen.com>** — deployed 2026-09-24
+on a single VPS; sign in with a seeded account, e.g. coordinator
+`maya.tan@nx-sim.example` / `coordinator-nx-01` (fictional demo accounts; all
+data simulated).
+
 Production structure lives in [`infra/deploy/`](infra/deploy/README.md): production
 images, `compose.prod.yml` (same six services behind Caddy with automatic TLS), and a
-runbook with rollback. Status: **structure ready — live demo host pending** (ADR-0006;
-the AWS-native mapping in [tech-stack.md §2](docs/03-platform/tech-stack.md) remains the
-cloud narrative).
+runbook with rollback (ADR-0006; the AWS-native mapping in
+[tech-stack.md §2](docs/03-platform/tech-stack.md) remains the cloud narrative).
 
 ## Evidence & Traceability
 

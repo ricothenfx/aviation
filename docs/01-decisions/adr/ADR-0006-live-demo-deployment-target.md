@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | Accepted (user approval 2026-09-24) |
+| Status | **Deployed** (live 2026-09-24 — `https://turnaround-iq.aviation.ricothen.com`; accepted by user 2026-09-24) |
 | Date | 2026-09-24 |
 | Supersedes | — |
 | Related | D-01, D-03, D-05, tech-stack.md §2, traceability-matrix.md rows 7/9/10, milestones.md §F5 |
@@ -80,6 +80,36 @@ domain. Concretely:
 - (−) One-time work in F5: 4 production Dockerfiles + override + Caddyfile +
   runbook; deploy execution additionally needs user-owned secrets/host.
 - (−) TLS depends on a user-supplied domain.
+
+## Execution record (2026-09-24)
+
+Deployed to the user's VPS; runbook steps as executed in
+`infra/deploy/README.md` ("Live host" + "Deploy (first time)"). The decision
+itself is unchanged; first execution surfaced only deployment-artifact fixes:
+
+- **Hostname scheme**: the ADR deliberately left the domain as a deploy
+  parameter. Chosen and now fixed: one hostname per project
+  (`turnaround-iq.aviation.ricothen.com` today; `mro-copilot.*` /
+  `rebook-ai.*` when those projects ship), portfolio landing page later at
+  `aviation.ricothen.com`. Rationale: separate apps get separate hostnames
+  (no `basePath`/cookie/WS-path coupling), and CV links must never move.
+- **`compose.prod.yml` build contexts**: `context: ..` resolved against the
+  compose file's directory (`infra/deploy`), not the repo root — images never
+  built before. Fixed to `context: ../..`.
+- **Dockerfile-specific `.dockerignore`** (`apps/turnaround-iq/`,
+  `services/turnaround-iq/`): the build context was the whole repo (1.6 GB,
+  including dev `node_modules` and server-side `.env` files). Ignores keep
+  host state and secrets out of the context and out of image layers
+  ("Secrets stay out of the repo" extended to image layers).
+- **`compose.prod.yml` postgres image**: `postgres:16-alpine` cannot satisfy
+  the data model (`CREATE EXTENSION timescaledb`, data-model.md §2) — the
+  first seed failed on it. Fixed to `timescale/timescaledb:latest-pg16`,
+  the same image the CI-validated dev compose uses, restoring the ADR's
+  topological identity. The fresh `pgdata_prod` volume was re-initialized
+  with the correct image before first seed (no data existed yet).
+- **Runbook seed command**: `db:migrate` lives in `packages/db`
+  (`pnpm --filter @aviation/db migrate`), not in the app package — runbook
+  corrected.
 
 ## Compliance
 
