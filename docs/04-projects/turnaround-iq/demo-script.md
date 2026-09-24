@@ -6,9 +6,10 @@
 | Purpose | Video recording + live interview walkthrough; dual narrative per D-01 (technical & non-technical reviewers) |
 
 ## Setup (before recording)
-1. `docker compose --profile turnaround up -d && pnpm seed` → scenario "Reference Day — afternoon bank".
-2. Login as `coordinator` (demo user). Browser 1280×720, dark theme, board view.
-3. Disruption script loaded: "Loader 12 breakdown at 14:32" (47-minute baseline delay outcome when unmanaged).
+1. `docker compose --profile turnaround up -d --wait` (containers self-install + seed) → scenario "Reference Day — full turnaround bank".
+2. Login as supervisor `priya.nair@nx-sim.example` / `supervisor-nx-01` (inject needs supervisor). Browser 1280×720, dark theme, board view.
+3. Disruption script loaded: "Baggage loader breakdown" (47-minute baseline delay outcome when unmanaged — `pnpm bench:replan` is the committed proof).
+4. Numbers to quote live (verify against `scripts/loadtest/results/gate/` + `docs/04-projects/turnaround-iq/load-report-f5.md` before recording): ×10 load p95 ingestion→board **198 ms**, delivery **100%**, replan **47 → ≤ 9 min** in < 2 s.
 
 ## Shot List
 
@@ -20,7 +21,7 @@
 | 4 | 0:35–0:50 | Click replan → plan diff slides in | Flight drawer + replan panel | "One click. The AI re-sequences every remaining task and shows the plan: 47 minutes of delay becomes 9." | "Constraint scheduler minimizes total delay subject to dependencies, unit availability, fuel-boarding overlap — the LLM only explains the plan, humans approve it." |
 | 5 | 0:50–1:00 | Approve → tasks glide to new slots; KPI strip updates | Board + KPI strip | "The coordinator stays in charge. The airport keeps its promises." | "Approval emits events; projections and KPIs are derived state — same audit trail answers 'why was this flight late'." |
 | 6 | 1:00–1:15 | Open flight drawer, event history | Drawer | — (b-roll) | "Full event history per flight — this is the post-mortem view auditors ask for." |
-| 7 | 1:15–1:30 | Grafana dashboard flash + repo shot | Observability | "Built like production: monitored, tested, deployed." | "Prometheus metrics, load-tested at 10× scenario scale; CI runs unit, integration, contract, and e2e suites." |
+| 7 | 1:15–1:30 | Grafana dashboard flash + repo shot | Observability | "Built like production: monitored, load-tested at 10× scale with 200 concurrent boards, deployed." | "Prometheus + Grafana evidence dashboard; F5 load gate: p95 ingestion→board 198 ms, 100% frame delivery at 15k events; CI runs unit, integration, contract, and e2e suites." |
 
 ## Live-Interview Adaptation (5-minute version)
 1. Let the interviewer pick the disruption (console makes it interactive).
