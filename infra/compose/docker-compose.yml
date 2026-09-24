@@ -1,14 +1,16 @@
 # Local development topology (monorepo-architecture.md §3).
 # Profiles: "infra" = postgres + redis only; "turnaround" = full project stack
-# (postgres + redis + web); "evidence" = ephemeral Prometheus + Grafana for
-# load runs only (ADR-0007 — never part of the demo stack). Run from the repo
-# root:
+# (postgres + redis + web); "mro" = mro-copilot stack (postgres + web + ai-service,
+# no Redis — architecture.md §1 for mro-copilot); "evidence" = ephemeral
+# Prometheus + Grafana for load runs only (ADR-0007 — never part of the demo
+# stack). Run from the repo root:
 #   docker compose --profile turnaround up -d
+#   docker compose --profile mro up -d
 #   docker compose --profile evidence up -d   # load-test evidence only
 services:
   postgres:
     image: timescale/timescaledb:latest-pg16
-    profiles: ["turnaround", "infra"]
+    profiles: ["turnaround", "infra", "mro"]
     environment:
       POSTGRES_USER: turnaround
       POSTGRES_PASSWORD: turnaround
@@ -217,6 +219,87 @@ services:
       retries: 24
       start_period: 180s
 
+  # mro-copilot web (F1): Next.js app on http://localhost:3003. Containerized
+  # dev mode mirrors the turnaround "web" service: self-installing workspace.
+  # AUTH_SECRET/AI_SERVICE_TOKEN are dev-only throwaway values for local
+  # simulated data. Host mode: `pnpm --filter mro-copilot dev` binds :3003.
+  mro-web:
+    image: node:22-bookworm-slim
+    profiles: ["mro"]
+    working_dir: /repo
+    command: >-
+      sh -c "corepack enable &&
+             pnpm install --frozen-lockfile &&
+             pnpm --filter mro-copilot seed &&
+             pnpm --filter mro-copilot dev"
+    environment:
+      MRO_DATABASE_URL: postgresql://turnaround:turnaround@postgres:5432/mro_copilot
+      AUTH_SECRET: dev-only-insecure-secret-0123456789abcdef
+      MRO_AUTH_COOKIE_NAME: mro_session
+      # Internal ai-service (ADR-0012): service-network name + shared bearer.
+      MRO_AI_SERVICE_URL: http://mro-ai-service:4103
+      AI_SERVICE_TOKEN: dev-only-insecure-ai-token-0123456789abcdef
+      LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      NEXT_TELEMETRY_DISABLED: "1"
+    ports:
+      - "127.0.0.1:3003:3003"
+    volumes:
+      - ../..:/repo
+      - mro_web_node_modules:/repo/node_modules
+      - mro_web_app_node_modules:/repo/apps/mro-copilot/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3003/healthz').then((r)=>{if(!r.ok)throw new Error('unhealthy')}).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 24
+      start_period: 240s
+
+  # mro-copilot ai-service (ADR-0012): FastAPI owning embeddings/retrieval/RUL.
+  # Loopback-only publication; the app reaches it over the service network.
+  # pgvector 0.8.1 is provided by the timescale/timescaledb:latest-pg16 image
+  # (recorded per ADR-0010).
+  mro-ai-service:
+    image: python:3.12-slim
+    profiles: ["mro"]
+    working_dir: /srv
+    command: >-
+      sh -c "pip install --no-cache-dir -r requirements.txt &&
+             uvicorn mro_ai.main:app --host 0.0.0.0 --port 4103"
+    environment:
+      DATABASE_URL: postgresql://turnaround:turnaround@postgres:5432/mro_copilot
+      # Shared secret with the web app (ADR-0012 §5).
+      AI_SERVICE_TOKEN: dev-only-insecure-ai-token-0123456789abcdef
+      LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+    ports:
+      - "127.0.0.1:4103:4103"
+    volumes:
+      - ../../services/mro-copilot/ai-service:/srv
+      - mro_ai_pip_cache:/root/.cache/pip
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request;urllib.request.urlopen('http://127.0.0.1:4103/healthz')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 24
+      start_period: 240s
+
   # Load-run evidence stack (ADR-0007): k6 remote-writes metrics here during
   # `scripts/loadtest/run-loadtest.mjs --prom`; Grafana renders the committed
   # dashboard. Loopback-only, ephemeral — torn down after evidence collection.
@@ -251,6 +334,9 @@ volumes:
   pgdata_turnaround:
   web_node_modules:
   web_app_node_modules:
+  mro_web_node_modules:
+  mro_web_app_node_modules:
+  mro_ai_pip_cache:
   simulator_node_modules:
   simulator_pkg_node_modules:
   simulator_domain_node_modules:

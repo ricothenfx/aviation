@@ -24,3 +24,9 @@ coverage/
 # Playwright artifacts (F3 e2e)
 apps/turnaround-iq/test-results/
 apps/turnaround-iq/playwright-report/
+
+# Python tooling caches (mro-copilot ai-service)
+__pycache__/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/

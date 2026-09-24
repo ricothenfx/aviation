@@ -83,8 +83,18 @@ pnpm test:e2e           # Playwright end-to-end tests (needs compose stack; adde
 pnpm bench:replan       # loader-breakdown replan benchmark: 47 → ≤ 9 min in < 2 s (pure, no stack)
 pnpm loadtest           # ×10 load gate: k6 (200 ws consumers) + independent latency probe (F5; needs compose stack; --prom feeds Grafana evidence profile)
 pnpm seed               # apply migrations + reference day + upsert seeded demo users (turnaround-iq)
+pnpm seed:mro           # mro-copilot: ensure mro_copilot DB + migrations + seeded users (viewer/engineer/reviewer)
 pnpm db:generate        # drizzle-kit generate migration SQL from packages/db schema
-pnpm db:migrate         # apply pending migrations
+pnpm db:generate:mro    # drizzle-kit generate from apps/mro-copilot schema (mro_copilot DB)
+pnpm db:migrate         # apply pending migrations (turnaround-iq)
+pnpm db:migrate:mro     # apply pending mro-copilot migrations (pgvector + chunks)
+
+# mro-copilot stack (web :3003, ai-service :4103 loopback, shared postgres, DB mro_copilot — ADR-0012):
+docker compose --profile mro up -d
+
+# mro-copilot Python ai-service checks (host has no pip; run in the pinned image):
+docker run --rm -v "$PWD/services/mro-copilot/ai-service:/srv" -w /srv python:3.12-slim sh -c \
+  "pip install -q -r requirements-dev.txt && ruff check . && ruff format --check . && mypy mro_ai && pytest"
 
 # Full containerized stack (postgres + redis + web on :3001, simulator :4101, realtime-gateway ws :4001, replan-engine :4102):
 docker compose --profile turnaround up -d      # boot; web self-installs, seeds, serves

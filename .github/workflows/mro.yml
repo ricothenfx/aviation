@@ -1,0 +1,120 @@
+# mro-copilot CI (monorepo-architecture.md §4: path-filtered; engineering-
+# standards.md §7). Runs only when mro-copilot surfaces, shared packages or
+# the compose topology change. turnaround-iq's ci.yml stays untouched.
+name: mro
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/mro-copilot/**"
+      - "services/mro-copilot/**"
+      - "packages/**"
+      - "infra/compose/**"
+      - ".github/workflows/mro.yml"
+      - "pnpm-lock.yaml"
+      - ".env.example"
+  pull_request:
+    paths:
+      - "apps/mro-copilot/**"
+      - "services/mro-copilot/**"
+      - "packages/**"
+      - "infra/compose/**"
+      - ".github/workflows/mro.yml"
+      - "pnpm-lock.yaml"
+      - ".env.example"
+
+jobs:
+  # F1 DoD: lint + typecheck + unit + build for BOTH runtimes.
+  python-ai-service:
+    name: ai-service · ruff · mypy · pytest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            services/mro-copilot/ai-service/requirements.txt
+            services/mro-copilot/ai-service/requirements-dev.txt
+
+      - name: Install dependencies
+        working-directory: services/mro-copilot/ai-service
+        run: pip install -r requirements-dev.txt
+
+      - name: Lint (ruff check + format, zero warnings)
+        working-directory: services/mro-copilot/ai-service
+        run: |
+          ruff check .
+          ruff format --check .
+
+      - name: Typecheck (mypy strict)
+        working-directory: services/mro-copilot/ai-service
+        run: mypy mro_ai
+
+      - name: Unit tests (pytest)
+        working-directory: services/mro-copilot/ai-service
+        env:
+          AI_SERVICE_TOKEN: ci-only-token-0123456789abcdef
+        run: pytest
+
+  compose-smoke-mro:
+    name: compose stack smoke + integration (F1 DoD)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Boot the mro stack (postgres + web :3003 + ai-service :4103)
+        run: docker compose --profile mro up -d --wait --wait-timeout 420
+
+      - name: Health + seeded login smoke (viewer / engineer / reviewer)
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:3003/healthz > /dev/null; then break; fi
+            sleep 5
+          done
+          curl -sf http://localhost:3003/healthz
+          echo "web healthz OK"
+          curl -sf http://localhost:4103/healthz
+          echo "ai-service healthz OK"
+          curl -sf http://localhost:3003/readyz | grep -o '"status":"ready"'
+          echo "web readyz OK (db, pgvector, provider, model)"
+          curl -sf -X POST http://localhost:3003/api/v1/auth/login \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"wei.lim@mro-sim.example","password":"reviewer-nx-01"}' \
+            | grep -o '"role":"reviewer"'
+          curl -sf -X POST http://localhost:3003/api/v1/auth/login \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"siti.rahayu@mro-sim.example","password":"engineer-nx-01"}' \
+            | grep -o '"role":"engineer"'
+          curl -sf -X POST http://localhost:3003/api/v1/auth/login \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"tom.ng@mro-sim.example","password":"viewer-nx-01"}' \
+            | grep -o '"role":"viewer"'
+          echo "seeded logins OK for all three roles"
+
+      - name: Integration tests (migration · RBAC · embed determinism)
+        env:
+          MRO_DATABASE_URL: postgresql://turnaround:turnaround@localhost:5433/mro_copilot
+          MRO_BASE_URL: http://localhost:3003
+          MRO_AI_SERVICE_URL: http://localhost:4103
+          AI_SERVICE_TOKEN: dev-only-insecure-ai-token-0123456789abcdef
+        run: pnpm --filter mro-copilot test:integration
+
+      - name: Teardown
+        if: always()
+        run: docker compose --profile mro down -v --remove-orphans

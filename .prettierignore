@@ -10,3 +10,9 @@ dist/
 coverage/
 next-env.d.ts
 scripts/loadtest/results/
+services/mro-copilot/ai-service/.mypy_cache/
+services/mro-copilot/ai-service/.ruff_cache/
+services/mro-copilot/ai-service/.pytest_cache/
+# Agent Manager / kilo worktrees carry a full repo copy — never lint those
+# (mirrors the eslint ignores in packages/config/eslint.mjs).
+.kilo/
