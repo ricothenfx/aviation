@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | Proposed — pending user approval |
+| Status | Accepted (user approval 2026-09-24) |
 | Date | 2026-09-24 |
 | Supersedes | — |
 | Related | D-03, D-07, tech-stack.md §1 (k6 already approved), milestones.md §F5 |

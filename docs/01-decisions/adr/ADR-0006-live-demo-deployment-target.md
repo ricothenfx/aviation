@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Status | Proposed — pending user approval |
+| Status | Accepted (user approval 2026-09-24) |
 | Date | 2026-09-24 |
 | Supersedes | — |
 | Related | D-01, D-03, D-05, tech-stack.md §2, traceability-matrix.md rows 7/9/10, milestones.md §F5 |
