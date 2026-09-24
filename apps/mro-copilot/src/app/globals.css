@@ -1,0 +1,43 @@
+@import "tailwindcss";
+@import "@aviation/ui/styles.css";
+
+/* Base layer: mission-control dark theme (ui-design-system.md §1). */
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    font-size: 14px;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-accent) 30%, transparent);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
+/* Subtle content entrance for live-updating panels (ui-design-system.md §6). */
+@media (prefers-reduced-motion: no-preference) {
+  .mro-fade-in {
+    animation: mro-fade-in 180ms ease-out;
+  }
+}
+
+@keyframes mro-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

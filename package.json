@@ -17,8 +17,11 @@
     "bench:replan": "node scripts/benchmarks/replan-delay.mjs",
     "loadtest": "node scripts/loadtest/run-loadtest.mjs",
     "seed": "pnpm --filter turnaround-iq seed",
+    "seed:mro": "pnpm --filter mro-copilot seed",
     "db:generate": "pnpm --filter @aviation/db generate",
-    "db:migrate": "pnpm --filter @aviation/db migrate"
+    "db:generate:mro": "pnpm --filter mro-copilot db:generate",
+    "db:migrate": "pnpm --filter @aviation/db migrate",
+    "db:migrate:mro": "pnpm --filter mro-copilot db:migrate"
   },
   "devDependencies": {
     "@aviation/config": "workspace:*",

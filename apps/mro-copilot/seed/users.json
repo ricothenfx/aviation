@@ -1,0 +1,20 @@
+[
+  {
+    "email": "wei.lim@mro-sim.example",
+    "displayName": "Wei Lim",
+    "role": "reviewer",
+    "password": "reviewer-nx-01"
+  },
+  {
+    "email": "siti.rahayu@mro-sim.example",
+    "displayName": "Siti Rahayu",
+    "role": "engineer",
+    "password": "engineer-nx-01"
+  },
+  {
+    "email": "tom.ng@mro-sim.example",
+    "displayName": "Tom Ng",
+    "role": "viewer",
+    "password": "viewer-nx-01"
+  }
+]

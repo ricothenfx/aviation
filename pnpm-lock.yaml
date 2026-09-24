@@ -24,6 +24,76 @@ importers:
         specifier: ^8.20.0
         version: 8.70.1(eslint@9.39.5(jiti@2.7.0))(typescript@5.9.3)
 
+  apps/mro-copilot:
+    dependencies:
+      '@aviation/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@aviation/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@node-rs/argon2':
+        specifier: ^2.0.2
+        version: 2.2.1
+      drizzle-orm:
+        specifier: ^0.44.1
+        version: 0.44.7(@types/pg@8.23.1)(pg@8.23.0)
+      jose:
+        specifier: ^5.9.6
+        version: 5.10.0
+      next:
+        specifier: ^15.3.0
+        version: 15.5.25(@playwright/test@1.63.0)(@types/node@22.20.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      pg:
+        specifier: ^8.13.1
+        version: 8.23.0
+      pino:
+        specifier: ^9.6.0
+        version: 9.14.0
+      react:
+        specifier: ^19.0.0
+        version: 19.3.0
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.3.0(react@19.3.0)
+      zod:
+        specifier: ^3.25.0
+        version: 3.25.76
+    devDependencies:
+      '@aviation/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@tailwindcss/postcss':
+        specifier: ^4.0.6
+        version: 4.3.3
+      '@types/node':
+        specifier: ^22.10.5
+        version: 22.20.4
+      '@types/pg':
+        specifier: ^8.11.10
+        version: 8.23.1
+      '@types/react':
+        specifier: ^19.0.2
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: ^19.0.2
+        version: 19.3.0(@types/react@19.3.0)
+      drizzle-kit:
+        specifier: ^0.31.1
+        version: 0.31.11
+      tailwindcss:
+        specifier: ^4.0.6
+        version: 4.3.3
+      tsx:
+        specifier: ^4.19.2
+        version: 4.23.15
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.0.5
+        version: 3.2.7(@types/node@22.20.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)
+
   apps/turnaround-iq:
     dependencies:
       '@aviation/contracts':

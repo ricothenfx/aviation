@@ -1,0 +1,43 @@
+{
+  "name": "mro-copilot",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Maintenance-manual RAG copilot + engine health (portfolio, simulated data).",
+  "scripts": {
+    "dev": "next dev -p 3003",
+    "build": "next build",
+    "start": "next start -p 3003",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "seed": "tsx seed/seed.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/db/run-migrate.ts"
+  },
+  "dependencies": {
+    "@aviation/contracts": "workspace:*",
+    "@aviation/ui": "workspace:*",
+    "@node-rs/argon2": "^2.0.2",
+    "drizzle-orm": "^0.44.1",
+    "jose": "^5.9.6",
+    "next": "^15.3.0",
+    "pg": "^8.13.1",
+    "pino": "^9.6.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@aviation/config": "workspace:*",
+    "@tailwindcss/postcss": "^4.0.6",
+    "@types/node": "^22.10.5",
+    "@types/pg": "^8.11.10",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "drizzle-kit": "^0.31.1",
+    "tailwindcss": "^4.0.6",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^3.0.5"
+  }
+}
