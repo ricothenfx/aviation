@@ -1,7 +1,10 @@
 # Local development topology (monorepo-architecture.md §3).
 # Profiles: "infra" = postgres + redis only; "turnaround" = full project stack
-# (postgres + redis + web). Run from the repo root:
+# (postgres + redis + web); "evidence" = ephemeral Prometheus + Grafana for
+# load runs only (ADR-0007 — never part of the demo stack). Run from the repo
+# root:
 #   docker compose --profile turnaround up -d
+#   docker compose --profile evidence up -d   # load-test evidence only
 services:
   postgres:
     image: timescale/timescaledb:latest-pg16
@@ -213,6 +216,36 @@ services:
       timeout: 5s
       retries: 24
       start_period: 180s
+
+  # Load-run evidence stack (ADR-0007): k6 remote-writes metrics here during
+  # `scripts/loadtest/run-loadtest.mjs --prom`; Grafana renders the committed
+  # dashboard. Loopback-only, ephemeral — torn down after evidence collection.
+  prometheus:
+    image: prom/prometheus:v3.14.0
+    profiles: ["evidence"]
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-remote-write-receiver
+      - --storage.tsdb.retention.time=1d
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ../observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+  grafana:
+    image: grafana/grafana:13.2.2
+    profiles: ["evidence"]
+    environment:
+      # Local evidence-only credentials; the demo stack never runs Grafana.
+      GF_SECURITY_ADMIN_USER: evidence
+      GF_SECURITY_ADMIN_PASSWORD: evidence-local-only
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    ports:
+      - "127.0.0.1:3002:3000"
+    volumes:
+      - ../observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
 
 volumes:
   pgdata_turnaround:

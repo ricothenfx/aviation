@@ -1,0 +1,9 @@
+# Evidence-stack Prometheus (ADR-0007): ephemeral, remote-write receiver only
+# for k6 load runs. Never scraped by the demo stack; storage is per-run.
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
