@@ -54,7 +54,12 @@ function runK6() {
     DURATION: `${durationS}s`,
     AUTH_COOKIE_NAME: process.env.AUTH_COOKIE_NAME ?? "tiq_session",
   };
-  const promEnv = { K6_PROMETHEUS_RW_SERVER_URL: "http://localhost:9090/api/v1/write" };
+  const promEnv = {
+    K6_PROMETHEUS_RW_SERVER_URL: "http://localhost:9090/api/v1/write",
+    // The experimental RW output exports trends as per-stat gauges; the
+    // dashboard queries these exact stats (no histogram buckets).
+    K6_PROMETHEUS_RW_TREND_STATS: "p(50),p(95),p(99),avg,max",
+  };
   const direct = spawnSync("k6", ["version"], { encoding: "utf8" });
   if (direct.status === 0) {
     return spawn(

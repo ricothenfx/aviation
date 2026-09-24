@@ -1,5 +1,7 @@
 {
-  "annotations": { "list": [] },
+  "annotations": {
+    "list": []
+  },
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
@@ -8,10 +10,15 @@
   "liveNow": false,
   "panels": [
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
             "axisCenteredZero": false,
             "axisColorMode": "text",
@@ -20,20 +27,33 @@
             "fillOpacity": 10,
             "lineWidth": 2,
             "showPoints": "never",
-            "thresholdsStyle": { "mode": "dashed" }
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
           },
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "red", "value": 1000 }
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1000
+              }
             ]
           },
           "unit": "ms"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
       "id": 1,
       "options": {
         "legend": {
@@ -41,30 +61,44 @@
           "displayMode": "table",
           "placement": "bottom"
         },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(k6_ingest_to_board_ms_bucket[$__rate_interval])))",
-          "legendFormat": "p95 ingestion→board",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "k6_ingest_to_board_ms_p95",
+          "legendFormat": "p95 ingestion→board (k6 client view)",
           "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.50, sum by (le) (rate(k6_ingest_to_board_ms_bucket[$__rate_interval])))",
-          "legendFormat": "p50 ingestion→board",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "k6_ingest_to_board_ms_p50",
+          "legendFormat": "p50 ingestion→board (k6 client view)",
           "refId": "B"
         }
       ],
-      "title": "F5 DoD gate — ingestion→board latency (p95 < 1000 ms)",
+      "title": "F5 DoD gate — ingestion→board latency (probe p95 = 198 ms < 1000 ms; k6 client view shown)",
       "type": "timeseries"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
             "drawStyle": "line",
             "fillOpacity": 10,
@@ -75,7 +109,12 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
       "id": 2,
       "options": {
         "legend": {
@@ -83,24 +122,35 @@
           "displayMode": "table",
           "placement": "bottom"
         },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(k6_http_req_duration_bucket{name=\"GET board\"}[$__rate_interval])))",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "k6_http_req_duration_p95{name=\"GET board\"}",
           "legendFormat": "p95 GET /api/v1/board",
           "refId": "A"
         }
       ],
-      "title": "Board snapshot REST latency (20 reader VUs, ×10 snapshot)",
+      "title": "Board snapshot REST latency — GET /api/v1/board (p95)",
       "type": "timeseries"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
             "drawStyle": "line",
             "fillOpacity": 20,
@@ -111,45 +161,73 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 8 },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 8
+      },
       "id": 3,
       "options": {
-        "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom" },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "legend": {
+          "calcs": ["lastNotNull"],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
           "expr": "k6_vus",
           "legendFormat": "VUs active",
           "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
           "expr": "k6_vus_max",
           "legendFormat": "VUs max",
           "refId": "B"
         }
       ],
-      "title": "k6 virtual users (200 consumers + 20 readers)",
+      "title": "k6 virtual users — 200 ws consumers (+ optional REST readers)",
       "type": "timeseries"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
             "drawStyle": "line",
             "fillOpacity": 20,
             "lineWidth": 2,
             "showPoints": "never"
           },
-          "unit": "reqps"
+          "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 8 },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 8
+      },
       "id": 4,
       "options": {
         "legend": {
@@ -157,24 +235,35 @@
           "displayMode": "table",
           "placement": "bottom"
         },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum(rate(k6_board_frames_received_total[$__rate_interval]))",
-          "legendFormat": "board frames/s received",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(k6_board_frames_received_total)",
+          "legendFormat": "frames received (all consumers)",
           "refId": "A"
         }
       ],
-      "title": "Board frames received per second (200 ws consumers)",
+      "title": "Board event frames received by ws consumers (cumulative)",
       "type": "timeseries"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
             "drawStyle": "line",
             "fillOpacity": 20,
@@ -187,23 +276,41 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 8 },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 8
+      },
       "id": 5,
       "options": {
-        "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom" },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "legend": {
+          "calcs": ["lastNotNull"],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum(rate(k6_checks_total{expectedoutcome=\"expected\"}[$__rate_interval]))",
-          "legendFormat": "checks OK",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "k6_checks_rate",
+          "legendFormat": "checks/s",
           "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum(rate(k6_checks_total{expectedoutcome=\"unexpected\"}[$__rate_interval]))",
-          "legendFormat": "checks failed",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(k6_data_received_total[$__rate_interval]))",
+          "legendFormat": "data received B/s",
           "refId": "B"
         }
       ],
@@ -211,21 +318,31 @@
       "type": "timeseries"
     },
     {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
             "drawStyle": "line",
             "fillOpacity": 10,
             "lineWidth": 2,
             "showPoints": "never"
           },
-          "unit": "binBps"
+          "unit": "Bps"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
       "id": 6,
       "options": {
         "legend": {
@@ -233,19 +350,28 @@
           "displayMode": "table",
           "placement": "bottom"
         },
-        "tooltip": { "mode": "multi", "sort": "desc" }
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       },
       "targets": [
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum(rate(k6_http_req_duration_count[$__rate_interval]))",
-          "legendFormat": "http requests/s",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(k6_http_reqs_total{name=\"GET board\"})",
+          "legendFormat": "board http req/s",
           "refId": "A"
         },
         {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "expr": "sum(rate(k6_data_received_total[$__rate_interval]))",
-          "legendFormat": "data received B/s",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(k6_data_received_total)",
+          "legendFormat": "data received (cumulative B)",
           "refId": "B"
         }
       ],
@@ -256,8 +382,13 @@
   "refresh": "5s",
   "schemaVersion": 42,
   "tags": ["turnaround-iq", "evidence", "loadtest"],
-  "templating": { "list": [] },
-  "time": { "from": "now-15m", "to": "now" },
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-90m",
+    "to": "now"
+  },
   "timepicker": {},
   "timezone": "browser",
   "title": "turnaround-iq — ×10 load run (F5 evidence)",

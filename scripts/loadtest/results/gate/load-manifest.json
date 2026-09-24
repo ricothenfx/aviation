@@ -7,8 +7,8 @@
   "totalEvents": 15000,
   "appended": 15000,
   "appendedPerSecActual": 99.96,
-  "resetAt": "2026-09-24T03:36:31.380Z",
-  "appendStartedAt": "2026-09-24T03:36:51.881Z",
-  "appendFinishedAt": "2026-09-24T03:39:21.936Z",
-  "wallWindowMs": 150054
+  "resetAt": "2026-09-24T03:23:27.186Z",
+  "appendStartedAt": "2026-09-24T03:23:47.744Z",
+  "appendFinishedAt": "2026-09-24T03:26:17.803Z",
+  "wallWindowMs": 150059
 }
