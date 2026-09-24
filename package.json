@@ -15,6 +15,7 @@
     "test:integration": "pnpm -r --workspace-concurrency=1 --if-present test:integration",
     "test:e2e": "pnpm --filter turnaround-iq test:e2e",
     "bench:replan": "node scripts/benchmarks/replan-delay.mjs",
+    "loadtest": "node scripts/loadtest/run-loadtest.mjs",
     "seed": "pnpm --filter turnaround-iq seed",
     "db:generate": "pnpm --filter @aviation/db generate",
     "db:migrate": "pnpm --filter @aviation/db migrate"

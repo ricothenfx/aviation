@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "tsx src/index.ts",
     "start": "tsx src/index.ts",
+    "produce:load": "tsx src/loadtest/producer.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
