@@ -88,7 +88,11 @@ jobs:
           DATABASE_URL: postgresql://turnaround:turnaround@localhost:5433/turnaround_iq
           REDIS_URL: redis://localhost:6379
           TIQ_BASE_URL: http://localhost:3001
-        run: pnpm test:integration
+        # Scoped to turnaround-iq: this job boots only the "turnaround" compose
+        # profile, and the root aggregate now also contains mro-copilot's
+        # integration suite (which needs the "mro" stack and is covered by the
+        # path-filtered mro.yml workflow).
+        run: pnpm --filter turnaround-iq test:integration
 
       - name: Board latency benchmark (ws end-to-end, p95 < 1 s)
         env:
