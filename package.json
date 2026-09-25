@@ -23,7 +23,10 @@
     "db:generate": "pnpm --filter @aviation/db generate",
     "db:generate:mro": "pnpm --filter mro-copilot db:generate",
     "db:migrate": "pnpm --filter @aviation/db migrate",
-    "db:migrate:mro": "pnpm --filter mro-copilot db:migrate"
+    "db:migrate:mro": "pnpm --filter mro-copilot db:migrate",
+    "eval:mro:full": "node scripts/eval-mro/full.mjs",
+    "bench:mro-ask": "node scripts/benchmarks/mro-ask-latency.mjs",
+    "test:e2e:mro": "pnpm --filter mro-copilot test:e2e"
   },
   "devDependencies": {
     "@aviation/config": "workspace:*",

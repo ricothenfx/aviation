@@ -20,12 +20,12 @@
 | GET | `/api/v1/manuals` | viewer+ | `docType`, `ataChapter`, `status`, `cursor` | manuals + TOC summary |
 | GET | `/api/v1/manuals/{id}` | viewer+ | — | metadata + full section tree |
 | GET | `/api/v1/manuals/{id}/chunks/{chunkId}` | viewer+ | — | chunk: breadcrumb, content, page, revision, effective date |
-| GET | `/api/v1/search` | viewer+ | `q` (required), `docType`, `ataChapter`, `revision`, `limit` ≤ 20 | `{mode: "hybrid"\|"lexical", results: [SearchHit]}` — `SearchHit = {chunkId, manualId, docType, taskNo, ataChapter, sectionPath, page, revision, snippet, score}`; `mode` flags degraded retrieval (architecture.md §4) |
+| GET | `/api/v1/search` | viewer+ | `q` (required), `docType`, `ataChapter`, `revision`, `limit` ≤ 20 | `{mode: "hybrid"\|"lexical", results: [SearchHit]}` — `SearchHit = {chunkId, manualId, docType, taskNo, ataChapter, sectionPath, page, revision, snippet, score, vectorScore, termCoverage}`; `mode` flags degraded retrieval (architecture.md §4); `vectorScore` (query-chunk cosine, `null` in lexical mode) + `termCoverage` (query-lexeme coverage) are F3 additive grounding signals consumed by the ask guardrail — never used for ranking |
 
 ### Copilot Q&A (PRD F-3/F-4)
 | Method | Path | Role | Body | Notes |
 |---|---|---|---|---|
-| POST | `/api/v1/ask` | engineer+ | `{question}` | RAG loop (architecture.md §3). 200 either way: `{answerId, status: "draft"\|"refused", answer?, citations?, refusalReason?, source: "llm"\|"extractive", provider, groundingScore, retrieval: {mode, latencyMs}}`. Refusal is a valid outcome, not an error (FR-10) |
+| POST | `/api/v1/ask` | engineer+ | `{question}` | RAG loop (architecture.md §3). 200 either way: `{answerId, status: "draft"\|"refused", answer?, citations?, refusalReason?, source: "llm"\|"extractive"\|"none", provider, groundingScore, retrieval: {mode, latencyMs}}`. Refusal is a valid outcome, not an error (FR-10); refused answers carry `source: "none"` (no generation source contributed) and omit `answer`/`citations` entirely (behavioral contract §4). `groundingScore` = max(0.6·termCoverage + 0.4·vectorScore), coverage-only in lexical mode — calibrated per data-model.md §9 |
 | GET | `/api/v1/answers` | viewer+ | `status`, `cursor` | viewer sees approved (verified library) only; engineer adds own drafts; reviewer sees all |
 | GET | `/api/v1/answers/{id}` | owner / viewer+ if approved | — | detail + citations + review block |
 | GET | `/api/v1/answers/{id}/audit` | reviewer+ (or owner) | — | append-only lifecycle events |
@@ -70,7 +70,8 @@
 Codes: shared standard (`VALIDATION_ERROR` 400 · `UNAUTHENTICATED` 401 · `FORBIDDEN` 403 ·
 `NOT_FOUND` 404 · `IDEMPOTENCY_CONFLICT` 409 · `RATE_LIMITED` 429 · `INTERNAL` 500) plus
 mro-copilot additions: `INGEST_IN_PROGRESS` 409 · `MODEL_NOT_LOADED` 503 ·
-`AI_SERVICE_UNAVAILABLE` 503 · `SELF_APPROVAL_FORBIDDEN` 403.
+`AI_SERVICE_UNAVAILABLE` 503 · `SELF_APPROVAL_FORBIDDEN` 403 · `LIFECYCLE_CONFLICT` 409
+(F3 additive: answer not in the required lifecycle state, e.g. approving a non-draft).
 
 ## 3. ai-service Internal API (`/internal/v1`, bearer `AI_SERVICE_TOKEN`, never public)
 

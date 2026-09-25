@@ -14,6 +14,7 @@
 
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 const REPO_ROOT = path.resolve(import.meta.dirname, "../..");
 const APP_ROOT = path.join(REPO_ROOT, "apps/mro-copilot");
@@ -38,7 +39,7 @@ function assertFixtures() {
   }
 }
 
-async function login() {
+export async function login() {
   const res = await fetch(`${BASE_URL}/api/v1/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -51,11 +52,11 @@ async function login() {
   return setCookie.split(";")[0];
 }
 
-function citationKey(citation) {
+export function citationKey(citation) {
   return `${citation.doc_type}|${citation.ata_chapter}|${citation.task_no}`;
 }
 
-async function search(cookie, query) {
+export async function search(cookie, query) {
   const params = new URLSearchParams({ q: query, limit: String(TOP_K) });
   const res = await fetch(`${BASE_URL}/api/v1/search?${params}`, {
     headers: { Cookie: cookie },
@@ -67,7 +68,7 @@ async function search(cookie, query) {
   return res.json();
 }
 
-function scoreCase(caseItem, hits) {
+export function scoreCase(caseItem, hits) {
   const expected = caseItem.expected_citations.map(citationKey);
   const hitKeys = hits.map((hit) => `${hit.docType}|${hit.ataChapter}|${hit.taskNo}`);
   const matched = expected.filter((key) => hitKeys.includes(key)).length;
@@ -84,7 +85,7 @@ function scoreCase(caseItem, hits) {
   };
 }
 
-async function main() {
+export async function main() {
   assertFixtures();
   const cookie = await login();
   const startedAt = new Date().toISOString();
@@ -184,9 +185,11 @@ async function main() {
   }
 }
 
-main().catch((err) => {
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+  main().catch((err) => {
   console.error(
     JSON.stringify({ level: "error", module: "eval-mro", msg: "eval failed", err: String(err) }),
   );
-  process.exit(1);
-});
+    process.exit(1);
+  });
+}

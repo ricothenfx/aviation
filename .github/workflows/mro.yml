@@ -122,11 +122,24 @@ jobs:
           MRO_BASE_URL: http://localhost:3003
         run: pnpm eval:mro
 
+      # F3 DoD: full eval — recall@5 · refusal 100% · citation validity 100% ·
+      # grounded >= 80% via the PUBLIC ask endpoint; run persisted via /api/v1/evals.
+      - name: Full eval gate (recall · refusal · citation validity · grounded rate)
+        env:
+          MRO_BASE_URL: http://localhost:3003
+        run: pnpm eval:mro:full
+
       # F2 DoD: search p95 < 300 ms at reference scale on the compose stack.
       - name: Search latency gate (p95 < 300 ms)
         env:
           MRO_BASE_URL: http://localhost:3003
         run: pnpm bench:mro-search
+
+      # F3 DoD: ask p95 < 2.5 s with the mock provider on the compose stack.
+      - name: Ask latency gate (p95 < 2500 ms, mock provider)
+        env:
+          MRO_BASE_URL: http://localhost:3003
+        run: pnpm bench:mro-ask
 
       - name: Teardown
         if: always()

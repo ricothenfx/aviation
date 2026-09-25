@@ -1,6 +1,8 @@
-# E2E pipeline (milestones.md §F3 DoD): Playwright drives the full command
-# center against the compose stack — seed → inject disruption → alert → replan →
-# approve → board reflects the new schedule.
+# E2E pipeline (milestones.md DoD): Playwright drives the products against
+# their compose stacks. turnaround-iq job: seed → inject disruption → alert →
+# replan → approve → board reflects the new schedule. mro-copilot job (F3):
+# login → ask → citation into the manual browser → reviewer approve →
+# verified library.
 name: e2e
 
 on:
@@ -64,3 +66,43 @@ jobs:
       - name: Teardown
         if: always()
         run: docker compose --profile turnaround down -v --remove-orphans
+
+  playwright-mro:
+    name: playwright (mro copilot e2e)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Boot the mro stack (postgres + web :3003 + ai-service :4103)
+        run: docker compose --profile mro up -d --wait --wait-timeout 900
+
+      - name: Install Playwright browsers
+        run: pnpm --filter mro-copilot exec playwright install --with-deps chromium
+
+      - name: Run e2e (login → ask → citation → approve → verified library)
+        env:
+          MRO_E2E_BASE_URL: http://localhost:3003
+        run: pnpm test:e2e:mro
+
+      - name: Upload traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces-mro
+          path: apps/mro-copilot/test-results/
+          retention-days: 7
+
+      - name: Teardown
+        if: always()
+        run: docker compose --profile mro down -v --remove-orphans
