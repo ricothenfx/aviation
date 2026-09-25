@@ -85,3 +85,60 @@ export async function apiPost<T>(
   }
   return parse(parsed);
 }
+
+// --- Engine health (F4) -------------------------------------------------------
+
+import {
+  engineAlertSchema,
+  engineAlertsResponseSchema,
+  engineDetailSchema,
+  engineModelSchema,
+  enginesResponseSchema,
+  scoreFleetResponseSchema,
+  type EngineAlert,
+  type EngineAlertsResponse,
+  type EngineDetail,
+  type EngineModel,
+  type EnginesResponse,
+  type ScoreFleetResponse,
+} from "@/lib/api/schemas";
+
+export function apiEngines(signal?: AbortSignal): Promise<EnginesResponse> {
+  return apiGet("/api/v1/engines", enginesResponseSchema.parse, signal);
+}
+
+export function apiEngineModel(signal?: AbortSignal): Promise<EngineModel> {
+  return apiGet("/api/v1/engines/model", engineModelSchema.parse, signal);
+}
+
+export function apiEngineDetail(unitId: string, signal?: AbortSignal): Promise<EngineDetail> {
+  return apiGet(`/api/v1/engines/${encodeURIComponent(unitId)}`, engineDetailSchema.parse, signal);
+}
+
+export function apiEngineAlerts(
+  status: string | null,
+  signal?: AbortSignal,
+): Promise<EngineAlertsResponse> {
+  const qs = status ? `?status=${encodeURIComponent(status)}` : "";
+  return apiGet(`/api/v1/engines/alerts${qs}`, engineAlertsResponseSchema.parse, signal);
+}
+
+export async function apiScoreFleet(): Promise<ScoreFleetResponse> {
+  return apiPost("/api/v1/engines/score-fleet", {}, scoreFleetResponseSchema.parse);
+}
+
+export async function apiAcknowledgeAlert(alertId: string): Promise<EngineAlert> {
+  return apiPost(
+    `/api/v1/engines/alerts/${encodeURIComponent(alertId)}/acknowledge`,
+    {},
+    engineAlertSchema.parse,
+  );
+}
+
+export async function apiResolveAlert(alertId: string, note: string): Promise<EngineAlert> {
+  return apiPost(
+    `/api/v1/engines/alerts/${encodeURIComponent(alertId)}/resolve`,
+    { note },
+    engineAlertSchema.parse,
+  );
+}

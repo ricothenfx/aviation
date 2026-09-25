@@ -10,3 +10,4 @@ export { ErrorState } from "./components/ErrorState";
 export { Panel } from "./components/Panel";
 export { Disclaimer } from "./components/Disclaimer";
 export { useCountUp } from "./hooks/useCountUp";
+export { CHART_TOKENS } from "./tokens";
