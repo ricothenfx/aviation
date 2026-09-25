@@ -1,6 +1,6 @@
 # mro-copilot full eval — fixtures v1 (golden 52 / refusal 22)
 
-Started: 2026-09-25T13:01:12.542Z · mock provider · public endpoints (/api/v1/search, /api/v1/ask)
+Started: 2026-09-25T13:37:13.941Z · mock provider · public endpoints (/api/v1/search, /api/v1/ask)
 
 | gate | value | requirement | result |
 |---|---|---|---|
@@ -9,8 +9,8 @@ Started: 2026-09-25T13:01:12.542Z · mock provider · public endpoints (/api/v1/
 | citation validity | 1 | = 100% | PASS |
 | grounded answer rate | 0.8462 | >= 80% | PASS |
 
-Ask latency (mock, sequential): p50 89.7 ms · p95 345 ms · max 618.8 ms
+Ask latency (mock, sequential): p50 125.6 ms · p95 351.2 ms · max 400.6 ms
 Idempotent replay verified on the wire: true
-Persisted eval run: cad569c4-c8f4-422f-9a9c-07bc397e4a98
+Persisted eval run: c685d335-cc2d-4e6a-9930-4bde882d9eca
 
 All refusal cases refused with the expected machine-readable reason.

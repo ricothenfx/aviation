@@ -1,14 +1,14 @@
 {
-  "startedAt": "2026-09-25T03:37:19.824Z",
+  "startedAt": "2026-09-25T13:38:06.962Z",
   "baseUrl": "http://localhost:3003",
-  "samples": 300,
+  "samples": 200,
   "errors": 0,
   "distinctQueries": 52,
-  "p50": 45.3,
-  "p95": 176.3,
-  "p99": 286.6,
-  "max": 346.5,
-  "totalMs": 19035,
+  "p50": 45.1,
+  "p95": 156,
+  "p99": 374.4,
+  "max": 811.5,
+  "totalMs": 13345,
   "gateP95Ms": 300,
   "passed": true
 }

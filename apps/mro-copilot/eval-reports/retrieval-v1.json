@@ -4,7 +4,7 @@
   "refusalCases": 22,
   "baseUrl": "http://localhost:3003",
   "topK": 5,
-  "startedAt": "2026-09-25T13:01:30.633Z",
+  "startedAt": "2026-09-25T13:37:30.495Z",
   "cases": 52,
   "metrics": {
     "recallAt5": 0.9231,
@@ -19,7 +19,9 @@
     {
       "id": "gq-001",
       "question": "What torque applies to the cabin pressure outflow valve attach bolts during installation?",
-      "expected": ["AMM|21|21-46-00-361-362"],
+      "expected": [
+        "AMM|21|21-46-00-361-362"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -60,7 +62,9 @@
     {
       "id": "gq-002",
       "question": "Re-circulation fan attach bolt torque for removal and installation",
-      "expected": ["AMM|21|21-15-00-232-204"],
+      "expected": [
+        "AMM|21|21-15-00-232-204"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -101,7 +105,9 @@
     {
       "id": "gq-003",
       "question": "How much torque on the main battery contactor attach bolts?",
-      "expected": ["AMM|24|24-30-00-216-279"],
+      "expected": [
+        "AMM|24|24-30-00-216-279"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -142,7 +148,9 @@
     {
       "id": "gq-004",
       "question": "Torque value for the generator control unit attach bolts in the operational test task card",
-      "expected": ["AMM|24|24-48-00-308-289"],
+      "expected": [
+        "AMM|24|24-48-00-308-289"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -183,7 +191,9 @@
     {
       "id": "gq-005",
       "question": "What is the attach bolt torque for the variable speed constant frequency generator?",
-      "expected": ["AMM|24|24-17-00-157-340"],
+      "expected": [
+        "AMM|24|24-17-00-157-340"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -224,7 +234,9 @@
     {
       "id": "gq-006",
       "question": "Elevator feel and centering unit attach bolts torque during inspection and check",
-      "expected": ["AMM|27|27-12-00-170-383"],
+      "expected": [
+        "AMM|27|27-12-00-170-383"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -265,7 +277,9 @@
     {
       "id": "gq-007",
       "question": "Spoiler mixer unit task card torque requirement",
-      "expected": ["AMM|27|27-37-00-325-176"],
+      "expected": [
+        "AMM|27|27-37-00-325-176"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -306,7 +320,9 @@
     {
       "id": "gq-008",
       "question": "Pitch trim motor clutch replacement — what torque applies to its attach bolts?",
-      "expected": ["AMM|27|27-30-00-148-222"],
+      "expected": [
+        "AMM|27|27-30-00-148-222"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -347,7 +363,9 @@
     {
       "id": "gq-009",
       "question": "What tank differential pressure acceptance value does the center tank fuel pump inspection card reference?",
-      "expected": ["AMM|28|28-31-00-474-260"],
+      "expected": [
+        "AMM|28|28-31-00-474-260"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -388,7 +406,9 @@
     {
       "id": "gq-010",
       "question": "What torque applies to the low-pressure fuel shut-off valve attach bolts when replacing it?",
-      "expected": ["AMM|28|28-13-00-142-373"],
+      "expected": [
+        "AMM|28|28-13-00-142-373"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -429,7 +449,9 @@
     {
       "id": "gq-011",
       "question": "Center tank fuel pump attach bolts torque for the operational test card",
-      "expected": ["AMM|28|28-24-00-416-114"],
+      "expected": [
+        "AMM|28|28-24-00-416-114"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -470,7 +492,9 @@
     {
       "id": "gq-012",
       "question": "How much torque for the electric motor pump (EMP) attach bolts during replacement?",
-      "expected": ["AMM|29|29-12-00-205-153"],
+      "expected": [
+        "AMM|29|29-12-00-205-153"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -511,7 +535,9 @@
     {
       "id": "gq-013",
       "question": "Hydraulic reservoir pressurization module attach bolt torque (inspection and check card)",
-      "expected": ["AMM|29|29-24-00-179-323"],
+      "expected": [
+        "AMM|29|29-24-00-179-323"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -552,7 +578,9 @@
     {
       "id": "gq-014",
       "question": "Case drain filter module torque requirement",
-      "expected": ["AMM|29|29-35-00-291-303"],
+      "expected": [
+        "AMM|29|29-35-00-291-303"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -593,7 +621,9 @@
     {
       "id": "gq-015",
       "question": "What is the torque on the power transfer unit attach bolts in the operational test task?",
-      "expected": ["AMM|29|29-42-00-101-185"],
+      "expected": [
+        "AMM|29|29-42-00-101-185"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -634,7 +664,9 @@
     {
       "id": "gq-016",
       "question": "Landing gear uplock assembly attach bolts torque",
-      "expected": ["AMM|32|32-30-00-428-379"],
+      "expected": [
+        "AMM|32|32-30-00-428-379"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -675,7 +707,9 @@
     {
       "id": "gq-017",
       "question": "Main gear side stay pin attach bolt torque (operational test)",
-      "expected": ["AMM|32|32-43-00-445-267"],
+      "expected": [
+        "AMM|32|32-43-00-445-267"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -716,7 +750,9 @@
     {
       "id": "gq-018",
       "question": "Tire pressure sensor unit replacement — attach bolt torque?",
-      "expected": ["AMM|32|32-35-00-432-342"],
+      "expected": [
+        "AMM|32|32-35-00-432-342"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -757,7 +793,9 @@
     {
       "id": "gq-019",
       "question": "Nose wheel steering tiller feedback unit removal and installation torque",
-      "expected": ["AMM|32|32-35-00-242-227"],
+      "expected": [
+        "AMM|32|32-35-00-242-227"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -798,7 +836,9 @@
     {
       "id": "gq-020",
       "question": "Angle-of-attack sensor vane attach bolt torque in the operational test card",
-      "expected": ["AMM|34|34-23-00-246-250"],
+      "expected": [
+        "AMM|34|34-23-00-246-250"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -839,7 +879,9 @@
     {
       "id": "gq-021",
       "question": "Air data inertial reference unit replacement — what torque applies to its attach bolts?",
-      "expected": ["AMM|34|34-37-00-266-126"],
+      "expected": [
+        "AMM|34|34-37-00-266-126"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -880,7 +922,9 @@
     {
       "id": "gq-022",
       "question": "Standby attitude module removal and installation attach bolt torque",
-      "expected": ["AMM|34|34-11-00-350-186"],
+      "expected": [
+        "AMM|34|34-11-00-350-186"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -921,7 +965,9 @@
     {
       "id": "gq-023",
       "question": "Duct leak detection loop inspection and check — attach bolt torque",
-      "expected": ["AMM|36|36-19-00-363-200"],
+      "expected": [
+        "AMM|36|36-19-00-363-200"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -962,7 +1008,9 @@
     {
       "id": "gq-024",
       "question": "Cross-bleed valve actuator inspection and check torque value",
-      "expected": ["AMM|36|36-23-00-306-340"],
+      "expected": [
+        "AMM|36|36-23-00-306-340"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -1003,7 +1051,9 @@
     {
       "id": "gq-025",
       "question": "APU load compressor inlet valve attach bolt torque",
-      "expected": ["AMM|36|36-48-00-297-279"],
+      "expected": [
+        "AMM|36|36-48-00-297-279"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -1044,7 +1094,9 @@
     {
       "id": "gq-026",
       "question": "Torque for the APU fire extinguishing bottle attach bolts during removal and installation",
-      "expected": ["AMM|26|26-34-00-220-313"],
+      "expected": [
+        "AMM|26|26-34-00-220-313"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 0.5,
@@ -1085,7 +1137,9 @@
     {
       "id": "gq-027",
       "question": "Fire handle unlock solenoid inspection and check attach bolt torque",
-      "expected": ["AMM|26|26-47-00-196-248"],
+      "expected": [
+        "AMM|26|26-47-00-196-248"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -1126,7 +1180,9 @@
     {
       "id": "gq-028",
       "question": "Which accumulator air pre-charge acceptance value does the power transfer unit operational test card reference?",
-      "expected": ["AMM|29|29-42-00-101-185"],
+      "expected": [
+        "AMM|29|29-42-00-101-185"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -1167,7 +1223,9 @@
     {
       "id": "gq-029",
       "question": "What strut pressure acceptance reference does the landing gear uplock assembly inspection card state?",
-      "expected": ["AMM|32|32-30-00-428-379"],
+      "expected": [
+        "AMM|32|32-30-00-428-379"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -1208,7 +1266,9 @@
     {
       "id": "gq-030",
       "question": "Which acceptance value does the APU fire extinguishing bottle inspection card give for bottle pressure?",
-      "expected": ["AMM|26|26-48-00-372-276"],
+      "expected": [
+        "AMM|26|26-48-00-372-276"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -1249,7 +1309,9 @@
     {
       "id": "gq-031",
       "question": "Which seal kit part number is referenced for the temperature trim air valve?",
-      "expected": ["AMM|21|21-45-00-323-378"],
+      "expected": [
+        "AMM|21|21-45-00-323-378"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -1290,7 +1352,9 @@
     {
       "id": "gq-032",
       "question": "Fault code FC-2974-514 — what does it indicate and which task isolates it?",
-      "expected": ["TSM|29|29-32-00-337-312"],
+      "expected": [
+        "TSM|29|29-32-00-337-312"
+      ],
       "recalled": 0,
       "recallAt5": 0,
       "mrr": 0,
@@ -1331,7 +1395,9 @@
     {
       "id": "gq-033",
       "question": "What component does fault code FC-2158-874 point to?",
-      "expected": ["TSM|21|21-11-00-364-353"],
+      "expected": [
+        "TSM|21|21-11-00-364-353"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 0.2,
@@ -1372,7 +1438,9 @@
     {
       "id": "gq-034",
       "question": "Fault code FC-3616-225 meaning",
-      "expected": ["TSM|36|36-38-00-428-243"],
+      "expected": [
+        "TSM|36|36-38-00-428-243"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 0.25,
@@ -1413,7 +1481,9 @@
     {
       "id": "gq-035",
       "question": "Which fault isolation task covers FC-2817-718 for audible noise during operation?",
-      "expected": ["TSM|28|28-23-00-299-304"],
+      "expected": [
+        "TSM|28|28-23-00-299-304"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -1454,7 +1524,9 @@
     {
       "id": "gq-036",
       "question": "FC-3282-237 — vibration reported by the crew on the nose landing gear shock absorber",
-      "expected": ["TSM|32|32-21-00-226-280"],
+      "expected": [
+        "TSM|32|32-21-00-226-280"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -1495,7 +1567,9 @@
     {
       "id": "gq-037",
       "question": "Which task isolates fault code FC-2697-357 (warning message after power-up on the fire detection loop)?",
-      "expected": ["TSM|26|26-35-00-325-280"],
+      "expected": [
+        "TSM|26|26-35-00-325-280"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -1536,7 +1610,9 @@
     {
       "id": "gq-038",
       "question": "No output at the related sensor from the electrical essential bus feed breaker — what fault code and task apply?",
-      "expected": ["TSM|24|24-25-00-307-409"],
+      "expected": [
+        "TSM|24|24-25-00-307-409"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -1577,7 +1653,9 @@
     {
       "id": "gq-039",
       "question": "APU start contactor intermittent indication — which fault code does the TSM assign?",
-      "expected": ["TSM|49|49-19-00-463-410"],
+      "expected": [
+        "TSM|49|49-19-00-463-410"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -1618,7 +1696,9 @@
     {
       "id": "gq-040",
       "question": "Standby attitude module fails to respond to command — fault code and isolation task?",
-      "expected": ["TSM|34|34-32-00-320-366"],
+      "expected": [
+        "TSM|34|34-32-00-320-366"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -1659,7 +1739,9 @@
     {
       "id": "gq-041",
       "question": "Rudder trim actuator intermittent indication — which TSM fault code applies?",
-      "expected": ["TSM|27|27-47-00-340-248"],
+      "expected": [
+        "TSM|27|27-47-00-340-248"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -1700,7 +1782,9 @@
     {
       "id": "gq-042",
       "question": "After the isolation steps all pass, which component does the TSM say to replace for the hydraulic reservoir pressurization module fault?",
-      "expected": ["TSM|29|29-32-00-337-312"],
+      "expected": [
+        "TSM|29|29-32-00-337-312"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 0.333,
@@ -1741,7 +1825,9 @@
     {
       "id": "gq-043",
       "question": "How do I clear fault code FC-2158-874 and verify rectification?",
-      "expected": ["TSM|21|21-11-00-364-353"],
+      "expected": [
+        "TSM|21|21-11-00-364-353"
+      ],
       "recalled": 0,
       "recallAt5": 0,
       "mrr": 0,
@@ -1782,7 +1868,9 @@
     {
       "id": "gq-044",
       "question": "First isolation action for the pressure regulating valve out-of-range reading",
-      "expected": ["TSM|36|36-38-00-428-243"],
+      "expected": [
+        "TSM|36|36-38-00-428-243"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -1823,7 +1911,9 @@
     {
       "id": "gq-045",
       "question": "Which IPC figure lists the hydraulic accumulator parts?",
-      "expected": ["IPC|29|29-45-01"],
+      "expected": [
+        "IPC|29|29-45-01"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -1864,7 +1954,9 @@
     {
       "id": "gq-046",
       "question": "Where do I find the parts list for the gear actuating cylinder assembly?",
-      "expected": ["IPC|32|32-14-05"],
+      "expected": [
+        "IPC|32|32-14-05"
+      ],
       "recalled": 0,
       "recallAt5": 0,
       "mrr": 0,
@@ -1905,7 +1997,9 @@
     {
       "id": "gq-047",
       "question": "Which illustrated parts figure covers the pitch trim motor clutch?",
-      "expected": ["IPC|27|27-37-09"],
+      "expected": [
+        "IPC|27|27-37-09"
+      ],
       "recalled": 0,
       "recallAt5": 0,
       "mrr": 0,
@@ -1946,7 +2040,9 @@
     {
       "id": "gq-048",
       "question": "Which SB applies to the hydraulic reservoir pressurization module fleet improvement and what line numbers does it cover?",
-      "expected": ["SB|29|SB-29-002"],
+      "expected": [
+        "SB|29|SB-29-002"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 0.2,
@@ -1987,7 +2083,9 @@
     {
       "id": "gq-049",
       "question": "SB-29-002 Rev 02 supersession — what changed relative to Rev 01?",
-      "expected": ["SB|29|SB-29-002"],
+      "expected": [
+        "SB|29|SB-29-002"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 0.5,
@@ -2028,7 +2126,9 @@
     {
       "id": "gq-050",
       "question": "How many flight hours to accomplish the side stay pin inspection interval extension bulletin?",
-      "expected": ["SB|32|SB-32-002"],
+      "expected": [
+        "SB|32|SB-32-002"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -2069,7 +2169,9 @@
     {
       "id": "gq-051",
       "question": "What does the AOA vane connector seal replacement bulletin apply to?",
-      "expected": ["SB|34|SB-34-003"],
+      "expected": [
+        "SB|34|SB-34-003"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
@@ -2110,7 +2212,9 @@
     {
       "id": "gq-052",
       "question": "Bleed duct clamp collar re-torque campaign — accomplishment interval and torque",
-      "expected": ["SB|36|SB-36-004"],
+      "expected": [
+        "SB|36|SB-36-004"
+      ],
       "recalled": 1,
       "recallAt5": 1,
       "mrr": 1,
