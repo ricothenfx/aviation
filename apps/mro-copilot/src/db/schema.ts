@@ -246,12 +246,16 @@ export const auditEvents = pgTable(
     sequence: bigserial("sequence", { mode: "number" }).notNull(),
     eventType: text("event_type").notNull(),
     answerId: uuid("answer_id").references(() => answers.id, { onDelete: "cascade" }),
+    /** F4 (additive): alert lifecycle events reference their alert. Audit
+     * rows outlive everything — no cascade (append-only discipline). */
+    alertId: uuid("alert_id").references(() => engineAlerts.id),
     actorId: uuid("actor_id").references(() => users.id),
     payload: jsonb("payload").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
     index("audit_events_answer_idx").on(table.answerId),
+    index("audit_events_alert_idx").on(table.alertId),
     index("audit_events_type_idx").on(table.eventType),
   ],
 );
@@ -296,3 +300,147 @@ export const idempotencyKeys = pgTable("idempotency_keys", {
 });
 
 export type IdempotencyKeyRow = typeof idempotencyKeys.$inferSelect;
+
+// --- F4: engine health (data-model.md §1/§2/§8, ADR-0011) --------------------
+// Additive forward-only migration 0004. engine_units carry fictional NX-E ids
+// (data-ethics §2) and record their data source honestly (`dataset`).
+
+export const engineStatusEnum = pgEnum("engine_status", ["active", "removed"]);
+export const alertStateEnum = pgEnum("alert_state", ["raised", "acknowledged", "resolved"]);
+
+export const engineUnits = pgTable(
+  "engine_units",
+  {
+    /** Fictional fleet identifier, NX-E101 style (data-ethics §2). */
+    unitId: text("unit_id").primaryKey(),
+    /** cmapss-fd001 | synthetic-sample — surfaced in the UI for honesty. */
+    dataset: text("dataset").notNull(),
+    /** Maintenance-window threshold in cycles (fleet-wide default 30). */
+    windowThresholdCycles: integer("window_threshold_cycles").notNull(),
+    status: engineStatusEnum("status").notNull().default("active"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("engine_units_status_idx").on(table.status)],
+);
+
+export type EngineUnitRow = typeof engineUnits.$inferSelect;
+export type NewEngineUnitRow = typeof engineUnits.$inferInsert;
+
+/**
+ * C-MAPSS-shaped sensor history as a TimescaleDB hypertable on `recorded_at`
+ * (data-model.md §8): `recorded_at = EPOCH + cycle × 1 day` with a fixed epoch
+ * — a deterministic synthetic time axis, enforced by a CHECK constraint in the
+ * migration. The hypertable requires the partition column inside unique
+ * constraints, so the uniqueness is (unit_id, cycle, recorded_at); the
+ * deterministic mapping makes that equivalent to (unit_id, cycle).
+ */
+export const sensorReadings = pgTable(
+  "sensor_readings",
+  {
+    unitId: text("unit_id")
+      .notNull()
+      .references(() => engineUnits.unitId, { onDelete: "cascade" }),
+    cycle: integer("cycle").notNull(),
+    recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull(),
+    /** 3 operating settings + 21 sensor channels (C-MAPSS schema). */
+    setting1: doublePrecision("setting1").notNull(),
+    setting2: doublePrecision("setting2").notNull(),
+    setting3: doublePrecision("setting3").notNull(),
+    s1: doublePrecision("s1").notNull(),
+    s2: doublePrecision("s2").notNull(),
+    s3: doublePrecision("s3").notNull(),
+    s4: doublePrecision("s4").notNull(),
+    s5: doublePrecision("s5").notNull(),
+    s6: doublePrecision("s6").notNull(),
+    s7: doublePrecision("s7").notNull(),
+    s8: doublePrecision("s8").notNull(),
+    s9: doublePrecision("s9").notNull(),
+    s10: doublePrecision("s10").notNull(),
+    s11: doublePrecision("s11").notNull(),
+    s12: doublePrecision("s12").notNull(),
+    s13: doublePrecision("s13").notNull(),
+    s14: doublePrecision("s14").notNull(),
+    s15: doublePrecision("s15").notNull(),
+    s16: doublePrecision("s16").notNull(),
+    s17: doublePrecision("s17").notNull(),
+    s18: doublePrecision("s18").notNull(),
+    s19: doublePrecision("s19").notNull(),
+    s20: doublePrecision("s20").notNull(),
+    s21: doublePrecision("s21").notNull(),
+  },
+  (table) => [
+    uniqueIndex("sensor_readings_unit_cycle_recorded_key").on(
+      table.unitId,
+      table.cycle,
+      table.recordedAt,
+    ),
+    index("sensor_readings_unit_cycle_idx").on(table.unitId, table.cycle),
+  ],
+);
+
+export type SensorReadingRow = typeof sensorReadings.$inferSelect;
+export type NewSensorReadingRow = typeof sensorReadings.$inferInsert;
+
+/**
+ * Prediction history (data-model.md §2 RUL_PREDICTION). Provenance is
+ * mandatory (FR-16, api-contracts §4): rows without model_version +
+ * model_sha256 are a defect; the serving contract enforces it.
+ */
+export const rulPredictions = pgTable(
+  "rul_predictions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    unitId: text("unit_id")
+      .notNull()
+      .references(() => engineUnits.unitId, { onDelete: "cascade" }),
+    cycle: integer("cycle").notNull(),
+    rulCycles: integer("rul_cycles").notNull(),
+    bandLow: integer("band_low").notNull(),
+    bandHigh: integer("band_high").notNull(),
+    modelVersion: text("model_version").notNull(),
+    modelSha256: text("model_sha256").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index("rul_predictions_unit_cycle_idx").on(table.unitId, table.cycle),
+    index("rul_predictions_unit_created_idx").on(table.unitId, table.createdAt),
+  ],
+);
+
+export type RulPredictionRow = typeof rulPredictions.$inferSelect;
+export type NewRulPredictionRow = typeof rulPredictions.$inferInsert;
+
+/**
+ * Maintenance-window alerts (data-model.md §2, FR-17/FR-18): lifecycle
+ * `raised → acknowledged → resolved`, strict chain (invalid transitions are
+ * 409 LIFECYCLE_CONFLICT). leadCycles is the predicted remaining cycles at
+ * raise — the lead time before the projected removal (≥ 5 in fixtures).
+ */
+export const engineAlerts = pgTable(
+  "engine_alerts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    unitId: text("unit_id")
+      .notNull()
+      .references(() => engineUnits.unitId, { onDelete: "cascade" }),
+    state: alertStateEnum("state").notNull().default("raised"),
+    projectedRul: integer("projected_rul").notNull(),
+    threshold: integer("threshold").notNull(),
+    leadCycles: integer("lead_cycles").notNull(),
+    modelVersion: text("model_version").notNull(),
+    modelSha256: text("model_sha256").notNull(),
+    raisedAt: timestamp("raised_at", { withTimezone: true }).notNull().defaultNow(),
+    acknowledgedAt: timestamp("acknowledged_at", { withTimezone: true }),
+    acknowledgedBy: uuid("acknowledged_by").references(() => users.id),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    resolvedBy: uuid("resolved_by").references(() => users.id),
+    resolveNote: text("resolve_note"),
+  },
+  (table) => [
+    index("engine_alerts_unit_idx").on(table.unitId),
+    index("engine_alerts_state_idx").on(table.state),
+  ],
+);
+
+export type EngineAlertRow = typeof engineAlerts.$inferSelect;
+export type NewEngineAlertRow = typeof engineAlerts.$inferInsert;

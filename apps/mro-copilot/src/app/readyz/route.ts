@@ -8,11 +8,11 @@ import { logger } from "@/lib/logger";
 
 /**
  * Readiness — reports DB, pgvector, model artifact and provider status
- * (architecture.md §7, DoD F1). Hard dependencies: postgres, pgvector, the
- * ai-service (retrieval/embedding provider). The RUL model artifact lives in
- * the ai-service and is reported through its readyz; `not_loaded` is the
- * expected F1 state (the artifact arrives with F4, ADR-0011) and does not fail
- * readiness yet — F4 tightens this when predictions go live.
+ * (architecture.md §7, DoD F1/F4). Hard dependencies: postgres, pgvector,
+ * the ai-service embedding provider — and, since F4, the RUL model artifact:
+ * predictions without provenance must never be served, so a missing or
+ * hash-mismatched artifact fails readiness (`model: not_loaded`, architecture
+ * §6 failure table).
  */
 export async function GET() {
   const dependencies: Record<string, DependencyState | "unreachable" | "unknown"> = {
@@ -51,5 +51,11 @@ export async function GET() {
     });
   }
 
-  return jsonResponse({ status: "ready", dependencies });
+  const ready =
+    dependencies.postgres === "up" &&
+    dependencies.pgvector === "up" &&
+    dependencies.provider === "up" &&
+    dependencies.model === "up";
+
+  return jsonResponse({ status: ready ? "ready" : "degraded", dependencies }, ready ? 200 : 503);
 }

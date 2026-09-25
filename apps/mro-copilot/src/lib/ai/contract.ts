@@ -75,3 +75,58 @@ export const retrievalSearchResponseSchema = z.object({
   latencyMs: z.number().int().nonnegative(),
 });
 export type RetrievalSearchResponse = z.infer<typeof retrievalSearchResponseSchema>;
+
+// --- RUL serving (F4, api-contracts.md §3, ADR-0011) -------------------------
+// Provenance is mandatory on every RUL number (FR-16, behavioral contract §4):
+// modelVersion + modelSha256 travel with every prediction. The pydantic twin
+// lives in mro_ai/internal/schemas.py; both runtimes parse
+// tests/fixtures/rul_contract.json.
+
+export const rulPredictRequestSchema = z.object({
+  unitId: z.string().min(1).max(64),
+  cycle: z.number().int().positive().optional(),
+});
+export type RulPredictRequest = z.infer<typeof rulPredictRequestSchema>;
+
+export const rulPredictionSchema = z.object({
+  unitId: z.string().min(1),
+  cycle: z.number().int().positive(),
+  rulCycles: z.number().int().nonnegative(),
+  bandLow: z.number().int().nonnegative(),
+  bandHigh: z.number().int().nonnegative(),
+  modelVersion: z.string().min(1),
+  modelSha256: z.string().length(64),
+});
+export type RulPrediction = z.infer<typeof rulPredictionSchema>;
+
+export const rulScoreFleetRequestSchema = z.object({
+  unitIds: z.array(z.string().min(1).max(64)).min(1).max(500),
+});
+
+export const rulScoreFleetResponseSchema = z.object({
+  modelVersion: z.string().min(1),
+  modelSha256: z.string().length(64),
+  results: z.array(rulPredictionSchema),
+  /** Additive: units skipped for lack of history (latestRul: null, "—"). */
+  insufficientHistory: z.array(z.string().min(1)),
+});
+export type RulScoreFleetResponse = z.infer<typeof rulScoreFleetResponseSchema>;
+
+export const modelInfoSchema = z.object({
+  version: z.string().min(1),
+  sha256: z.string().length(64),
+  trainedAt: z.string().min(1),
+  dataset: z.string().min(1),
+  metrics: z.object({
+    rmse: z.number(),
+    nasaScore: z.number(),
+  }),
+});
+export type ModelInfo = z.infer<typeof modelInfoSchema>;
+
+/** Internal ai-service error codes carried in the RFC-7807 problem body. */
+export const AI_PROBLEM_CODES = [
+  "MODEL_NOT_LOADED",
+  "INSUFFICIENT_HISTORY",
+  "PROVIDER_UNAVAILABLE",
+] as const;

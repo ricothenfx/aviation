@@ -3,13 +3,17 @@ import { runMigrations } from "../src/db/migrate";
 import { hashPassword } from "../src/lib/auth/password";
 import { users } from "../src/db/schema";
 import seedUsers from "./users.json";
+import { seedEngines } from "./engines";
 
 /**
  * Seed (engineering-standards.md §8, data-model.md §7): ensure database +
  * migrations + the three seeded demo users (D-09 pattern; roles
- * viewer/engineer/reviewer per PRD F-7). Re-runnable by design (upsert).
- * Corpus ingestion is the ai-service ingest CLI's job (FR-5) and runs in the
- * compose stack right after this seed; the CLI embeds and upserts chunks.
+ * viewer/engineer/reviewer per PRD F-7) + the engine fleet with its C-MAPSS
+ * sensor history (F4: real FD001 test split when downloaded, plus the
+ * committed synthetic sample — see seed/engines.ts). Re-runnable by design
+ * (upserts + conflict-safe inserts). Corpus ingestion is the ai-service
+ * ingest CLI's job (FR-5) and runs in the compose stack right after this
+ * seed; the CLI embeds and upserts chunks.
  */
 
 interface SeedUser {
@@ -43,8 +47,20 @@ async function main(): Promise<void> {
       JSON.stringify({
         level: "info",
         module: "seed",
+        msg: "seed users complete",
+        users: seedUsers.length,
+      }),
+    );
+
+    const fleet = await seedEngines();
+    console.info(
+      JSON.stringify({
+        level: "info",
+        module: "seed",
         msg: "seed complete",
         users: seedUsers.length,
+        engineUnits: fleet.units,
+        sensorRows: fleet.readings,
       }),
     );
   } finally {

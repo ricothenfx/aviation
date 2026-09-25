@@ -3,11 +3,19 @@ import {
   aiServiceReadySchema,
   embedRequestSchema,
   embedResponseSchema,
+  modelInfoSchema,
   retrievalSearchResponseSchema,
+  rulPredictRequestSchema,
+  rulPredictionSchema,
+  rulScoreFleetRequestSchema,
+  rulScoreFleetResponseSchema,
   type AiServiceReady,
   type EmbedRequest,
   type EmbedResponse,
+  type ModelInfo,
   type RetrievalSearchResponse,
+  type RulPrediction,
+  type RulScoreFleetResponse,
 } from "@/lib/ai/contract";
 import { logger } from "@/lib/logger";
 
@@ -51,10 +59,11 @@ async function postJson(path: string, body: unknown, requestId?: string): Promis
       cache: "no-store",
     });
     if (!res.ok) {
-      throw new MroApiError("AI_SERVICE_UNAVAILABLE", `ai-service ${path} responded ${res.status}`);
+      throw await problemToError(path, res);
     }
     return await res.json();
   } catch (err) {
+    if (err instanceof AiInsufficientHistoryError) throw err;
     if (err instanceof MroApiError) throw err;
     logger.warn({
       msg: "ai_service_call_failed",
@@ -65,6 +74,37 @@ async function postJson(path: string, body: unknown, requestId?: string): Promis
   } finally {
     clearTimeout(timeout);
   }
+}
+
+/**
+ * F4 typed error: the unit has too little history for an honest prediction.
+ * The app composes `latestRul: null` ("—") — never a fabricated number
+ * (D-15 honesty precedent, api-contracts.md §3 INSUFFICIENT_HISTORY).
+ */
+export class AiInsufficientHistoryError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AiInsufficientHistoryError";
+  }
+}
+
+interface AiProblemBody {
+  code?: string;
+  detail?: string;
+}
+
+async function problemToError(
+  path: string,
+  res: Response,
+): Promise<MroApiError | AiInsufficientHistoryError> {
+  const body = (await res.json().catch(() => ({}))) as AiProblemBody;
+  if (body.code === "MODEL_NOT_LOADED") {
+    return new MroApiError("MODEL_NOT_LOADED", body.detail ?? "RUL model artifact is not loaded");
+  }
+  if (body.code === "INSUFFICIENT_HISTORY") {
+    return new AiInsufficientHistoryError(body.detail ?? "insufficient history");
+  }
+  return new MroApiError("AI_SERVICE_UNAVAILABLE", `ai-service ${path} responded ${res.status}`);
 }
 
 export async function embed(request: EmbedRequest, requestId?: string): Promise<EmbedResponse> {
@@ -114,7 +154,10 @@ export async function aiServiceReady(requestId?: string): Promise<AiServiceReady
       signal: controller.signal,
       cache: "no-store",
     });
-    if (!res.ok) {
+    // F4: a 503 (degraded — e.g. model artifact missing) still carries the
+    // dependency report; parse it so the app can surface `model: not_loaded`
+    // instead of an opaque unreachable (architecture.md §6).
+    if (!res.ok && res.status !== 503) {
       throw new MroApiError("AI_SERVICE_UNAVAILABLE", `ai-service readyz responded ${res.status}`);
     }
     return aiServiceReadySchema.parse(await res.json());
@@ -122,6 +165,58 @@ export async function aiServiceReady(requestId?: string): Promise<AiServiceReady
     if (err instanceof MroApiError) throw err;
     logger.warn({
       msg: "ai_service_readyz_failed",
+      err: err instanceof Error ? err.message : String(err),
+    });
+    throw new MroApiError("AI_SERVICE_UNAVAILABLE", "ai-service is unreachable");
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+// --- RUL (F4, api-contracts.md §3, ADR-0011) ----------------------------------
+
+/** Predict RUL for one unit (latest cycle, or `cycle` when given). */
+export async function rulPredict(
+  params: { unitId: string; cycle?: number },
+  requestId?: string,
+): Promise<RulPrediction> {
+  const body = rulPredictRequestSchema.parse(params);
+  const raw = await postJson("/internal/v1/rul/predict", body, requestId);
+  return rulPredictionSchema.parse(raw);
+}
+
+/** Score a batch of units; short-history units come back in
+ * `insufficientHistory` (the app renders latestRul: null for them). */
+export async function rulScoreFleet(
+  params: { unitIds: string[] },
+  requestId?: string,
+): Promise<RulScoreFleetResponse> {
+  const body = rulScoreFleetRequestSchema.parse(params);
+  const raw = await postJson("/internal/v1/rul/score-fleet", body, requestId);
+  return rulScoreFleetResponseSchema.parse(raw);
+}
+
+/** Current artifact provenance + committed metrics. */
+export async function rulModelInfo(requestId?: string): Promise<ModelInfo> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${AI_SERVICE_URL}/internal/v1/model`, {
+      headers: {
+        Authorization: `Bearer ${aiServiceToken()}`,
+        ...(requestId ? { "x-request-id": requestId } : {}),
+      },
+      signal: controller.signal,
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      throw await problemToError("/internal/v1/model", res);
+    }
+    return modelInfoSchema.parse(await res.json());
+  } catch (err) {
+    if (err instanceof MroApiError || err instanceof AiInsufficientHistoryError) throw err;
+    logger.warn({
+      msg: "ai_service_model_info_failed",
       err: err instanceof Error ? err.message : String(err),
     });
     throw new MroApiError("AI_SERVICE_UNAVAILABLE", "ai-service is unreachable");

@@ -280,3 +280,121 @@ export const createEvalRunRequestSchema = z.object({
   reportPath: z.string().max(500).optional(),
 });
 export type ChunkDetailResponse = z.infer<typeof chunkDetailResponseSchema>;
+
+// --- Engine health (F4, api-contracts.md §1, PRD F-5/FR-16..FR-18) ------------
+
+export const ENGINE_DATASETS = ["cmapss-fd001", "synthetic-sample"] as const;
+export const engineDatasetSchema = z.enum(ENGINE_DATASETS);
+export type EngineDataset = z.infer<typeof engineDatasetSchema>;
+
+export const ALERT_STATES = ["raised", "acknowledged", "resolved"] as const;
+export const alertStateSchema = z.enum(ALERT_STATES);
+export type AlertState = z.infer<typeof alertStateSchema>;
+
+export const enginesUnitSchema = z.object({
+  unitId: z.string().min(1),
+  dataset: engineDatasetSchema,
+  windowThresholdCycles: z.number().int().positive(),
+  status: z.enum(["active", "removed"]),
+  /** null = insufficient history for an honest prediction — renders "—",
+   * never 0 (D-15 honesty precedent). */
+  latestRul: z.number().int().nonnegative().nullable(),
+  bandLow: z.number().int().nonnegative().nullable(),
+  bandHigh: z.number().int().nonnegative().nullable(),
+  latestCycle: z.number().int().positive().nullable(),
+  modelVersion: z.string().nullable(),
+  modelSha256: z.string().length(64).nullable(),
+  /** Open alerts (raised | acknowledged). */
+  alertCount: z.number().int().nonnegative(),
+});
+export type EnginesUnit = z.infer<typeof enginesUnitSchema>;
+
+export const enginesResponseSchema = z.object({
+  units: z.array(enginesUnitSchema),
+});
+export type EnginesResponse = z.infer<typeof enginesResponseSchema>;
+
+export const engineModelSchema = z.object({
+  modelVersion: z.string().min(1),
+  modelSha256: z.string().length(64),
+  trainedAt: z.string(),
+  dataset: z.string(),
+  metrics: z.object({
+    rmse: z.number(),
+    nasaScore: z.number(),
+  }),
+});
+export type EngineModel = z.infer<typeof engineModelSchema>;
+
+export const engineAlertSchema = z.object({
+  alertId: z.string().uuid(),
+  unitId: z.string().min(1),
+  state: alertStateSchema,
+  projectedRul: z.number().int().nonnegative(),
+  threshold: z.number().int().positive(),
+  leadCycles: z.number().int().nonnegative(),
+  /** Provenance (api-contracts §4): alerts carry RUL numbers. */
+  modelVersion: z.string(),
+  modelSha256: z.string().length(64),
+  raisedAt: z.string(),
+  acknowledgedAt: z.string().nullable(),
+  acknowledgedByName: z.string().nullable(),
+  resolvedAt: z.string().nullable(),
+  resolvedByName: z.string().nullable(),
+  resolveNote: z.string().nullable(),
+});
+export type EngineAlert = z.infer<typeof engineAlertSchema>;
+
+export const engineAlertsResponseSchema = z.object({
+  alerts: z.array(engineAlertSchema),
+});
+export type EngineAlertsResponse = z.infer<typeof engineAlertsResponseSchema>;
+
+export const enginePredictionSchema = z.object({
+  cycle: z.number().int().positive(),
+  rulCycles: z.number().int().nonnegative(),
+  bandLow: z.number().int().nonnegative(),
+  bandHigh: z.number().int().nonnegative(),
+  modelVersion: z.string(),
+  modelSha256: z.string().length(64),
+  predictedAt: z.string(),
+});
+export type EnginePrediction = z.infer<typeof enginePredictionSchema>;
+
+export const engineDetailSchema = z.object({
+  unit: z.object({
+    unitId: z.string().min(1),
+    dataset: engineDatasetSchema,
+    windowThresholdCycles: z.number().int().positive(),
+    status: z.enum(["active", "removed"]),
+    latestCycle: z.number().int().positive().nullable(),
+    readingCount: z.number().int().nonnegative(),
+  }),
+  predictions: z.array(enginePredictionSchema),
+  alerts: z.array(engineAlertSchema),
+});
+export type EngineDetail = z.infer<typeof engineDetailSchema>;
+
+export const scoreFleetResponseSchema = z.object({
+  modelVersion: z.string(),
+  modelSha256: z.string().length(64),
+  scored: z.number().int().nonnegative(),
+  insufficientHistory: z.array(z.string()),
+  results: z.array(
+    z.object({
+      unitId: z.string(),
+      cycle: z.number().int().positive(),
+      rulCycles: z.number().int().nonnegative(),
+      bandLow: z.number().int().nonnegative(),
+      bandHigh: z.number().int().nonnegative(),
+      modelVersion: z.string(),
+      modelSha256: z.string().length(64),
+    }),
+  ),
+  raisedAlerts: z.array(engineAlertSchema),
+});
+export type ScoreFleetResponse = z.infer<typeof scoreFleetResponseSchema>;
+
+export const resolveAlertRequestSchema = z.object({
+  note: z.string().trim().min(3).max(2_000),
+});
