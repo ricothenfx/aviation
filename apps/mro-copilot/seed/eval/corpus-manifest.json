@@ -1,0 +1,845 @@
+{
+  "version": 1,
+  "description": "Deterministic manifest of the fictional NX-320 corpus (data-model.md §4). Facts listed here are the reference points used by the golden-QA fixture.",
+  "docs": [
+    {
+      "docType": "AMM",
+      "title": "temperature trim air valve — operational test",
+      "ataChapter": "21",
+      "taskNo": "21-45-00-323-378",
+      "revision": "Rev 31",
+      "effectiveDate": "2024-03-27",
+      "sourcePath": "manuals/amm/21-01-21-45-00-323-378.md",
+      "facts": [
+        "Torque the temperature trim air valve attach bolts to 44.0 lbf·ft.",
+        "Reference part number for the temperature trim air valve seal kit: NX-2113-539-A (Halcyon Hydraulics).",
+        "Acceptance reference: trim air pressure 34 psi."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "cabin pressure outflow valve — replacement",
+      "ataChapter": "21",
+      "taskNo": "21-46-00-361-362",
+      "revision": "Rev 44",
+      "effectiveDate": "2025-12-27",
+      "sourcePath": "manuals/amm/21-02-21-46-00-361-362.md",
+      "facts": [
+        "Torque the cabin pressure outflow valve attach bolts to 92.5 Nm.",
+        "Reference part number for the cabin pressure outflow valve seal kit: NX-2180-161-B (Nordwind Aero Supply).",
+        "Acceptance reference: pack outlet temperature 8.2 °C."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "re-circulation fan — removal and installation",
+      "ataChapter": "21",
+      "taskNo": "21-15-00-232-204",
+      "revision": "Rev 35",
+      "effectiveDate": "2024-08-24",
+      "sourcePath": "manuals/amm/21-03-21-15-00-232-204.md",
+      "facts": [
+        "Torque the re-circulation fan attach bolts to 68.0 Nm.",
+        "Reference part number for the re-circulation fan seal kit: NX-2135-732-C (Halcyon Hydraulics).",
+        "Acceptance reference: cabin Δp 7.8 psi."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "water extractor — inspection and check",
+      "ataChapter": "21",
+      "taskNo": "21-49-00-176-315",
+      "revision": "Rev 39",
+      "effectiveDate": "2024-04-20",
+      "sourcePath": "manuals/amm/21-04-21-49-00-176-315.md",
+      "facts": [
+        "Torque the water extractor attach bolts to 54.0 lbf·ft.",
+        "Reference part number for the water extractor seal kit: NX-2189-200-A (Meridian Gear Co.).",
+        "Acceptance reference: trim air pressure 34 psi."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "main battery contactor — inspection and check",
+      "ataChapter": "24",
+      "taskNo": "24-30-00-216-279",
+      "revision": "Rev 40",
+      "effectiveDate": "2026-07-01",
+      "sourcePath": "manuals/amm/24-05-24-30-00-216-279.md",
+      "facts": [
+        "Torque the main battery contactor attach bolts to 44.5 Nm.",
+        "Reference part number for the main battery contactor seal kit: NX-2456-211-B (Kepler Avionics).",
+        "Acceptance reference: battery voltage 24.6 VDC."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "static inverter — inspection and check",
+      "ataChapter": "24",
+      "taskNo": "24-40-00-352-128",
+      "revision": "Rev 39",
+      "effectiveDate": "2025-11-10",
+      "sourcePath": "manuals/amm/24-06-24-40-00-352-128.md",
+      "facts": [
+        "Torque the static inverter attach bolts to 69.9 lbf·ft.",
+        "Reference part number for the static inverter seal kit: NX-2495-330-A (Kepler Avionics).",
+        "Acceptance reference: generator load 38 kVA."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "generator control unit — operational test",
+      "ataChapter": "24",
+      "taskNo": "24-48-00-308-289",
+      "revision": "Rev 32",
+      "effectiveDate": "2024-03-07",
+      "sourcePath": "manuals/amm/24-07-24-48-00-308-289.md",
+      "facts": [
+        "Torque the generator control unit attach bolts to 70.0 Nm.",
+        "Reference part number for the generator control unit seal kit: NX-2446-645-B (Kepler Avionics).",
+        "Acceptance reference: generator load 38 kVA."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "variable speed constant frequency generator — adjustment and rigging",
+      "ataChapter": "24",
+      "taskNo": "24-17-00-157-340",
+      "revision": "Rev 35",
+      "effectiveDate": "2024-02-25",
+      "sourcePath": "manuals/amm/24-08-24-17-00-157-340.md",
+      "facts": [
+        "Torque the variable speed constant frequency generator attach bolts to 51.4 lbf·ft.",
+        "Reference part number for the variable speed constant frequency generator seal kit: NX-2426-616-B (Halcyon Hydraulics).",
+        "Acceptance reference: generator load 38 kVA."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "elevator feel and centering unit — inspection and check",
+      "ataChapter": "27",
+      "taskNo": "27-12-00-170-383",
+      "revision": "Rev 29",
+      "effectiveDate": "2025-12-28",
+      "sourcePath": "manuals/amm/27-09-27-12-00-170-383.md",
+      "facts": [
+        "Torque the elevator feel and centering unit attach bolts to 22.9 lbf·ft.",
+        "Reference part number for the elevator feel and centering unit seal kit: NX-2743-602-B (Halcyon Hydraulics).",
+        "Acceptance reference: flap skew margin 1.8°."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "spoiler mixer unit — inspection and check",
+      "ataChapter": "27",
+      "taskNo": "27-37-00-325-176",
+      "revision": "Rev 31",
+      "effectiveDate": "2025-04-12",
+      "sourcePath": "manuals/amm/27-10-27-37-00-325-176.md",
+      "facts": [
+        "Torque the spoiler mixer unit attach bolts to 48.5 lbf·ft.",
+        "Reference part number for the spoiler mixer unit seal kit: NX-2774-247-C (Meridian Gear Co.).",
+        "Acceptance reference: flap skew margin 1.8°."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "pitch trim motor clutch — replacement",
+      "ataChapter": "27",
+      "taskNo": "27-30-00-148-222",
+      "revision": "Rev 33",
+      "effectiveDate": "2026-02-23",
+      "sourcePath": "manuals/amm/27-11-27-30-00-148-222.md",
+      "facts": [
+        "Torque the pitch trim motor clutch attach bolts to 64.5 Nm.",
+        "Reference part number for the pitch trim motor clutch seal kit: NX-2730-820-C (Halcyon Hydraulics).",
+        "Acceptance reference: flap skew margin 1.8°."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "pitch trim motor clutch — adjustment and rigging",
+      "ataChapter": "27",
+      "taskNo": "27-46-00-315-199",
+      "revision": "Rev 22",
+      "effectiveDate": "2024-05-27",
+      "sourcePath": "manuals/amm/27-12-27-46-00-315-199.md",
+      "facts": [
+        "Torque the pitch trim motor clutch attach bolts to 81.0 Nm.",
+        "Reference part number for the pitch trim motor clutch seal kit: NX-2712-585-A (Meridian Gear Co.).",
+        "Acceptance reference: feel force gradient 4.1 daN."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "center tank fuel pump — inspection and check",
+      "ataChapter": "28",
+      "taskNo": "28-31-00-474-260",
+      "revision": "Rev 37",
+      "effectiveDate": "2026-03-15",
+      "sourcePath": "manuals/amm/28-13-28-31-00-474-260.md",
+      "facts": [
+        "Torque the center tank fuel pump attach bolts to 47.5 Nm.",
+        "Reference part number for the center tank fuel pump seal kit: NX-2856-189-A (Nordwind Aero Supply).",
+        "Acceptance reference: tank differential pressure 12 psi."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "center tank fuel pump — operational test",
+      "ataChapter": "28",
+      "taskNo": "28-24-00-416-114",
+      "revision": "Rev 24",
+      "effectiveDate": "2026-02-22",
+      "sourcePath": "manuals/amm/28-14-28-24-00-416-114.md",
+      "facts": [
+        "Torque the center tank fuel pump attach bolts to 74.5 Nm.",
+        "Reference part number for the center tank fuel pump seal kit: NX-2842-102-A (Kepler Avionics).",
+        "Acceptance reference: tank differential pressure 12 psi."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "wing tank water scavenger system — removal and installation",
+      "ataChapter": "28",
+      "taskNo": "28-47-00-184-104",
+      "revision": "Rev 34",
+      "effectiveDate": "2024-09-22",
+      "sourcePath": "manuals/amm/28-15-28-47-00-184-104.md",
+      "facts": [
+        "Torque the wing tank water scavenger system attach bolts to 51.5 Nm.",
+        "Reference part number for the wing tank water scavenger system seal kit: NX-2885-796-C (Nordwind Aero Supply).",
+        "Acceptance reference: scavenger cycle time 95 s."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "low-pressure fuel shut-off valve — replacement",
+      "ataChapter": "28",
+      "taskNo": "28-13-00-142-373",
+      "revision": "Rev 26",
+      "effectiveDate": "2026-07-04",
+      "sourcePath": "manuals/amm/28-16-28-13-00-142-373.md",
+      "facts": [
+        "Torque the low-pressure fuel shut-off valve attach bolts to 87.5 Nm.",
+        "Reference part number for the low-pressure fuel shut-off valve seal kit: NX-2810-469-B (Halcyon Hydraulics).",
+        "Acceptance reference: scavenger cycle time 95 s."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "power transfer unit — operational test",
+      "ataChapter": "29",
+      "taskNo": "29-42-00-101-185",
+      "revision": "Rev 42",
+      "effectiveDate": "2026-06-28",
+      "sourcePath": "manuals/amm/29-17-29-42-00-101-185.md",
+      "facts": [
+        "Torque the power transfer unit attach bolts to 41.8 lbf·ft.",
+        "Reference part number for the power transfer unit seal kit: NX-2954-965-B (Meridian Gear Co.).",
+        "Acceptance reference: accumulator air pre-charge 1450 psi."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "electric motor pump (EMP) — replacement",
+      "ataChapter": "29",
+      "taskNo": "29-12-00-205-153",
+      "revision": "Rev 40",
+      "effectiveDate": "2024-06-05",
+      "sourcePath": "manuals/amm/29-18-29-12-00-205-153.md",
+      "facts": [
+        "Torque the electric motor pump (EMP) attach bolts to 68.5 Nm.",
+        "Reference part number for the electric motor pump (EMP) seal kit: NX-2928-931-C (Kepler Avionics).",
+        "Acceptance reference: case drain flow 0.8 l/min."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "case drain filter module — operational test",
+      "ataChapter": "29",
+      "taskNo": "29-35-00-291-303",
+      "revision": "Rev 22",
+      "effectiveDate": "2024-12-21",
+      "sourcePath": "manuals/amm/29-19-29-35-00-291-303.md",
+      "facts": [
+        "Torque the case drain filter module attach bolts to 96.5 Nm.",
+        "Reference part number for the case drain filter module seal kit: NX-2976-310-A (Meridian Gear Co.).",
+        "Acceptance reference: case drain flow 0.8 l/min."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "hydraulic reservoir pressurization module — inspection and check",
+      "ataChapter": "29",
+      "taskNo": "29-24-00-179-323",
+      "revision": "Rev 41",
+      "effectiveDate": "2025-09-19",
+      "sourcePath": "manuals/amm/29-20-29-24-00-179-323.md",
+      "facts": [
+        "Torque the hydraulic reservoir pressurization module attach bolts to 78.0 Nm.",
+        "Reference part number for the hydraulic reservoir pressurization module seal kit: NX-2926-364-A (Kepler Avionics).",
+        "Acceptance reference: case drain flow 0.8 l/min."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "power transfer unit — inspection and check",
+      "ataChapter": "29",
+      "taskNo": "29-24-00-199-340",
+      "revision": "Rev 31",
+      "effectiveDate": "2024-03-01",
+      "sourcePath": "manuals/amm/29-21-29-24-00-199-340.md",
+      "facts": [
+        "Torque the power transfer unit attach bolts to 15.5 Nm.",
+        "Reference part number for the power transfer unit seal kit: NX-2924-784-C (Kepler Avionics).",
+        "Acceptance reference: unloaded system decay 120 psi/min."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "landing gear uplock assembly — inspection and check",
+      "ataChapter": "32",
+      "taskNo": "32-30-00-428-379",
+      "revision": "Rev 29",
+      "effectiveDate": "2025-01-12",
+      "sourcePath": "manuals/amm/32-22-32-30-00-428-379.md",
+      "facts": [
+        "Torque the landing gear uplock assembly attach bolts to 45.0 Nm.",
+        "Reference part number for the landing gear uplock assembly seal kit: NX-3285-682-C (Nordwind Aero Supply).",
+        "Acceptance reference: strut pressure 615 psi at 21 °C."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "main gear side stay pin — operational test",
+      "ataChapter": "32",
+      "taskNo": "32-43-00-445-267",
+      "revision": "Rev 29",
+      "effectiveDate": "2024-04-09",
+      "sourcePath": "manuals/amm/32-23-32-43-00-445-267.md",
+      "facts": [
+        "Torque the main gear side stay pin attach bolts to 20.4 lbf·ft.",
+        "Reference part number for the main gear side stay pin seal kit: NX-3251-286-A (Kepler Avionics).",
+        "Acceptance reference: strut pressure 615 psi at 21 °C."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "tire pressure sensor unit — replacement",
+      "ataChapter": "32",
+      "taskNo": "32-35-00-432-342",
+      "revision": "Rev 40",
+      "effectiveDate": "2025-08-17",
+      "sourcePath": "manuals/amm/32-24-32-35-00-432-342.md",
+      "facts": [
+        "Torque the tire pressure sensor unit attach bolts to 76.0 Nm.",
+        "Reference part number for the tire pressure sensor unit seal kit: NX-3230-798-C (Nordwind Aero Supply).",
+        "Acceptance reference: extension time 11.5 s."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "nose wheel steering tiller feedback unit — removal and installation",
+      "ataChapter": "32",
+      "taskNo": "32-35-00-242-227",
+      "revision": "Rev 27",
+      "effectiveDate": "2026-03-20",
+      "sourcePath": "manuals/amm/32-25-32-35-00-242-227.md",
+      "facts": [
+        "Torque the nose wheel steering tiller feedback unit attach bolts to 45.0 Nm.",
+        "Reference part number for the nose wheel steering tiller feedback unit seal kit: NX-3211-430-A (Halcyon Hydraulics).",
+        "Acceptance reference: strut pressure 615 psi at 21 °C."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "angle-of-attack sensor vane — operational test",
+      "ataChapter": "34",
+      "taskNo": "34-23-00-246-250",
+      "revision": "Rev 34",
+      "effectiveDate": "2025-09-06",
+      "sourcePath": "manuals/amm/34-26-34-23-00-246-250.md",
+      "facts": [
+        "Torque the angle-of-attack sensor vane attach bolts to 30.0 lbf·ft.",
+        "Reference part number for the angle-of-attack sensor vane seal kit: NX-3454-364-A (Kepler Avionics).",
+        "Acceptance reference: pitot heat 241 W."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "air data inertial reference unit — replacement",
+      "ataChapter": "34",
+      "taskNo": "34-37-00-266-126",
+      "revision": "Rev 34",
+      "effectiveDate": "2026-11-28",
+      "sourcePath": "manuals/amm/34-27-34-37-00-266-126.md",
+      "facts": [
+        "Torque the air data inertial reference unit attach bolts to 35.9 lbf·ft.",
+        "Reference part number for the air data inertial reference unit seal kit: NX-3469-627-A (Halcyon Hydraulics).",
+        "Acceptance reference: radio alt error 1.4 ft."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "air data inertial reference unit — adjustment and rigging",
+      "ataChapter": "34",
+      "taskNo": "34-40-00-420-209",
+      "revision": "Rev 22",
+      "effectiveDate": "2026-09-14",
+      "sourcePath": "manuals/amm/34-28-34-40-00-420-209.md",
+      "facts": [
+        "Torque the air data inertial reference unit attach bolts to 94.0 Nm.",
+        "Reference part number for the air data inertial reference unit seal kit: NX-3494-345-A (Halcyon Hydraulics).",
+        "Acceptance reference: radio alt error 1.4 ft."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "standby attitude module — removal and installation",
+      "ataChapter": "34",
+      "taskNo": "34-11-00-350-186",
+      "revision": "Rev 25",
+      "effectiveDate": "2025-02-07",
+      "sourcePath": "manuals/amm/34-29-34-11-00-350-186.md",
+      "facts": [
+        "Torque the standby attitude module attach bolts to 30.5 Nm.",
+        "Reference part number for the standby attitude module seal kit: NX-3474-446-A (Nordwind Aero Supply).",
+        "Acceptance reference: pitot heat 241 W."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "duct leak detection loop — inspection and check",
+      "ataChapter": "36",
+      "taskNo": "36-19-00-363-200",
+      "revision": "Rev 38",
+      "effectiveDate": "2024-04-23",
+      "sourcePath": "manuals/amm/36-30-36-19-00-363-200.md",
+      "facts": [
+        "Torque the duct leak detection loop attach bolts to 29.6 lbf·ft.",
+        "Reference part number for the duct leak detection loop seal kit: NX-3696-190-C (Kepler Avionics).",
+        "Acceptance reference: loop resistance 4.2 Ω."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "cross-bleed valve actuator — inspection and check",
+      "ataChapter": "36",
+      "taskNo": "36-23-00-306-340",
+      "revision": "Rev 34",
+      "effectiveDate": "2025-10-12",
+      "sourcePath": "manuals/amm/36-31-36-23-00-306-340.md",
+      "facts": [
+        "Torque the cross-bleed valve actuator attach bolts to 11.1 lbf·ft.",
+        "Reference part number for the cross-bleed valve actuator seal kit: NX-3617-282-C (Meridian Gear Co.).",
+        "Acceptance reference: loop resistance 4.2 Ω."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "cross-bleed valve actuator — operational test",
+      "ataChapter": "36",
+      "taskNo": "36-26-00-477-250",
+      "revision": "Rev 28",
+      "effectiveDate": "2024-10-22",
+      "sourcePath": "manuals/amm/36-32-36-26-00-477-250.md",
+      "facts": [
+        "Torque the cross-bleed valve actuator attach bolts to 58.1 lbf·ft.",
+        "Reference part number for the cross-bleed valve actuator seal kit: NX-3646-981-A (Meridian Gear Co.).",
+        "Acceptance reference: pre-cooler outlet 178 °C."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "APU load compressor inlet valve — inspection and check",
+      "ataChapter": "36",
+      "taskNo": "36-48-00-297-279",
+      "revision": "Rev 26",
+      "effectiveDate": "2024-08-15",
+      "sourcePath": "manuals/amm/36-33-36-48-00-297-279.md",
+      "facts": [
+        "Torque the APU load compressor inlet valve attach bolts to 86.5 Nm.",
+        "Reference part number for the APU load compressor inlet valve seal kit: NX-3641-260-A (Meridian Gear Co.).",
+        "Acceptance reference: pre-cooler outlet 178 °C."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "APU fire extinguishing bottle — inspection and check",
+      "ataChapter": "26",
+      "taskNo": "26-48-00-372-276",
+      "revision": "Rev 29",
+      "effectiveDate": "2024-09-06",
+      "sourcePath": "manuals/amm/26-34-26-48-00-372-276.md",
+      "facts": [
+        "Torque the APU fire extinguishing bottle attach bolts to 31.0 Nm.",
+        "Reference part number for the APU fire extinguishing bottle seal kit: NX-2697-643-C (Halcyon Hydraulics).",
+        "Acceptance reference: bottle pressure 1250 psi."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "fire handle unlock solenoid — inspection and check",
+      "ataChapter": "26",
+      "taskNo": "26-47-00-196-248",
+      "revision": "Rev 43",
+      "effectiveDate": "2026-11-06",
+      "sourcePath": "manuals/amm/26-35-26-47-00-196-248.md",
+      "facts": [
+        "Torque the fire handle unlock solenoid attach bolts to 76.0 Nm.",
+        "Reference part number for the fire handle unlock solenoid seal kit: NX-2624-363-B (Meridian Gear Co.).",
+        "Acceptance reference: loop resistance 3.8 Ω."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "fire handle unlock solenoid — removal and installation",
+      "ataChapter": "26",
+      "taskNo": "26-33-00-278-264",
+      "revision": "Rev 37",
+      "effectiveDate": "2024-04-27",
+      "sourcePath": "manuals/amm/26-36-26-33-00-278-264.md",
+      "facts": [
+        "Torque the fire handle unlock solenoid attach bolts to 26.0 Nm.",
+        "Reference part number for the fire handle unlock solenoid seal kit: NX-2686-638-A (Halcyon Hydraulics).",
+        "Acceptance reference: alarm response 12 s."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "APU fire extinguishing bottle — removal and installation",
+      "ataChapter": "26",
+      "taskNo": "26-34-00-220-313",
+      "revision": "Rev 37",
+      "effectiveDate": "2026-08-03",
+      "sourcePath": "manuals/amm/26-37-26-34-00-220-313.md",
+      "facts": [
+        "Torque the APU fire extinguishing bottle attach bolts to 84.5 Nm.",
+        "Reference part number for the APU fire extinguishing bottle seal kit: NX-2664-509-A (Halcyon Hydraulics).",
+        "Acceptance reference: alarm response 12 s."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "EBU bleed air shut-off valve — replacement",
+      "ataChapter": "49",
+      "taskNo": "49-19-00-135-112",
+      "revision": "Rev 21",
+      "effectiveDate": "2026-05-02",
+      "sourcePath": "manuals/amm/49-38-49-19-00-135-112.md",
+      "facts": [
+        "Torque the EBU bleed air shut-off valve attach bolts to 78.0 Nm.",
+        "Reference part number for the EBU bleed air shut-off valve seal kit: NX-4945-543-C (Kepler Avionics).",
+        "Acceptance reference: start peak EGT 512 °C."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "APU start contactor — operational test",
+      "ataChapter": "49",
+      "taskNo": "49-36-00-109-336",
+      "revision": "Rev 25",
+      "effectiveDate": "2026-06-22",
+      "sourcePath": "manuals/amm/49-39-49-36-00-109-336.md",
+      "facts": [
+        "Torque the APU start contactor attach bolts to 27.5 Nm.",
+        "Reference part number for the APU start contactor seal kit: NX-4964-376-C (Meridian Gear Co.).",
+        "Acceptance reference: start peak EGT 512 °C."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "APU intake door actuator — inspection and check",
+      "ataChapter": "49",
+      "taskNo": "49-19-00-249-251",
+      "revision": "Rev 40",
+      "effectiveDate": "2026-11-08",
+      "sourcePath": "manuals/amm/49-40-49-19-00-249-251.md",
+      "facts": [
+        "Torque the APU intake door actuator attach bolts to 64.0 Nm.",
+        "Reference part number for the APU intake door actuator seal kit: NX-4997-757-B (Meridian Gear Co.).",
+        "Acceptance reference: idle oil pressure 58 psi."
+      ]
+    },
+    {
+      "docType": "AMM",
+      "title": "load compressor surge control valve — replacement",
+      "ataChapter": "49",
+      "taskNo": "49-10-00-201-225",
+      "revision": "Rev 31",
+      "effectiveDate": "2026-05-06",
+      "sourcePath": "manuals/amm/49-41-49-10-00-201-225.md",
+      "facts": [
+        "Torque the load compressor surge control valve attach bolts to 29.0 Nm.",
+        "Reference part number for the load compressor surge control valve seal kit: NX-4967-762-A (Meridian Gear Co.).",
+        "Acceptance reference: start peak EGT 512 °C."
+      ]
+    },
+    {
+      "docType": "TSM",
+      "title": "rudder trim actuator — fault isolation (intermittent indication)",
+      "ataChapter": "27",
+      "taskNo": "27-47-00-340-248",
+      "revision": "Rev 28",
+      "effectiveDate": "2026-03-25",
+      "sourcePath": "manuals/tsm/27-01-FC-2780-896.md",
+      "facts": [
+        "Fault code FC-2780-896 maps to the rudder trim actuator (intermittent indication).",
+        "First isolation action: connect the test set and confirm fault code FC-2780-896.",
+        "Primary suspect when measurements pass: replace the rudder trim actuator."
+      ]
+    },
+    {
+      "docType": "TSM",
+      "title": "temperature trim air valve — fault isolation (fails to respond to command)",
+      "ataChapter": "21",
+      "taskNo": "21-11-00-364-353",
+      "revision": "Rev 32",
+      "effectiveDate": "2025-05-28",
+      "sourcePath": "manuals/tsm/21-02-FC-2158-874.md",
+      "facts": [
+        "Fault code FC-2158-874 maps to the temperature trim air valve (fails to respond to command).",
+        "First isolation action: connect the test set and confirm fault code FC-2158-874.",
+        "Primary suspect when measurements pass: replace the temperature trim air valve."
+      ]
+    },
+    {
+      "docType": "TSM",
+      "title": "pressure regulating valve — fault isolation (out-of-range reading on the related display)",
+      "ataChapter": "36",
+      "taskNo": "36-38-00-428-243",
+      "revision": "Rev 18",
+      "effectiveDate": "2024-11-02",
+      "sourcePath": "manuals/tsm/36-03-FC-3616-225.md",
+      "facts": [
+        "Fault code FC-3616-225 maps to the pressure regulating valve (out-of-range reading on the related display).",
+        "First isolation action: connect the test set and confirm fault code FC-3616-225.",
+        "Primary suspect when measurements pass: replace the pressure regulating valve."
+      ]
+    },
+    {
+      "docType": "TSM",
+      "title": "fuel transfer jet pump — fault isolation (audible noise during operation)",
+      "ataChapter": "28",
+      "taskNo": "28-23-00-299-304",
+      "revision": "Rev 28",
+      "effectiveDate": "2026-04-16",
+      "sourcePath": "manuals/tsm/28-04-FC-2817-718.md",
+      "facts": [
+        "Fault code FC-2817-718 maps to the fuel transfer jet pump (audible noise during operation).",
+        "First isolation action: connect the test set and confirm fault code FC-2817-718.",
+        "Primary suspect when measurements pass: replace the fuel transfer jet pump."
+      ]
+    },
+    {
+      "docType": "TSM",
+      "title": "hydraulic reservoir pressurization module — fault isolation (slow response after start)",
+      "ataChapter": "29",
+      "taskNo": "29-32-00-337-312",
+      "revision": "Rev 16",
+      "effectiveDate": "2025-04-16",
+      "sourcePath": "manuals/tsm/29-05-FC-2974-514.md",
+      "facts": [
+        "Fault code FC-2974-514 maps to the hydraulic reservoir pressurization module (slow response after start).",
+        "First isolation action: connect the test set and confirm fault code FC-2974-514.",
+        "Primary suspect when measurements pass: replace the hydraulic reservoir pressurization module."
+      ]
+    },
+    {
+      "docType": "TSM",
+      "title": "nose landing gear shock absorber — fault isolation (vibration reported by the crew)",
+      "ataChapter": "32",
+      "taskNo": "32-21-00-226-280",
+      "revision": "Rev 17",
+      "effectiveDate": "2024-12-03",
+      "sourcePath": "manuals/tsm/32-06-FC-3282-237.md",
+      "facts": [
+        "Fault code FC-3282-237 maps to the nose landing gear shock absorber (vibration reported by the crew).",
+        "First isolation action: connect the test set and confirm fault code FC-3282-237.",
+        "Primary suspect when measurements pass: replace the nose landing gear shock absorber."
+      ]
+    },
+    {
+      "docType": "TSM",
+      "title": "engine fire detection loop element — fault isolation (warning message after power-up)",
+      "ataChapter": "26",
+      "taskNo": "26-35-00-325-280",
+      "revision": "Rev 28",
+      "effectiveDate": "2026-11-28",
+      "sourcePath": "manuals/tsm/26-07-FC-2697-357.md",
+      "facts": [
+        "Fault code FC-2697-357 maps to the engine fire detection loop element (warning message after power-up).",
+        "First isolation action: connect the test set and confirm fault code FC-2697-357.",
+        "Primary suspect when measurements pass: replace the engine fire detection loop element."
+      ]
+    },
+    {
+      "docType": "TSM",
+      "title": "electrical essential bus feed breaker — fault isolation (no output at the related sensor)",
+      "ataChapter": "24",
+      "taskNo": "24-25-00-307-409",
+      "revision": "Rev 40",
+      "effectiveDate": "2025-11-06",
+      "sourcePath": "manuals/tsm/24-08-FC-2491-131.md",
+      "facts": [
+        "Fault code FC-2491-131 maps to the electrical essential bus feed breaker (no output at the related sensor).",
+        "First isolation action: connect the test set and confirm fault code FC-2491-131.",
+        "Primary suspect when measurements pass: replace the electrical essential bus feed breaker."
+      ]
+    },
+    {
+      "docType": "TSM",
+      "title": "APU start contactor — fault isolation (intermittent indication)",
+      "ataChapter": "49",
+      "taskNo": "49-19-00-463-410",
+      "revision": "Rev 38",
+      "effectiveDate": "2026-07-01",
+      "sourcePath": "manuals/tsm/49-09-FC-4935-666.md",
+      "facts": [
+        "Fault code FC-4935-666 maps to the APU start contactor (intermittent indication).",
+        "First isolation action: connect the test set and confirm fault code FC-4935-666.",
+        "Primary suspect when measurements pass: replace the APU start contactor."
+      ]
+    },
+    {
+      "docType": "TSM",
+      "title": "standby attitude module — fault isolation (fails to respond to command)",
+      "ataChapter": "34",
+      "taskNo": "34-32-00-320-366",
+      "revision": "Rev 21",
+      "effectiveDate": "2026-04-15",
+      "sourcePath": "manuals/tsm/34-10-FC-3463-796.md",
+      "facts": [
+        "Fault code FC-3463-796 maps to the standby attitude module (fails to respond to command).",
+        "First isolation action: connect the test set and confirm fault code FC-3463-796.",
+        "Primary suspect when measurements pass: replace the standby attitude module."
+      ]
+    },
+    {
+      "docType": "IPC",
+      "title": "hydraulic reservoir assembly — parts list",
+      "ataChapter": "29",
+      "taskNo": "29-45-01",
+      "revision": "Rev 23",
+      "effectiveDate": "2025-06-24",
+      "sourcePath": "manuals/ipc/29-01-29-45-01.md",
+      "facts": [
+        "Figure 29-45-01-F1 item 01 lists the primary component: hydraulic accumulator."
+      ]
+    },
+    {
+      "docType": "IPC",
+      "title": "nose landing gear assembly — parts list",
+      "ataChapter": "32",
+      "taskNo": "32-14-05",
+      "revision": "Rev 30",
+      "effectiveDate": "2025-03-06",
+      "sourcePath": "manuals/ipc/32-02-32-14-05.md",
+      "facts": [
+        "Figure 32-14-05-F1 item 01 lists the primary component: gear actuating cylinder snubber."
+      ]
+    },
+    {
+      "docType": "IPC",
+      "title": "aileron actuator assembly — parts list",
+      "ataChapter": "27",
+      "taskNo": "27-37-09",
+      "revision": "Rev 32",
+      "effectiveDate": "2025-09-04",
+      "sourcePath": "manuals/ipc/27-03-27-37-09.md",
+      "facts": [
+        "Figure 27-37-09-F1 item 01 lists the primary component: pitch trim motor clutch."
+      ]
+    },
+    {
+      "docType": "IPC",
+      "title": "bleed pre-cooler assembly — parts list",
+      "ataChapter": "34",
+      "taskNo": "34-38-01",
+      "revision": "Rev 34",
+      "effectiveDate": "2026-07-01",
+      "sourcePath": "manuals/ipc/34-04-34-38-01.md",
+      "facts": [
+        "Figure 34-38-01-F1 item 01 lists the primary component: magnetic variometer compensation module."
+      ]
+    },
+    {
+      "docType": "IPC",
+      "title": "transformer rectifier unit assembly — parts list",
+      "ataChapter": "24",
+      "taskNo": "24-51-07",
+      "revision": "Rev 38",
+      "effectiveDate": "2025-01-04",
+      "sourcePath": "manuals/ipc/24-05-24-51-07.md",
+      "facts": [
+        "Figure 24-51-07-F1 item 01 lists the primary component: variable speed constant frequency generator."
+      ]
+    },
+    {
+      "docType": "SB",
+      "title": "electric motor pump (EMP) — reservoir pressurization module fleet improvement",
+      "ataChapter": "29",
+      "taskNo": "SB-29-001",
+      "revision": "Rev 01",
+      "effectiveDate": "2025-03-21",
+      "sourcePath": "manuals/sb/SB-29-001-rev01.md",
+      "facts": [
+        "SB-29-001 applies to NX-320 line numbers 40–118.",
+        "SB-29-001 accomplishment interval: within 569 flight hours of the effective date."
+      ]
+    },
+    {
+      "docType": "SB",
+      "title": "gear actuating cylinder snubber — side stay pin inspection interval extension",
+      "ataChapter": "32",
+      "taskNo": "SB-32-002",
+      "revision": "Rev 01",
+      "effectiveDate": "2025-10-01",
+      "sourcePath": "manuals/sb/SB-32-002-rev01.md",
+      "facts": [
+        "SB-32-002 applies to NX-320 line numbers 33–92.",
+        "SB-32-002 accomplishment interval: within 1199 flight hours of the effective date."
+      ]
+    },
+    {
+      "docType": "SB",
+      "title": "standby attitude module — AOA vane connector seal replacement",
+      "ataChapter": "34",
+      "taskNo": "SB-34-003",
+      "revision": "Rev 01",
+      "effectiveDate": "2025-09-19",
+      "sourcePath": "manuals/sb/SB-34-003-rev01.md",
+      "facts": [
+        "SB-34-003 applies to NX-320 line numbers 12–80.",
+        "SB-34-003 accomplishment interval: within 2136 flight hours of the effective date."
+      ]
+    },
+    {
+      "docType": "SB",
+      "title": "pressure regulating valve — bleed duct clamp collar re-torque campaign",
+      "ataChapter": "36",
+      "taskNo": "SB-36-004",
+      "revision": "Rev 01",
+      "effectiveDate": "2025-03-15",
+      "sourcePath": "manuals/sb/SB-36-004-rev01.md",
+      "facts": [
+        "SB-36-004 applies to NX-320 line numbers 30–92.",
+        "SB-36-004 accomplishment interval: within 636 flight hours of the effective date."
+      ]
+    },
+    {
+      "docType": "SB",
+      "title": "transformer rectifier unit — TRU cooling fin corrosion protection",
+      "ataChapter": "24",
+      "taskNo": "SB-24-005",
+      "revision": "Rev 01",
+      "effectiveDate": "2025-12-05",
+      "sourcePath": "manuals/sb/SB-24-005-rev01.md",
+      "facts": [
+        "SB-24-005 applies to NX-320 line numbers 37–119.",
+        "SB-24-005 accomplishment interval: within 2286 flight hours of the effective date."
+      ]
+    }
+  ]
+}
