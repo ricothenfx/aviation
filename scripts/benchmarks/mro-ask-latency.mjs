@@ -112,7 +112,12 @@ async function main() {
 
 main().catch((err) => {
   console.error(
-    JSON.stringify({ level: "error", module: "mro-ask-latency", msg: "benchmark failed", err: String(err) }),
+    JSON.stringify({
+      level: "error",
+      module: "mro-ask-latency",
+      msg: "benchmark failed",
+      err: String(err),
+    }),
   );
   process.exit(1);
 });

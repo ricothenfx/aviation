@@ -187,9 +187,9 @@ export async function main() {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
   main().catch((err) => {
-  console.error(
-    JSON.stringify({ level: "error", module: "eval-mro", msg: "eval failed", err: String(err) }),
-  );
+    console.error(
+      JSON.stringify({ level: "error", module: "eval-mro", msg: "eval failed", err: String(err) }),
+    );
     process.exit(1);
   });
 }

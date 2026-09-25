@@ -27,10 +27,6 @@ const REPO_ROOT = path.resolve(import.meta.dirname, "../..");
 const APP_ROOT = path.join(REPO_ROOT, "apps/mro-copilot");
 const BASE_URL = process.env.MRO_BASE_URL ?? "http://localhost:3003";
 
-const ENGINEER = {
-  email: process.env.MRO_EVAL_EMAIL ?? "siti.rahayu@mro-sim.example",
-  password: process.env.MRO_EVAL_PASSWORD ?? "engineer-nx-01",
-};
 const REVIEWER = {
   email: process.env.MRO_REVIEWER_EMAIL ?? "wei.lim@mro-sim.example",
   password: process.env.MRO_REVIEWER_PASSWORD ?? "reviewer-nx-01",
@@ -49,7 +45,10 @@ const refusal = JSON.parse(readFileSync(path.join(APP_ROOT, "seed/eval/refusal-s
 async function ask(cookie, question, idempotencyKey) {
   const res = await fetch(`${BASE_URL}/api/v1/ask`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}) },
+    headers: {
+      "Content-Type": "application/json",
+      ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
+    },
     body: JSON.stringify({ question }),
   });
   if (!res.ok) {
@@ -96,12 +95,20 @@ async function main() {
   let keySeq = 0;
   for (const caseItem of golden.cases) {
     const t0 = performance.now();
-    const response = await ask(engineerCookie, caseItem.question, `eval-full-${startedAt}-${keySeq++}`);
+    const response = await ask(
+      engineerCookie,
+      caseItem.question,
+      `eval-full-${startedAt}-${keySeq++}`,
+    );
     latencies.push(performance.now() - t0);
     const citesExpected = (caseItem.expected_citations ?? []).map(citationKey);
-    const citedKeys = (response.citations ?? []).map((c) => citationKey({
-      doc_type: c.docType, ata_chapter: c.ataChapter, task_no: c.taskNo,
-    }));
+    const citedKeys = (response.citations ?? []).map((c) =>
+      citationKey({
+        doc_type: c.docType,
+        ata_chapter: c.ataChapter,
+        task_no: c.taskNo,
+      }),
+    );
     let expectedCited = 0;
     for (const key of citesExpected) if (citedKeys.includes(key)) expectedCited += 1;
 
@@ -132,13 +139,18 @@ async function main() {
     });
   }
   const groundedRate = Number((grounded / golden.cases.length).toFixed(4));
-  const citationValidity = citationsTotal === 0 ? 0 : Number((citationsValid / citationsTotal).toFixed(4));
+  const citationValidity =
+    citationsTotal === 0 ? 0 : Number((citationsValid / citationsTotal).toFixed(4));
 
   // --- refusal gate over the refusal set -------------------------------------
   const refusalCases = [];
   let refusalHits = 0;
   for (const caseItem of refusal.cases) {
-    const response = await ask(engineerCookie, caseItem.question, `eval-full-${startedAt}-${keySeq++}`);
+    const response = await ask(
+      engineerCookie,
+      caseItem.question,
+      `eval-full-${startedAt}-${keySeq++}`,
+    );
     const ok =
       response.status === "refused" &&
       response.refusalReason === caseItem.expected_reason &&
@@ -223,7 +235,12 @@ async function main() {
     runId = (await persistRes.json()).runId;
   } else {
     console.error(
-      JSON.stringify({ level: "error", module: "eval-mro-full", msg: "persist failed", status: persistRes.status }),
+      JSON.stringify({
+        level: "error",
+        module: "eval-mro-full",
+        msg: "persist failed",
+        status: persistRes.status,
+      }),
     );
   }
 
@@ -307,7 +324,12 @@ async function loginAs(account) {
 
 main().catch((err) => {
   console.error(
-    JSON.stringify({ level: "error", module: "eval-mro-full", msg: "eval failed", err: String(err) }),
+    JSON.stringify({
+      level: "error",
+      module: "eval-mro-full",
+      msg: "eval failed",
+      err: String(err),
+    }),
   );
   process.exit(1);
 });
