@@ -82,6 +82,7 @@ mro-copilot additions: `INGEST_IN_PROGRESS` 409 · `MODEL_NOT_LOADED` 503 ·
 | POST | `/internal/v1/retrieval/search` | `{query, k, filters?: {docTypes?, ataChapters?, revision?}} → {mode: "hybrid"\|"lexical", results: [{chunkId, manualId, score, snippet, metadata}]}` — query embedding happens inside (ADR-0012) |
 | POST | `/internal/v1/rul/predict` | `{unitId} → {unitId, cycle, rulCycles, bandLow, bandHigh, modelVersion, modelSha256}` |
 | POST | `/internal/v1/rul/score-fleet` | `{unitIds: string[]} → {modelVersion, modelSha256, results: [<predict shape>], insufficientHistory: [unitId]}` — F4 additive: units with < min window history are listed in `insufficientHistory` (no prediction row; the app composes `latestRul: null`) instead of erroring the batch |
+| POST | `/internal/v1/rul/backfill` | **F4 additive**: `{entries: [{unitId, cycles: number[] (≤48)}]} → {modelVersion, modelSha256, results: [<predict shape>], skipped: [unitId]}` — offline trend scoring at explicit historical cycles; ONE bulk history round trip; no look-ahead (feature windows stop AT each cycle; out-of-range cycles are skipped, never extrapolated). Used by the app to backfill a unit's trend on first scoring |
 | POST | `/internal/v1/ingest` | runs the ingest job (same code path as the CLI); 200 report / 409 in-progress |
 | GET | `/internal/v1/model` | `{version, sha256, trainedAt, dataset, metrics: {rmse, nasaScore}}` |
 
