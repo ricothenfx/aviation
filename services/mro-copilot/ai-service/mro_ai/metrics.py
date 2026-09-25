@@ -14,3 +14,21 @@ EMBED_REQUESTS = Counter(
     "embed_requests_total",
     "Completed embed batches",
 )
+
+RETRIEVAL_LATENCY = Histogram(
+    "retrieval_latency_seconds",
+    "Latency of /internal/v1/retrieval/search calls",
+    buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5),
+)
+
+RETRIEVAL_MODE = Counter(
+    "retrieval_mode_total",
+    "Retrieval outcomes by mode (architecture.md §4 degradation ladder)",
+    ["mode"],
+)
+
+INGEST_CHUNKS = Counter(
+    "ingest_chunks_total",
+    "Chunks processed by ingest runs",
+    ["outcome"],
+)

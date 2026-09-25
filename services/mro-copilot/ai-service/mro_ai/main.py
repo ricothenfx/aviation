@@ -19,6 +19,7 @@ from mro_ai.db import check_pgvector, check_postgres
 from mro_ai.gateway import Gateway, ProviderUnavailableError
 from mro_ai.internal import schemas
 from mro_ai.internal.routes import router as internal_router
+from mro_ai.retrieval import RetrievalService
 
 
 @asynccontextmanager
@@ -33,6 +34,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             # Start degraded: embeds fail until a provider is configured.
             # /readyz reports provider: "down" honestly (architecture.md §6).
             app.state.gateway = None
+    if not hasattr(app.state, "retrieval"):
+        config: Config = app.state.config
+        gateway: Gateway | None = getattr(app.state, "gateway", None)
+        # Degraded start (gateway None) still serves lexical-only search
+        # (architecture.md §4 degradation ladder).
+        app.state.retrieval = RetrievalService(config.database_url, gateway)
     yield
 
 

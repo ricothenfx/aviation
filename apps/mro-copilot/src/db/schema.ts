@@ -5,6 +5,7 @@ import {
   date,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   text,
@@ -112,3 +113,29 @@ export const chunks = pgTable(
 
 export type ChunkRow = typeof chunks.$inferSelect;
 export type NewChunkRow = typeof chunks.$inferInsert;
+
+/**
+ * Ingest evidence (data-model.md §2): one row per ingest run — corpus digest,
+ * chunk counts (new/changed/unchanged/removed), embedding model, duration and
+ * the full report JSONB. This is the evidence backing the FR-5 idempotency DoD.
+ * Added with F2 (additive forward-only migration, engineering-standards §8).
+ */
+export const ingestRuns = pgTable("ingest_runs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  /** sha256 over the sorted chunk-hash set — the corpus fingerprint. */
+  corpusDigest: text("corpus_digest").notNull(),
+  embeddingModel: text("embedding_model").notNull(),
+  manualsTouched: integer("manuals_touched").notNull(),
+  chunksNew: integer("chunks_new").notNull(),
+  chunksChanged: integer("chunks_changed").notNull(),
+  chunksUnchanged: integer("chunks_unchanged").notNull(),
+  chunksRemoved: integer("chunks_removed").notNull().default(0),
+  durationMs: integer("duration_ms").notNull(),
+  /** completed | failed */
+  status: text("status").notNull(),
+  report: jsonb("report").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type IngestRunRow = typeof ingestRuns.$inferSelect;
+export type NewIngestRunRow = typeof ingestRuns.$inferInsert;

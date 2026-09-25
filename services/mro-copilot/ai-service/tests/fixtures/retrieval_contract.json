@@ -1,0 +1,36 @@
+{
+  "description": "Cross-runtime contract fixture for /internal/v1/retrieval/search (api-contracts.md §3). The pydantic test (tests/test_search_route.py) and the zod test (apps/mro-copilot/src/lib/api/schemas.test.ts) parse the SAME response object and assert their field lists match, so a field renamed on one side only turns CI red.",
+  "response": {
+    "mode": "hybrid",
+    "results": [
+      {
+        "chunkId": "018f3c1e-0000-7000-8000-000000000001",
+        "manualId": "018f3c1e-0000-7000-8000-0000000000aa",
+        "docType": "AMM",
+        "taskNo": "29-11-00-000-401",
+        "ataChapter": "29",
+        "sectionPath": "NX320 AMM · ATA 29 · 29-11-00 · Task 29-11-00-000-401 · hydraulic accumulator — replacement · Procedure · Removal",
+        "page": 17,
+        "revision": "Rev 37",
+        "effectiveDate": "2026-03-01",
+        "snippet": "Torque the [[accumulator]] attach bolts to 34.5 Nm.",
+        "score": 0.0263
+      }
+    ],
+    "latencyMs": 42
+  },
+  "responseFields": ["mode", "results", "latencyMs"],
+  "hitFields": [
+    "chunkId",
+    "manualId",
+    "docType",
+    "taskNo",
+    "ataChapter",
+    "sectionPath",
+    "page",
+    "revision",
+    "effectiveDate",
+    "snippet",
+    "score"
+  ]
+}

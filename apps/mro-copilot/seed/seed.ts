@@ -8,7 +8,8 @@ import seedUsers from "./users.json";
  * Seed (engineering-standards.md §8, data-model.md §7): ensure database +
  * migrations + the three seeded demo users (D-09 pattern; roles
  * viewer/engineer/reviewer per PRD F-7). Re-runnable by design (upsert).
- * Corpus manuals arrive with F2 — this seed intentionally covers auth only.
+ * Corpus ingestion is the ai-service ingest CLI's job (FR-5) and runs in the
+ * compose stack right after this seed; the CLI embeds and upserts chunks.
  */
 
 interface SeedUser {

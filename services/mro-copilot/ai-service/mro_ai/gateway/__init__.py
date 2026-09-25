@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 
 from mro_ai.gateway.base import (
     ChatMessage,
@@ -38,7 +39,7 @@ class Gateway:
         self._provider = provider
 
     @staticmethod
-    def from_env(env: dict[str, str] | None = None) -> Gateway:
+    def from_env(env: Mapping[str, str] | None = None) -> Gateway:
         source = env if env is not None else os.environ
         requested = source.get("LLM_PROVIDER", "mock")
         if requested == "mock":

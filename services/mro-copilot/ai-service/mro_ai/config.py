@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Literal
 
@@ -18,8 +19,8 @@ class Config:
     provider: Literal["mock", "openai-compatible", "bedrock-shape", "off"]
 
 
-def load_config(env: dict[str, str] | None = None) -> Config:
-    """Read config from env (or an injected dict for tests)."""
+def load_config(env: Mapping[str, str] | None = None) -> Config:
+    """Read config from env (or an injected mapping for tests)."""
     source = env if env is not None else os.environ
     provider = source.get("LLM_PROVIDER", "mock")
     if provider not in ("mock", "openai-compatible", "bedrock-shape", "off"):

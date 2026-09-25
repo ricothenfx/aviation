@@ -266,26 +266,35 @@ services:
   # mro-copilot ai-service (ADR-0012): FastAPI owning embeddings/retrieval/RUL.
   # Loopback-only publication; the app reaches it over the service network.
   # pgvector 0.8.1 is provided by the timescale/timescaledb:latest-pg16 image
-  # (recorded per ADR-0010).
+  # (recorded per ADR-0010). Startup runs the idempotent ingest CLI (FR-5) so
+  # a clean clone serves a populated corpus; ordering guarantees: postgres is
+  # healthy AND mro-web already ran migrations + seed (its healthcheck passes
+  # only after that), so tables and users exist before ingest writes.
   mro-ai-service:
     image: python:3.12-slim
     profiles: ["mro"]
     working_dir: /srv
     command: >-
       sh -c "pip install --no-cache-dir -r requirements.txt &&
+             python -m mro_ai.ingest &&
              uvicorn mro_ai.main:app --host 0.0.0.0 --port 4103"
     environment:
       DATABASE_URL: postgresql://turnaround:turnaround@postgres:5432/mro_copilot
       # Shared secret with the web app (ADR-0012 §5).
       AI_SERVICE_TOKEN: dev-only-insecure-ai-token-0123456789abcdef
       LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      # Committed synthetic corpus (data-model.md §4), read-only mount.
+      MRO_CORPUS_DIR: /seed/manuals
     ports:
       - "127.0.0.1:4103:4103"
     volumes:
       - ../../services/mro-copilot/ai-service:/srv
+      - ../../apps/mro-copilot/seed:/seed:ro
       - mro_ai_pip_cache:/root/.cache/pip
     depends_on:
       postgres:
+        condition: service_healthy
+      mro-web:
         condition: service_healthy
     healthcheck:
       test:
