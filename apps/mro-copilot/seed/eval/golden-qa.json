@@ -1,0 +1,682 @@
+{
+  "version": 1,
+  "description": "Golden retrieval QA fixture (data-model.md §9, PRD FR-19). Hand-written against the committed NX-320 corpus manifest (corpus-manifest.json v1); every expected citation references doc_type + ata_chapter + task_no exactly as ingested. Bump the version whenever the corpus changes.",
+  "cases": [
+    {
+      "id": "gq-001",
+      "question": "What torque applies to the cabin pressure outflow valve attach bolts during installation?",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "21",
+          "task_no": "21-46-00-361-362"
+        }
+      ],
+      "answer_sketch": "92.5 Nm in the crosswise sequence shown on the torque plate.",
+      "tags": ["torque", "ata-21"]
+    },
+    {
+      "id": "gq-002",
+      "question": "Re-circulation fan attach bolt torque for removal and installation",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "21",
+          "task_no": "21-15-00-232-204"
+        }
+      ],
+      "answer_sketch": "68.0 Nm.",
+      "tags": ["torque", "ata-21"]
+    },
+    {
+      "id": "gq-003",
+      "question": "How much torque on the main battery contactor attach bolts?",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "24",
+          "task_no": "24-30-00-216-279"
+        }
+      ],
+      "answer_sketch": "44.5 Nm.",
+      "tags": ["torque", "ata-24"]
+    },
+    {
+      "id": "gq-004",
+      "question": "Torque value for the generator control unit attach bolts in the operational test task card",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "24",
+          "task_no": "24-48-00-308-289"
+        }
+      ],
+      "answer_sketch": "70.0 Nm.",
+      "tags": ["torque", "ata-24"]
+    },
+    {
+      "id": "gq-005",
+      "question": "What is the attach bolt torque for the variable speed constant frequency generator?",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "24",
+          "task_no": "24-17-00-157-340"
+        }
+      ],
+      "answer_sketch": "51.4 lbf·ft.",
+      "tags": ["torque", "ata-24"]
+    },
+    {
+      "id": "gq-006",
+      "question": "Elevator feel and centering unit attach bolts torque during inspection and check",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "27",
+          "task_no": "27-12-00-170-383"
+        }
+      ],
+      "answer_sketch": "22.9 lbf·ft.",
+      "tags": ["torque", "ata-27"]
+    },
+    {
+      "id": "gq-007",
+      "question": "Spoiler mixer unit task card torque requirement",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "27",
+          "task_no": "27-37-00-325-176"
+        }
+      ],
+      "answer_sketch": "48.5 lbf·ft.",
+      "tags": ["torque", "ata-27"]
+    },
+    {
+      "id": "gq-008",
+      "question": "Pitch trim motor clutch replacement — what torque applies to its attach bolts?",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "27",
+          "task_no": "27-30-00-148-222"
+        }
+      ],
+      "answer_sketch": "64.5 Nm.",
+      "tags": ["torque", "ata-27"]
+    },
+    {
+      "id": "gq-009",
+      "question": "What tank differential pressure acceptance value does the center tank fuel pump inspection card reference?",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "28",
+          "task_no": "28-31-00-474-260"
+        }
+      ],
+      "answer_sketch": "Tank differential pressure 12 psi.",
+      "tags": ["pressure", "ata-28"]
+    },
+    {
+      "id": "gq-010",
+      "question": "What torque applies to the low-pressure fuel shut-off valve attach bolts when replacing it?",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "28",
+          "task_no": "28-13-00-142-373"
+        }
+      ],
+      "answer_sketch": "87.5 Nm.",
+      "tags": ["torque", "ata-28"]
+    },
+    {
+      "id": "gq-011",
+      "question": "Center tank fuel pump attach bolts torque for the operational test card",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "28",
+          "task_no": "28-24-00-416-114"
+        }
+      ],
+      "answer_sketch": "74.5 Nm.",
+      "tags": ["torque", "ata-28"]
+    },
+    {
+      "id": "gq-012",
+      "question": "How much torque for the electric motor pump (EMP) attach bolts during replacement?",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "29",
+          "task_no": "29-12-00-205-153"
+        }
+      ],
+      "answer_sketch": "68.5 Nm.",
+      "tags": ["torque", "ata-29"]
+    },
+    {
+      "id": "gq-013",
+      "question": "Hydraulic reservoir pressurization module attach bolt torque (inspection and check card)",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "29",
+          "task_no": "29-24-00-179-323"
+        }
+      ],
+      "answer_sketch": "78.0 Nm.",
+      "tags": ["torque", "ata-29"]
+    },
+    {
+      "id": "gq-014",
+      "question": "Case drain filter module torque requirement",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "29",
+          "task_no": "29-35-00-291-303"
+        }
+      ],
+      "answer_sketch": "96.5 Nm.",
+      "tags": ["torque", "ata-29"]
+    },
+    {
+      "id": "gq-015",
+      "question": "What is the torque on the power transfer unit attach bolts in the operational test task?",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "29",
+          "task_no": "29-42-00-101-185"
+        }
+      ],
+      "answer_sketch": "41.8 lbf·ft.",
+      "tags": ["torque", "ata-29"]
+    },
+    {
+      "id": "gq-016",
+      "question": "Landing gear uplock assembly attach bolts torque",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "32",
+          "task_no": "32-30-00-428-379"
+        }
+      ],
+      "answer_sketch": "45.0 Nm.",
+      "tags": ["torque", "ata-32"]
+    },
+    {
+      "id": "gq-017",
+      "question": "Main gear side stay pin attach bolt torque (operational test)",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "32",
+          "task_no": "32-43-00-445-267"
+        }
+      ],
+      "answer_sketch": "20.4 lbf·ft.",
+      "tags": ["torque", "ata-32"]
+    },
+    {
+      "id": "gq-018",
+      "question": "Tire pressure sensor unit replacement — attach bolt torque?",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "32",
+          "task_no": "32-35-00-432-342"
+        }
+      ],
+      "answer_sketch": "76.0 Nm.",
+      "tags": ["torque", "ata-32"]
+    },
+    {
+      "id": "gq-019",
+      "question": "Nose wheel steering tiller feedback unit removal and installation torque",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "32",
+          "task_no": "32-35-00-242-227"
+        }
+      ],
+      "answer_sketch": "45.0 Nm.",
+      "tags": ["torque", "ata-32"]
+    },
+    {
+      "id": "gq-020",
+      "question": "Angle-of-attack sensor vane attach bolt torque in the operational test card",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "34",
+          "task_no": "34-23-00-246-250"
+        }
+      ],
+      "answer_sketch": "30.0 lbf·ft.",
+      "tags": ["torque", "ata-34"]
+    },
+    {
+      "id": "gq-021",
+      "question": "Air data inertial reference unit replacement — what torque applies to its attach bolts?",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "34",
+          "task_no": "34-37-00-266-126"
+        }
+      ],
+      "answer_sketch": "35.9 lbf·ft.",
+      "tags": ["torque", "ata-34"]
+    },
+    {
+      "id": "gq-022",
+      "question": "Standby attitude module removal and installation attach bolt torque",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "34",
+          "task_no": "34-11-00-350-186"
+        }
+      ],
+      "answer_sketch": "30.5 Nm.",
+      "tags": ["torque", "ata-34"]
+    },
+    {
+      "id": "gq-023",
+      "question": "Duct leak detection loop inspection and check — attach bolt torque",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "36",
+          "task_no": "36-19-00-363-200"
+        }
+      ],
+      "answer_sketch": "29.6 lbf·ft.",
+      "tags": ["torque", "ata-36"]
+    },
+    {
+      "id": "gq-024",
+      "question": "Cross-bleed valve actuator inspection and check torque value",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "36",
+          "task_no": "36-23-00-306-340"
+        }
+      ],
+      "answer_sketch": "11.1 lbf·ft.",
+      "tags": ["torque", "ata-36"]
+    },
+    {
+      "id": "gq-025",
+      "question": "APU load compressor inlet valve attach bolt torque",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "36",
+          "task_no": "36-48-00-297-279"
+        }
+      ],
+      "answer_sketch": "86.5 Nm.",
+      "tags": ["torque", "ata-36"]
+    },
+    {
+      "id": "gq-026",
+      "question": "Torque for the APU fire extinguishing bottle attach bolts during removal and installation",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "26",
+          "task_no": "26-34-00-220-313"
+        }
+      ],
+      "answer_sketch": "84.5 Nm.",
+      "tags": ["torque", "ata-26"]
+    },
+    {
+      "id": "gq-027",
+      "question": "Fire handle unlock solenoid inspection and check attach bolt torque",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "26",
+          "task_no": "26-47-00-196-248"
+        }
+      ],
+      "answer_sketch": "76.0 Nm.",
+      "tags": ["torque", "ata-26"]
+    },
+    {
+      "id": "gq-028",
+      "question": "Which accumulator air pre-charge acceptance value does the power transfer unit operational test card reference?",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "29",
+          "task_no": "29-42-00-101-185"
+        }
+      ],
+      "answer_sketch": "Accumulator air pre-charge 1450 psi on the gauge rig.",
+      "tags": ["pressure", "ata-29"]
+    },
+    {
+      "id": "gq-029",
+      "question": "What strut pressure acceptance reference does the landing gear uplock assembly inspection card state?",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "32",
+          "task_no": "32-30-00-428-379"
+        }
+      ],
+      "answer_sketch": "Strut pressure 615 psi at 21 °C (simulated reference value).",
+      "tags": ["pressure", "ata-32"]
+    },
+    {
+      "id": "gq-030",
+      "question": "Which acceptance value does the APU fire extinguishing bottle inspection card give for bottle pressure?",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "26",
+          "task_no": "26-48-00-372-276"
+        }
+      ],
+      "answer_sketch": "Bottle pressure 1250 psi, read within the green band.",
+      "tags": ["pressure", "ata-26"]
+    },
+    {
+      "id": "gq-031",
+      "question": "Which seal kit part number is referenced for the temperature trim air valve?",
+      "expected_citations": [
+        {
+          "doc_type": "AMM",
+          "ata_chapter": "21",
+          "task_no": "21-45-00-323-378"
+        }
+      ],
+      "answer_sketch": "The tools and equipment section lists the seal kit part number with its supplier.",
+      "tags": ["part", "ata-21"]
+    },
+    {
+      "id": "gq-032",
+      "question": "Fault code FC-2974-514 — what does it indicate and which task isolates it?",
+      "expected_citations": [
+        {
+          "doc_type": "TSM",
+          "ata_chapter": "29",
+          "task_no": "29-32-00-337-312"
+        }
+      ],
+      "answer_sketch": "FC-2974-514 maps to the hydraulic reservoir pressurization module (slow response after start).",
+      "tags": ["fault-code", "ata-29"]
+    },
+    {
+      "id": "gq-033",
+      "question": "What component does fault code FC-2158-874 point to?",
+      "expected_citations": [
+        {
+          "doc_type": "TSM",
+          "ata_chapter": "21",
+          "task_no": "21-11-00-364-353"
+        }
+      ],
+      "answer_sketch": "The temperature trim air valve (fails to respond to command).",
+      "tags": ["fault-code", "ata-21"]
+    },
+    {
+      "id": "gq-034",
+      "question": "Fault code FC-3616-225 meaning",
+      "expected_citations": [
+        {
+          "doc_type": "TSM",
+          "ata_chapter": "36",
+          "task_no": "36-38-00-428-243"
+        }
+      ],
+      "answer_sketch": "Pressure regulating valve — out-of-range reading on the related display.",
+      "tags": ["fault-code", "ata-36"]
+    },
+    {
+      "id": "gq-035",
+      "question": "Which fault isolation task covers FC-2817-718 for audible noise during operation?",
+      "expected_citations": [
+        {
+          "doc_type": "TSM",
+          "ata_chapter": "28",
+          "task_no": "28-23-00-299-304"
+        }
+      ],
+      "answer_sketch": "The fuel transfer jet pump fault isolation task.",
+      "tags": ["fault-code", "ata-28"]
+    },
+    {
+      "id": "gq-036",
+      "question": "FC-3282-237 — vibration reported by the crew on the nose landing gear shock absorber",
+      "expected_citations": [
+        {
+          "doc_type": "TSM",
+          "ata_chapter": "32",
+          "task_no": "32-21-00-226-280"
+        }
+      ],
+      "answer_sketch": "That fault code maps to the nose landing gear shock absorber vibration report.",
+      "tags": ["fault-code", "ata-32"]
+    },
+    {
+      "id": "gq-037",
+      "question": "Which task isolates fault code FC-2697-357 (warning message after power-up on the fire detection loop)?",
+      "expected_citations": [
+        {
+          "doc_type": "TSM",
+          "ata_chapter": "26",
+          "task_no": "26-35-00-325-280"
+        }
+      ],
+      "answer_sketch": "The engine fire detection loop element fault isolation task.",
+      "tags": ["fault-code", "ata-26"]
+    },
+    {
+      "id": "gq-038",
+      "question": "No output at the related sensor from the electrical essential bus feed breaker — what fault code and task apply?",
+      "expected_citations": [
+        {
+          "doc_type": "TSM",
+          "ata_chapter": "24",
+          "task_no": "24-25-00-307-409"
+        }
+      ],
+      "answer_sketch": "FC-2491-131, isolated by the electrical essential bus feed breaker task.",
+      "tags": ["fault-code", "ata-24"]
+    },
+    {
+      "id": "gq-039",
+      "question": "APU start contactor intermittent indication — which fault code does the TSM assign?",
+      "expected_citations": [
+        {
+          "doc_type": "TSM",
+          "ata_chapter": "49",
+          "task_no": "49-19-00-463-410"
+        }
+      ],
+      "answer_sketch": "FC-4935-666.",
+      "tags": ["fault-code", "ata-49"]
+    },
+    {
+      "id": "gq-040",
+      "question": "Standby attitude module fails to respond to command — fault code and isolation task?",
+      "expected_citations": [
+        {
+          "doc_type": "TSM",
+          "ata_chapter": "34",
+          "task_no": "34-32-00-320-366"
+        }
+      ],
+      "answer_sketch": "FC-3463-796, covered by the standby attitude module fault isolation task.",
+      "tags": ["fault-code", "ata-34"]
+    },
+    {
+      "id": "gq-041",
+      "question": "Rudder trim actuator intermittent indication — which TSM fault code applies?",
+      "expected_citations": [
+        {
+          "doc_type": "TSM",
+          "ata_chapter": "27",
+          "task_no": "27-47-00-340-248"
+        }
+      ],
+      "answer_sketch": "FC-2780-896.",
+      "tags": ["fault-code", "ata-27"]
+    },
+    {
+      "id": "gq-042",
+      "question": "After the isolation steps all pass, which component does the TSM say to replace for the hydraulic reservoir pressurization module fault?",
+      "expected_citations": [
+        {
+          "doc_type": "TSM",
+          "ata_chapter": "29",
+          "task_no": "29-32-00-337-312"
+        }
+      ],
+      "answer_sketch": "Replace the hydraulic reservoir pressurization module and repeat the operational check.",
+      "tags": ["isolation", "ata-29"]
+    },
+    {
+      "id": "gq-043",
+      "question": "How do I clear fault code FC-2158-874 and verify rectification?",
+      "expected_citations": [
+        {
+          "doc_type": "TSM",
+          "ata_chapter": "21",
+          "task_no": "21-11-00-364-353"
+        }
+      ],
+      "answer_sketch": "Clear FC-2158-874, operate the affected system through the stated cycles, verify the symptom does not return.",
+      "tags": ["rectification", "ata-21"]
+    },
+    {
+      "id": "gq-044",
+      "question": "First isolation action for the pressure regulating valve out-of-range reading",
+      "expected_citations": [
+        {
+          "doc_type": "TSM",
+          "ata_chapter": "36",
+          "task_no": "36-38-00-428-243"
+        }
+      ],
+      "answer_sketch": "Connect the test set and confirm the fault code is active, then bite the pneumatic circuit for a reproducible symptom.",
+      "tags": ["isolation", "ata-36"]
+    },
+    {
+      "id": "gq-045",
+      "question": "Which IPC figure lists the hydraulic accumulator parts?",
+      "expected_citations": [
+        {
+          "doc_type": "IPC",
+          "ata_chapter": "29",
+          "task_no": "29-45-01"
+        }
+      ],
+      "answer_sketch": "Figure 29-45-01-F1, item 01 — hydraulic accumulator (simulated parts list).",
+      "tags": ["ipc", "ata-29"]
+    },
+    {
+      "id": "gq-046",
+      "question": "Where do I find the parts list for the gear actuating cylinder assembly?",
+      "expected_citations": [
+        {
+          "doc_type": "IPC",
+          "ata_chapter": "32",
+          "task_no": "32-14-05"
+        }
+      ],
+      "answer_sketch": "IPC figure 32-14-05-F1 and following figures list the assembly parts.",
+      "tags": ["ipc", "ata-32"]
+    },
+    {
+      "id": "gq-047",
+      "question": "Which illustrated parts figure covers the pitch trim motor clutch?",
+      "expected_citations": [
+        {
+          "doc_type": "IPC",
+          "ata_chapter": "27",
+          "task_no": "27-37-09"
+        }
+      ],
+      "answer_sketch": "Figure 27-37-09-F1 lists the aileron/pitch trim assembly parts — item 01 is the pitch trim motor clutch.",
+      "tags": ["ipc", "ata-27"]
+    },
+    {
+      "id": "gq-048",
+      "question": "Which SB applies to the hydraulic reservoir pressurization module fleet improvement and what line numbers does it cover?",
+      "expected_citations": [
+        {
+          "doc_type": "SB",
+          "ata_chapter": "29",
+          "task_no": "SB-29-002"
+        }
+      ],
+      "answer_sketch": "SB-29-002 applies to NX-320 line numbers 40–118 not incorporating the stated modification status.",
+      "tags": ["sb", "ata-29"]
+    },
+    {
+      "id": "gq-049",
+      "question": "SB-29-002 Rev 02 supersession — what changed relative to Rev 01?",
+      "expected_citations": [
+        {
+          "doc_type": "SB",
+          "ata_chapter": "29",
+          "task_no": "SB-29-002"
+        }
+      ],
+      "answer_sketch": "Rev 02 supersedes Rev 01, extends the accomplishment interval and adds the post-modification operational check.",
+      "tags": ["sb", "revision"]
+    },
+    {
+      "id": "gq-050",
+      "question": "How many flight hours to accomplish the side stay pin inspection interval extension bulletin?",
+      "expected_citations": [
+        {
+          "doc_type": "SB",
+          "ata_chapter": "32",
+          "task_no": "SB-32-002"
+        }
+      ],
+      "answer_sketch": "Within the stated flight-hour interval of the effective date, whichever comes first with the next scheduled check.",
+      "tags": ["sb", "ata-32"]
+    },
+    {
+      "id": "gq-051",
+      "question": "What does the AOA vane connector seal replacement bulletin apply to?",
+      "expected_citations": [
+        {
+          "doc_type": "SB",
+          "ata_chapter": "34",
+          "task_no": "SB-34-003"
+        }
+      ],
+      "answer_sketch": "SB-34-003, applicable to the stated NX-320 line numbers not incorporating the modification.",
+      "tags": ["sb", "ata-34"]
+    },
+    {
+      "id": "gq-052",
+      "question": "Bleed duct clamp collar re-torque campaign — accomplishment interval and torque",
+      "expected_citations": [
+        {
+          "doc_type": "SB",
+          "ata_chapter": "36",
+          "task_no": "SB-36-004"
+        }
+      ],
+      "answer_sketch": "Accomplish within the stated flight hours; torque the new attach hardware to the stated value and apply torque seal.",
+      "tags": ["sb", "ata-36"]
+    }
+  ]
+}

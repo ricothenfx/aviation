@@ -14,7 +14,7 @@
  * Run: pnpm --filter mro-copilot corpus:generate
  */
 
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 const SEED = 0x320320;
@@ -47,7 +47,7 @@ function withWarnings(
   const kinds = ["WARNING", "CAUTION", "NOTE"] as const;
   return steps.map((step, i) => {
     const roll = noteRand.next();
-    if (roll < 0.30) {
+    if (roll < 0.3) {
       const kind = kinds[Math.floor(roll * kinds.length * 4.5)] ?? "NOTE";
       const hazard = i % 2 === 0 ? noteRand.pick(bank.hazards) : null;
       const note =
@@ -508,6 +508,7 @@ function ammTasks(rand: Rand): AmmTask[] {
         general: [
           `This task card covers the ${kind} of the ${component} on the NX-320 ${bank.system} (${bank.name}, ATA ${bank.chapter}).`,
           `The ${component} is installed in the ${rand.pick(bank.assemblies)} and shares mounting hardware with adjacent systems.`,
+          `Bench-test operating pressure reference for this card: ${pressure} bar.`,
           `This card belongs to the simulated NX-320 training corpus (fictional aircraft; not for real-world maintenance use).`,
         ],
         tools: [
@@ -730,7 +731,7 @@ function ipcDocs(rand: Rand): IpcDoc[] {
     [CHAPTERS[6]!, "bleed pre-cooler assembly"],
     [CHAPTERS[1]!, "transformer rectifier unit assembly"],
   ];
-  return assemblies.map(([bank, assembly], idx) => {
+  return assemblies.map(([bank, assembly]) => {
     const figureId = `${bank.chapter}-${pad(rand.int(11, 55), 2)}-${pad(rand.int(1, 9), 2)}`;
     const figures = [1, 2, 3].map((f) => {
       const rows: string[] = [];
@@ -935,6 +936,14 @@ function main(): void {
   const rand = makeRand(SEED);
   const entries: ManifestEntry[] = [];
 
+  // The generator owns the corpus directory: stale files from earlier runs
+  // would silently grow the corpus and corrupt ingest determinism.
+  rmSync(MANUALS_DIR, { recursive: true, force: true });
+  mkdirSync(MANUALS_DIR, { recursive: true });
+  for (const dir of ["amm", "ipc", "tsm", "sb"]) {
+    mkdirSync(path.join(MANUALS_DIR, dir), { recursive: true });
+  }
+
   const amms = ammTasks(rand);
   amms.forEach((t, i) => {
     t.fileName = `amm/${t.chapter}-${pad(i + 1, 2)}-${t.taskNo}.md`;
@@ -948,7 +957,7 @@ function main(): void {
     d.fileName = `ipc/${d.chapter}-${pad(i + 1, 2)}-${d.figureId}.md`;
   });
   const sbs = sbDocs(rand);
-  sbs.forEach((d, i) => {
+  sbs.forEach((d) => {
     d.fileName = `sb/${d.sbNo}-rev01.md`;
   });
 
@@ -1036,10 +1045,6 @@ function main(): void {
     });
   }
 
-  mkdirSync(MANUALS_DIR, { recursive: true });
-  for (const dir of ["amm", "ipc", "tsm", "sb"]) {
-    mkdirSync(path.join(MANUALS_DIR, dir), { recursive: true });
-  }
   for (const w of writes) {
     writeFileSync(path.join(MANUALS_DIR, w.relPath), w.body, "utf8");
     entries.push(w.entry);

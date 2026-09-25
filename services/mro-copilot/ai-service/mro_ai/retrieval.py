@@ -17,6 +17,7 @@ from __future__ import annotations
 import functools
 import json
 import logging
+import threading
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -77,7 +78,13 @@ def default_connection_factory(database_url: str) -> psycopg.Connection[tuple[An
 
 
 class RetrievalService:
-    """Owns retrieval SQL; injectable connection factory for tests."""
+    """Owns retrieval SQL; keeps one pooled connection (serialized by a lock).
+
+    Latency budget note (PRD FR-8): per-request TCP+auth handshakes dominate
+    at this corpus scale, so the connection is pooled. psycopg3 connections
+    are safe under serialized cross-thread use; a broken connection is closed
+    and the error raised (caller maps DB-down to the 503 error state).
+    """
 
     def __init__(
         self,
@@ -88,6 +95,8 @@ class RetrievalService:
         self._database_url = database_url
         self._gateway = gateway
         self._connection_factory = connection_factory or default_connection_factory
+        self._lock = threading.Lock()
+        self._conn: psycopg.Connection[tuple[Any, ...]] | None = None
 
     async def search(
         self,
@@ -112,7 +121,7 @@ class RetrievalService:
         sql_started = time.monotonic()
         # psycopg is sync — keep the event loop free (engineering-standards §5).
         hits = await anyio.to_thread.run_sync(
-            functools.partial(self._execute, query, query_vector, k, filters)
+            functools.partial(self._execute_pooled, query, query_vector, k, filters)
         )
         sql_ms = int((time.monotonic() - sql_started) * 1000)
         latency_ms = int((time.monotonic() - started) * 1000)
@@ -134,16 +143,25 @@ class RetrievalService:
         )
         return SearchResult(mode=mode, hits=hits, latency_ms=latency_ms, embed_ms=embed_ms)
 
-    def _execute(
+    def _execute_pooled(
         self,
         query: str,
         query_vector: list[float] | None,
         k: int,
         filters: SearchFilters | None,
     ) -> list[SearchHit]:
-        statement, params = build_search_sql(query, query_vector, k, filters)
-        with self._connection_factory(self._database_url) as conn:
-            rows = conn.execute(statement, params).fetchall() or []
+        with self._lock:
+            if self._conn is None or self._conn.closed:
+                self._conn = self._connection_factory(self._database_url)
+            try:
+                statement, params = build_search_sql(query, query_vector, k, filters)
+                rows = self._conn.execute(statement, params).fetchall() or []
+            except psycopg.Error:
+                # Broken connection (DB restart, network): drop it; next call
+                # reconnects. The error itself surfaces to the caller.
+                self._conn.close()
+                self._conn = None
+                raise
         return [row_to_hit(row) for row in rows]
 
 

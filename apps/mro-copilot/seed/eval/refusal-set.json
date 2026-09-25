@@ -1,0 +1,138 @@
+{
+  "version": 1,
+  "description": "Refusal fixture (data-model.md §9, PRD FR-20): questions the simulated NX-320 corpus cannot ground. Includes other fictional aircraft types (never real ones, per data-ethics.md), nonexistent procedures, and fleet-current-status questions. In the ask flow (F3) each must end refused (100% gate); in the F2 retrieval mode they are informational. expected_reason uses the machine-readable refusal taxonomy.",
+  "cases": [
+    {
+      "id": "rf-001",
+      "question": "What is the bleed duct torque for the HX-200 regional jet?",
+      "expected_reason": "below_grounding_threshold",
+      "tags": ["other-type"]
+    },
+    {
+      "id": "rf-002",
+      "question": "How do I rig the aileron cables on the TR-77 twin-aisle aircraft?",
+      "expected_reason": "below_grounding_threshold",
+      "tags": ["other-type"]
+    },
+    {
+      "id": "rf-003",
+      "question": "GX-150 engine oil change interval and approved oil grades",
+      "expected_reason": "below_grounding_threshold",
+      "tags": ["other-type"]
+    },
+    {
+      "id": "rf-004",
+      "question": "What is the landing gear retraction time for the SX-210?",
+      "expected_reason": "below_grounding_threshold",
+      "tags": ["other-type"]
+    },
+    {
+      "id": "rf-005",
+      "question": "Which manual covers the passenger seat removal for the NX-320?",
+      "expected_reason": "below_grounding_threshold",
+      "tags": ["nonexistent-procedure"]
+    },
+    {
+      "id": "rf-006",
+      "question": "Torque value for the winglet retrofit bolts on the NX-320",
+      "expected_reason": "below_grounding_threshold",
+      "tags": ["nonexistent-procedure"]
+    },
+    {
+      "id": "rf-007",
+      "question": "How is the NX-320 cabin floor panel assembly removed?",
+      "expected_reason": "below_grounding_threshold",
+      "tags": ["nonexistent-procedure"]
+    },
+    {
+      "id": "rf-008",
+      "question": "What is the approved de-icing fluid mix ratio for the NX-320?",
+      "expected_reason": "below_grounding_threshold",
+      "tags": ["nonexistent-procedure"]
+    },
+    {
+      "id": "rf-009",
+      "question": "How do I replace the cabin crew seats in the NX-320 tail section?",
+      "expected_reason": "below_grounding_threshold",
+      "tags": ["nonexistent-procedure"]
+    },
+    {
+      "id": "rf-010",
+      "question": "What is the in-service RUL of engine NX-E101 right now?",
+      "expected_reason": "below_grounding_threshold",
+      "tags": ["fleet-status"]
+    },
+    {
+      "id": "rf-011",
+      "question": "Which NX-320 aircraft currently have an open AOG status?",
+      "expected_reason": "below_grounding_threshold",
+      "tags": ["fleet-status"]
+    },
+    {
+      "id": "rf-012",
+      "question": "When is line number 57 due for its next A check?",
+      "expected_reason": "below_grounding_threshold",
+      "tags": ["fleet-status"]
+    },
+    {
+      "id": "rf-013",
+      "question": "How many flight hours does NX-320 registration 9V-SIM have accumulated?",
+      "expected_reason": "below_grounding_threshold",
+      "tags": ["fleet-status"]
+    },
+    {
+      "id": "rf-014",
+      "question": "What is the current hydraulic fluid consumption trend for our NX-320 fleet?",
+      "expected_reason": "below_grounding_threshold",
+      "tags": ["fleet-status"]
+    },
+    {
+      "id": "rf-015",
+      "question": "How do I file the flight plan for a NX-320 ferry flight?",
+      "expected_reason": "below_grounding_threshold",
+      "tags": ["out-of-domain"]
+    },
+    {
+      "id": "rf-016",
+      "question": "What catering loading limits apply for a full NX-320 charter?",
+      "expected_reason": "below_grounding_threshold",
+      "tags": ["out-of-domain"]
+    },
+    {
+      "id": "rf-017",
+      "question": "Which weather minimums apply to NX-320 CAT III autoland approaches?",
+      "expected_reason": "below_grounding_threshold",
+      "tags": ["out-of-domain"]
+    },
+    {
+      "id": "rf-018",
+      "question": "How is crew duty time calculated under the NX-320 operations manual?",
+      "expected_reason": "below_grounding_threshold",
+      "tags": ["out-of-domain"]
+    },
+    {
+      "id": "rf-019",
+      "question": "What is the list price of a spare hydraulic accumulator for the NX-320?",
+      "expected_reason": "below_grounding_threshold",
+      "tags": ["out-of-domain"]
+    },
+    {
+      "id": "rf-020",
+      "question": "Which CMM part number applies to the NX-320 in-flight entertainment head-end?",
+      "expected_reason": "below_grounding_threshold",
+      "tags": ["nonexistent-procedure"]
+    },
+    {
+      "id": "rf-021",
+      "question": "What torque applies to the NX-320 cargo loading system rollers?",
+      "expected_reason": "below_grounding_threshold",
+      "tags": ["nonexistent-procedure"]
+    },
+    {
+      "id": "rf-022",
+      "question": "Explain the NX-320 galley chiller condenser servicing steps",
+      "expected_reason": "below_grounding_threshold",
+      "tags": ["nonexistent-procedure"]
+    }
+  ]
+}

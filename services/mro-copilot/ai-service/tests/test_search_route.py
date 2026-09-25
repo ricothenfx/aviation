@@ -36,6 +36,7 @@ class FakeConnection:
 
     def __init__(self, rows: list[tuple]) -> None:
         self._rows = rows
+        self.closed = False
         self.statements: list[str] = []
         self.params: list[dict[str, Any] | tuple] = []
 
@@ -44,11 +45,8 @@ class FakeConnection:
         self.params.append(params)
         return FakeCursor(self._rows)
 
-    def __enter__(self) -> FakeConnection:
-        return self
-
-    def __exit__(self, *_exc: object) -> None:
-        return None
+    def close(self) -> None:
+        self.closed = True
 
 
 ROW = (

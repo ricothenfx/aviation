@@ -78,7 +78,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Boot the mro stack (postgres + web :3003 + ai-service :4103)
-        run: docker compose --profile mro up -d --wait --wait-timeout 420
+        run: docker compose --profile mro up -d --wait --wait-timeout 900
 
       - name: Health + seeded login smoke (viewer / engineer / reviewer)
         run: |
@@ -107,13 +107,26 @@ jobs:
             | grep -o '"role":"viewer"'
           echo "seeded logins OK for all three roles"
 
-      - name: Integration tests (migration · RBAC · embed determinism)
+      - name: Integration tests (migration · RBAC · embed determinism · ingest idempotency · corpus · contract · degradation ladder)
         env:
           MRO_DATABASE_URL: postgresql://turnaround:turnaround@localhost:5433/mro_copilot
           MRO_BASE_URL: http://localhost:3003
           MRO_AI_SERVICE_URL: http://localhost:4103
           AI_SERVICE_TOKEN: dev-only-insecure-ai-token-0123456789abcdef
         run: pnpm --filter mro-copilot test:integration
+
+      # F2 DoD: offline retrieval eval over the committed golden-QA fixture —
+      # gates recall@5 >= 0.85 and commits the report artifacts as evidence.
+      - name: Retrieval eval gate (recall@5 >= 0.85, MRR)
+        env:
+          MRO_BASE_URL: http://localhost:3003
+        run: pnpm eval:mro
+
+      # F2 DoD: search p95 < 300 ms at reference scale on the compose stack.
+      - name: Search latency gate (p95 < 300 ms)
+        env:
+          MRO_BASE_URL: http://localhost:3003
+        run: pnpm bench:mro-search
 
       - name: Teardown
         if: always()

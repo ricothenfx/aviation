@@ -15,6 +15,8 @@
     "test:integration": "pnpm -r --workspace-concurrency=1 --if-present test:integration",
     "test:e2e": "pnpm --filter turnaround-iq test:e2e",
     "bench:replan": "node scripts/benchmarks/replan-delay.mjs",
+    "eval:mro": "node scripts/eval-mro/retrieval.mjs",
+    "bench:mro-search": "node scripts/benchmarks/mro-search-latency.mjs",
     "loadtest": "node scripts/loadtest/run-loadtest.mjs",
     "seed": "pnpm --filter turnaround-iq seed",
     "seed:mro": "pnpm --filter mro-copilot seed",

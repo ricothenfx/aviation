@@ -219,10 +219,12 @@ services:
       retries: 24
       start_period: 180s
 
-  # mro-copilot web (F1): Next.js app on http://localhost:3003. Containerized
-  # dev mode mirrors the turnaround "web" service: self-installing workspace.
+  # mro-copilot web (F1): Next.js app on http://localhost:3003. Serves a
+  # PRODUCTION build (F2, FR-8): the latency gate measures the product shape,
+  # not dev-server overhead. Still self-installing workspace + seeded users,
+  # so a clean clone only needs `docker compose --profile mro up -d`.
   # AUTH_SECRET/AI_SERVICE_TOKEN are dev-only throwaway values for local
-  # simulated data. Host mode: `pnpm --filter mro-copilot dev` binds :3003.
+  # simulated data.
   mro-web:
     image: node:22-bookworm-slim
     profiles: ["mro"]
@@ -230,8 +232,9 @@ services:
     command: >-
       sh -c "corepack enable &&
              pnpm install --frozen-lockfile &&
+             pnpm --filter mro-copilot build &&
              pnpm --filter mro-copilot seed &&
-             pnpm --filter mro-copilot dev"
+             pnpm --filter mro-copilot start"
     environment:
       MRO_DATABASE_URL: postgresql://turnaround:turnaround@postgres:5432/mro_copilot
       AUTH_SECRET: dev-only-insecure-secret-0123456789abcdef

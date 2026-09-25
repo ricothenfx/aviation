@@ -142,12 +142,8 @@
           "name": "chunks_manual_id_manuals_id_fk",
           "tableFrom": "chunks",
           "tableTo": "manuals",
-          "columnsFrom": [
-            "manual_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["manual_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -434,9 +430,7 @@
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -448,29 +442,17 @@
     "public.doc_type": {
       "name": "doc_type",
       "schema": "public",
-      "values": [
-        "AMM",
-        "IPC",
-        "TSM",
-        "SB"
-      ]
+      "values": ["AMM", "IPC", "TSM", "SB"]
     },
     "public.manual_status": {
       "name": "manual_status",
       "schema": "public",
-      "values": [
-        "active",
-        "superseded"
-      ]
+      "values": ["active", "superseded"]
     },
     "public.user_role": {
       "name": "user_role",
       "schema": "public",
-      "values": [
-        "viewer",
-        "engineer",
-        "reviewer"
-      ]
+      "values": ["viewer", "engineer", "reviewer"]
     }
   },
   "schemas": {},

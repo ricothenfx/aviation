@@ -99,8 +99,13 @@ describe("/internal/v1/embed determinism (DoD F1)", () => {
     expect(a.vectors[0]).not.toEqual(b.vectors[0]);
   });
 
-  it("stores nothing: chunks remain empty until F2 ingest", async () => {
-    const res = await pool.query<{ count: string }>("select count(*)::text from chunks");
-    expect(Number(res.rows[0]?.count)).toBe(0);
+  it("serves an ingested corpus since F2 (chunks stored with embeddings)", async () => {
+    // F2 (PRD FR-5) populated the corpus; the detailed integrity and
+    // idempotency invariants live in the F2 integration suites.
+    const res = await pool.query<{ total: string; embedded: string }>(
+      "select count(*)::text as total, count(embedding)::text as embedded from chunks",
+    );
+    expect(Number(res.rows[0]?.total)).toBeGreaterThanOrEqual(600);
+    expect(res.rows[0]?.embedded).toBe(res.rows[0]?.total);
   });
 });

@@ -1,10 +1,6 @@
 import type { NextRequest } from "next/server";
 
-import {
-  searchQuerySchema,
-  searchResponseSchema,
-  type SearchResponse,
-} from "@/lib/api/schemas";
+import { searchQuerySchema, searchResponseSchema, type SearchResponse } from "@/lib/api/schemas";
 import { handleRouteError, jsonResponse, newRequestId, requireSession } from "@/lib/api/respond";
 import { retrievalSearch } from "@/lib/ai/client";
 import { logger } from "@/lib/logger";

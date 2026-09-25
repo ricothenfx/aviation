@@ -724,9 +724,7 @@
       "revision": "Rev 23",
       "effectiveDate": "2025-06-24",
       "sourcePath": "manuals/ipc/29-01-29-45-01.md",
-      "facts": [
-        "Figure 29-45-01-F1 item 01 lists the primary component: hydraulic accumulator."
-      ]
+      "facts": ["Figure 29-45-01-F1 item 01 lists the primary component: hydraulic accumulator."]
     },
     {
       "docType": "IPC",
@@ -748,9 +746,7 @@
       "revision": "Rev 32",
       "effectiveDate": "2025-09-04",
       "sourcePath": "manuals/ipc/27-03-27-37-09.md",
-      "facts": [
-        "Figure 27-37-09-F1 item 01 lists the primary component: pitch trim motor clutch."
-      ]
+      "facts": ["Figure 27-37-09-F1 item 01 lists the primary component: pitch trim motor clutch."]
     },
     {
       "docType": "IPC",
@@ -849,9 +845,7 @@
       "revision": "Rev 02",
       "effectiveDate": "2026-02-14",
       "sourcePath": "manuals/sb/SB-29-002-rev02.md",
-      "facts": [
-        "SB-29-002 Rev 02 supersedes Rev 01 (effective 2026-02-14)."
-      ]
+      "facts": ["SB-29-002 Rev 02 supersedes Rev 01 (effective 2026-02-14)."]
     }
   ]
 }
