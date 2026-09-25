@@ -1,0 +1,46 @@
+{
+  "description": "Cross-runtime contract fixture for the F4 RUL endpoints (api-contracts.md §3). The pydantic test (tests/test_rul_routes.py) and the zod test (apps/mro-copilot/src/lib/ai/contract.test.ts) parse the SAME objects and assert their declared field lists match, so a field renamed on one side only turns CI red. Provenance is mandatory on every RUL number (api-contracts.md §4).",
+  "predictResponse": {
+    "unitId": "NX-E202",
+    "cycle": 140,
+    "rulCycles": 20,
+    "bandLow": 0,
+    "bandHigh": 56,
+    "modelVersion": "1.0.0",
+    "modelSha256": "f612eb432e728136c886f19bf6b0dcc62ec940150ba2c0816d6a61ef7f902a23"
+  },
+  "predictFields": [
+    "unitId",
+    "cycle",
+    "rulCycles",
+    "bandLow",
+    "bandHigh",
+    "modelVersion",
+    "modelSha256"
+  ],
+  "scoreFleetResponse": {
+    "modelVersion": "1.0.0",
+    "modelSha256": "f612eb432e728136c886f19bf6b0dcc62ec940150ba2c0816d6a61ef7f902a23",
+    "results": [
+      {
+        "unitId": "NX-E202",
+        "cycle": 140,
+        "rulCycles": 20,
+        "bandLow": 0,
+        "bandHigh": 56,
+        "modelVersion": "1.0.0",
+        "modelSha256": "f612eb432e728136c886f19bf6b0dcc62ec940150ba2c0816d6a61ef7f902a23"
+      }
+    ],
+    "insufficientHistory": ["NX-E203"]
+  },
+  "scoreFleetFields": ["modelVersion", "modelSha256", "results", "insufficientHistory"],
+  "modelInfoResponse": {
+    "version": "1.0.0",
+    "sha256": "f612eb432e728136c886f19bf6b0dcc62ec940150ba2c0816d6a61ef7f902a23",
+    "trainedAt": "2026-09-25T15:16:06Z",
+    "dataset": "fd001",
+    "metrics": { "rmse": 18.4927, "nasaScore": 786.5 }
+  },
+  "modelInfoFields": ["version", "sha256", "trainedAt", "dataset", "metrics"]
+}

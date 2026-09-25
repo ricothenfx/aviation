@@ -32,3 +32,14 @@ INGEST_CHUNKS = Counter(
     "Chunks processed by ingest runs",
     ["outcome"],
 )
+
+RUL_LATENCY = Histogram(
+    "rul_predict_latency_seconds",
+    "Latency of RUL predictions (architecture.md §7)",
+    buckets=(0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5),
+)
+
+RUL_REQUESTS = Counter(
+    "rul_predict_requests_total",
+    "Completed RUL predictions (units)",
+)

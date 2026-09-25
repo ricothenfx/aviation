@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from typing import Any
+
+import anyio
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from mro_ai.config import Config
@@ -14,13 +17,20 @@ from mro_ai.internal.schemas import (
     EmbedResponse,
     IngestCounts,
     IngestReportResponse,
+    ModelInfoResponse,
+    ModelMetrics,
     RetrievalHit,
     RetrievalSearchRequest,
     RetrievalSearchResponse,
+    RulPrediction,
+    RulPredictRequest,
+    RulScoreFleetRequest,
+    RulScoreFleetResponse,
     TokenUsage,
 )
-from mro_ai.metrics import EMBED_LATENCY, EMBED_REQUESTS, INGEST_CHUNKS
+from mro_ai.metrics import EMBED_LATENCY, EMBED_REQUESTS, INGEST_CHUNKS, RUL_LATENCY, RUL_REQUESTS
 from mro_ai.retrieval import RetrievalService, SearchFilters
+from mro_ai.rul import InsufficientHistoryError, ModelNotLoadedError, RulService
 
 router = APIRouter(dependencies=[Depends(require_service_token)])
 
@@ -140,4 +150,89 @@ async def trigger_ingest(request: Request) -> IngestReportResponse:
         ),
         durationMs=report.duration_ms,
         status=report.status,
+    )
+
+
+# --- RUL serving (api-contracts.md §3, ADR-0011) ------------------------------
+# Errors are raised as domain exceptions; create_app() maps them to the
+# RFC-7807 problem shape: missing/hash-mismatched artifact ⇒ 503
+# MODEL_NOT_LOADED (no predictions without provenance, architecture.md §6);
+# too little history ⇒ 422 INSUFFICIENT_HISTORY (the app composes
+# latestRul: null — never a fabricated prediction, D-15 honesty precedent).
+
+
+def _rul_service(request: Request) -> RulService:
+    service: RulService | None = getattr(request.app.state, "rul", None)
+    if service is None:
+        raise ModelNotLoadedError("RUL predictor not initialized")
+    return service
+
+
+def _prediction_to_schema(prediction: Any) -> dict[str, object]:
+    return {
+        "unitId": prediction.unit_id,
+        "cycle": prediction.cycle,
+        "rulCycles": prediction.rul_cycles,
+        "bandLow": prediction.band_low,
+        "bandHigh": prediction.band_high,
+        "modelVersion": prediction.model_version,
+        "modelSha256": prediction.model_sha256,
+    }
+
+
+def _call_predict(service: RulService, unit_id: str, cycle: int | None) -> Any:
+    """Blocking predict — dispatched to a worker thread by the routes."""
+    return service.predict(unit_id, cycle)
+
+
+@router.post("/internal/v1/rul/predict")
+async def rul_predict(payload: RulPredictRequest, request: Request) -> RulPrediction:
+    """Predict RUL for one unit at its latest cycle (or `cycle` if given)."""
+    service = _rul_service(request)
+    with RUL_LATENCY.time():
+        prediction = await anyio.to_thread.run_sync(
+            _call_predict, service, payload.unit_id, payload.cycle
+        )
+    RUL_REQUESTS.inc()
+    return RulPrediction.model_validate(_prediction_to_schema(prediction))
+
+
+@router.post("/internal/v1/rul/score-fleet")
+async def rul_score_fleet(payload: RulScoreFleetRequest, request: Request) -> RulScoreFleetResponse:
+    """Score a batch of units synchronously; per-unit results carry
+    provenance; short-history units are reported in insufficientHistory
+    (additive — the app composes latestRul: null for them)."""
+    service = _rul_service(request)
+    info = service.registry_info()  # fail fast on a missing/mismatched artifact
+
+    results: list[RulPrediction] = []
+    insufficient: list[str] = []
+    for unit_id in payload.unit_ids:
+        try:
+            with RUL_LATENCY.time():
+                prediction = await anyio.to_thread.run_sync(_call_predict, service, unit_id, None)
+        except InsufficientHistoryError:
+            insufficient.append(unit_id)
+            continue
+        results.append(RulPrediction.model_validate(_prediction_to_schema(prediction)))
+    RUL_REQUESTS.inc(len(results))
+    return RulScoreFleetResponse(
+        modelVersion=info.version,
+        modelSha256=info.sha256,
+        results=results,
+        insufficientHistory=insufficient,
+    )
+
+
+@router.get("/internal/v1/model")
+async def model_info(request: Request) -> ModelInfoResponse:
+    """Current artifact provenance + committed metrics (api-contracts §3)."""
+    service = _rul_service(request)
+    info = service.registry_info()
+    return ModelInfoResponse(
+        version=info.version,
+        sha256=info.sha256,
+        trainedAt=info.trained_at,
+        dataset=info.dataset,
+        metrics=ModelMetrics(rmse=info.metrics["rmse"], nasaScore=info.metrics["nasaScore"]),
     )

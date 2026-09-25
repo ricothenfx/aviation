@@ -39,9 +39,25 @@ def test_readyz_reports_all_dependencies(client: TestClient) -> None:
     assert body["dependencies"] == {
         "postgres": "up",
         "pgvector": "up",
-        "model": "not_loaded",  # honest F1 state — artifact arrives with F4
+        "model": "up",  # F4: the committed artifact loads and hash-verifies
         "provider": "up",
     }
+
+
+def test_readyz_reports_model_not_loaded(monkeypatch: pytest.MonkeyPatch, tmp_path: Any) -> None:
+    """A missing artifact fails the RUL dependency (architecture.md §6)."""
+    from mro_ai import main as main_module
+
+    monkeypatch.setenv("MRO_MODELS_DIR", str(tmp_path))  # no metrics.json here
+    monkeypatch.setattr(main_module, "check_postgres", lambda _url: True)
+    monkeypatch.setattr(main_module, "check_pgvector", lambda _url: True)
+    app = create_app(config=load_config({"AI_SERVICE_TOKEN": TOKEN}), gateway=Gateway.from_env({}))
+    client = TestClient(app, raise_server_exceptions=False)
+    res = client.get("/readyz")
+    assert res.status_code == 503
+    body = res.json()
+    assert body["status"] == "degraded"
+    assert body["dependencies"]["model"] == "not_loaded"
 
 
 def test_readyz_degrades_when_postgres_down(

@@ -34,7 +34,7 @@ warn_unreachable = true
 no_implicit_optional = true
 
 [[tool.mypy.overrides]]
-module = ["prometheus_client.*"]
+module = ["prometheus_client.*", "joblib.*", "sklearn.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

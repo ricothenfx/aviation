@@ -20,6 +20,12 @@ from mro_ai.gateway import Gateway, ProviderUnavailableError
 from mro_ai.internal import schemas
 from mro_ai.internal.routes import router as internal_router
 from mro_ai.retrieval import RetrievalService
+from mro_ai.rul import (
+    InsufficientHistoryError,
+    ModelNotLoadedError,
+    ModelRegistry,
+    RulService,
+)
 
 
 @asynccontextmanager
@@ -40,6 +46,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         # Degraded start (gateway None) still serves lexical-only search
         # (architecture.md §4 degradation ladder).
         app.state.retrieval = RetrievalService(config.database_url, gateway)
+    if not hasattr(app.state, "rul_registry"):
+        # F4 (ADR-0011): versioned artifact + hash verification at load time.
+        # The artifact ships committed; /readyz reports its real state and a
+        # missing/mismatched artifact fails the RUL dependency.
+        app.state.rul_registry = ModelRegistry()
+    if not hasattr(app.state, "rul"):
+        app.state.rul = RulService(app.state.rul_registry, app.state.config.database_url)
     yield
 
 
@@ -64,6 +77,12 @@ def create_app(config: Config | None = None, gateway: Gateway | None = None) -> 
         app.state.config = config
     if gateway is not None:
         app.state.gateway = gateway
+    if config is not None and not hasattr(app.state, "rul_registry"):
+        # RUL construction is cheap (the artifact loads lazily on first use),
+        # so build it eagerly whenever config is known — keeps /readyz honest
+        # even when tests bypass the lifespan.
+        app.state.rul_registry = ModelRegistry()
+        app.state.rul = RulService(app.state.rul_registry, config.database_url)
 
     @app.get("/healthz")
     async def healthz() -> dict[str, str]:
@@ -72,11 +91,12 @@ def create_app(config: Config | None = None, gateway: Gateway | None = None) -> 
 
     @app.get("/readyz")
     async def readyz(request: Request) -> JSONResponse:
-        """Readiness — DB, pgvector, RUL artifact, provider (DoD F1).
+        """Readiness — DB, pgvector, RUL artifact, provider (DoD F1/F4).
 
-        `model: not_loaded` is the honest F1 state (the artifact arrives with
-        F4, ADR-0011) and does not fail readiness yet; F4 tightens this when
-        predictions go live.
+        F4 tightens the model gate: with predictions live, a missing or
+        hash-mismatched artifact fails the RUL dependency (`model: down`,
+        status degraded 503) — no predictions are served without provenance
+        (architecture.md §6).
         """
         cfg: Config = request.app.state.config
         database_url = cfg.database_url
@@ -84,14 +104,18 @@ def create_app(config: Config | None = None, gateway: Gateway | None = None) -> 
         pgvector = check_pgvector(database_url)
         gateway_state = getattr(request.app.state, "gateway", None)
         provider: schemas.DependencyState = "up" if gateway_state else "down"
+        registry: ModelRegistry | None = getattr(request.app.state, "rul_registry", None)
+        if registry is not None and registry.is_loaded():
+            model: schemas.DependencyState = "up"
+        else:
+            model = "not_loaded"
         dependencies = schemas.DependencyReport(
             postgres="up" if postgres else "down",
             pgvector="up" if pgvector else "down",
-            # Artifact lands with F4 (ADR-0011) — reported, not yet gating.
-            model="not_loaded",
+            model=model,
             provider=provider,
         )
-        ready = postgres and pgvector and provider == "up"
+        ready = postgres and pgvector and provider == "up" and model == "up"
         body = schemas.ReadyResponse(
             status="ready" if ready else "degraded", dependencies=dependencies
         )
@@ -111,6 +135,18 @@ def create_app(config: Config | None = None, gateway: Gateway | None = None) -> 
         request: Request, exc: ProviderUnavailableError
     ) -> JSONResponse:
         return problem(request, 503, "PROVIDER_UNAVAILABLE", str(exc))
+
+    @app.exception_handler(ModelNotLoadedError)
+    async def model_not_loaded_handler(request: Request, exc: ModelNotLoadedError) -> JSONResponse:
+        """503 MODEL_NOT_LOADED (api-contracts.md §2 mro additions)."""
+        return problem(request, 503, "MODEL_NOT_LOADED", str(exc))
+
+    @app.exception_handler(InsufficientHistoryError)
+    async def insufficient_history_handler(
+        request: Request, exc: InsufficientHistoryError
+    ) -> JSONResponse:
+        """422 INSUFFICIENT_HISTORY — the app renders latestRul: null ("—")."""
+        return problem(request, 422, "INSUFFICIENT_HISTORY", str(exc))
 
     return app
 

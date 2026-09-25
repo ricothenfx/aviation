@@ -5,3 +5,8 @@ uvicorn==0.34.2
 pydantic==2.10.6
 psycopg[binary]==3.2.9
 prometheus-client==0.21.1
+# RUL model training/serving (ADR-0011/D-17: scikit-learn GBM on FD001).
+numpy==2.2.4
+scipy==1.15.2
+scikit-learn==1.6.1
+joblib==1.4.2

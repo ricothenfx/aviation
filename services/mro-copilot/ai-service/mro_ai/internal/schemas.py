@@ -121,3 +121,54 @@ class IngestReportResponse(BaseModel):
     chunks: IngestCounts
     duration_ms: int = Field(alias="durationMs")
     status: str
+
+
+# --- RUL serving (api-contracts.md §3, ADR-0011) -----------------------------
+# Provenance is mandatory on every RUL number (FR-16, behavioral contract §4):
+# modelVersion + modelSha256 travel with every prediction.
+
+
+class RulPredictRequest(BaseModel):
+    unit_id: str = Field(alias="unitId", min_length=1, max_length=64)
+    model_config = ConfigDict(populate_by_name=True)
+
+    cycle: int | None = Field(default=None, ge=1)
+
+
+class RulPrediction(BaseModel):
+    unit_id: str = Field(alias="unitId")
+    cycle: int
+    rul_cycles: int = Field(alias="rulCycles", ge=0)
+    band_low: int = Field(alias="bandLow", ge=0)
+    band_high: int = Field(alias="bandHigh", ge=0)
+    model_version: str = Field(alias="modelVersion")
+    model_sha256: str = Field(alias="modelSha256")
+
+
+class RulScoreFleetRequest(BaseModel):
+    unit_ids: list[Annotated[str, Field(min_length=1, max_length=64)]] = Field(
+        alias="unitIds", min_length=1, max_length=500
+    )
+    model_config = ConfigDict(populate_by_name=True)
+
+
+class RulScoreFleetResponse(BaseModel):
+    model_version: str = Field(alias="modelVersion")
+    model_sha256: str = Field(alias="modelSha256")
+    results: list[RulPrediction]
+    """Units skipped for lack of history — the app composes latestRul: null
+    for them (additive field; never a fabricated 0, D-15 precedent)."""
+    insufficient_history: list[str] = Field(alias="insufficientHistory")
+
+
+class ModelMetrics(BaseModel):
+    rmse: float
+    nasaScore: float
+
+
+class ModelInfoResponse(BaseModel):
+    version: str
+    sha256: str
+    trainedAt: str
+    dataset: str
+    metrics: ModelMetrics

@@ -1,0 +1,61 @@
+{
+  "modelVersion": "1.0.0",
+  "dataset": "fd001",
+  "trainedAt": "2026-09-25T15:16:06Z",
+  "seed": 42,
+  "piecewiseRulClip": 125,
+  "artifact": {
+    "file": "rul-1.0.0-fd001.joblib",
+    "sha256": "f612eb432e728136c886f19bf6b0dcc62ec940150ba2c0816d6a61ef7f902a23",
+    "bytes": 1349828
+  },
+  "train": {
+    "units": 100,
+    "rows": 19731,
+    "cycles": 20631
+  },
+  "test": {
+    "units": 100
+  },
+  "metrics": {
+    "rmse": 18.4927,
+    "nasaScore": 786.5,
+    "mae": 13.984,
+    "residualStd": 18.3381,
+    "uncertaintyBand": "\u00b11.96 \u00d7 residualStd (FD001 test residuals; homoscedastic approximation)"
+  },
+  "baselines": [
+    {
+      "model": "Random Forest (classical ML)",
+      "source": "F.-F. Camci, PHM'09 / as compiled by Ferreira & Gon\u00e7alves, J. Manuf. Systems 2020",
+      "fd001Rmse": "16.14"
+    },
+    {
+      "model": "Gradient Boosting Trees (classical ML)",
+      "source": "C. Zhang et al., 'Data-Driven Remaining Useful Life Prediction\u2026', IEEE TMES 2021 (survey table)",
+      "fd001Rmse": "15.02"
+    },
+    {
+      "model": "LSTM (deep, standard)",
+      "source": "S. Zheng, K. Ristovski, A. Farahat, C. Gupta, 'Long Short-Term Memory for RUL estimation', IEEE PHM 2017",
+      "fd001Rmse": "16.14"
+    },
+    {
+      "model": "CNN (deep)",
+      "source": "S. Babu, P. Zhao, X. Li, 'Deep CNN based regression approach for estimation of RUL', PHM 2016",
+      "fd001Rmse": "18.45"
+    },
+    {
+      "model": "DCNN (deep, tuned)",
+      "source": "X. Li, Q. Ding, J.-Q. Sun, 'Remaining useful life estimation in prognostics using deep CNN', RESS 2018",
+      "fd001Rmse": "12.61"
+    }
+  ],
+  "commentary": "Honest reading (D-07/data-ethics \u00a74): this GBM is a deliberately modest, fully deterministic CPU model (ADR-0011) \u2014 it does NOT beat tuned deep models and may trail a tuned GBM by a few RMSE cycles. It is chosen for reproducibility (seed \u21d2 identical artifact sha256, CI-tested) and production shape (versioned artifact + provenance on every prediction), not for leaderboard RMSE. Deep-model revisit requires a new ADR. With the synthetic sample dataset the numbers are shape/CI evidence only and are NOT comparable to FD001 baselines.",
+  "environment": {
+    "python": "3.12.14",
+    "sklearn": "1.6.1",
+    "numpy": "2.2.4"
+  },
+  "durationMs": 20887
+}
