@@ -5,6 +5,7 @@ pnpm-lock.yaml
 **/*.sql
 .next/
 .next-off/
+apps/mro-copilot/eval-reports/*.json
 node_modules/
 .pnpm-store/
 dist/

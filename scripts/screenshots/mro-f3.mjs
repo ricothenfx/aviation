@@ -24,14 +24,18 @@ await page.waitForURL(`${BASE}/`, { timeout: 30000 });
 await page.goto(`${BASE}/ask`, { waitUntil: "networkidle" });
 await page
   .getByLabel("Maintenance question")
-  .fill("What torque applies to the cabin pressure outflow valve attach bolts during installation?");
+  .fill(
+    "What torque applies to the cabin pressure outflow valve attach bolts during installation?",
+  );
 await page.getByRole("button", { name: "Ask" }).click();
 await page.getByTestId("draft-card").waitFor({ timeout: 30000 });
 await page.waitForTimeout(400);
 await page.screenshot({ path: `${OUT}/f3-ask-draft.png` });
 
 // Ask panel: honest refusal with machine-readable reason
-await page.getByLabel("Maintenance question").fill("What is the bleed duct torque for the HX-200 regional jet?");
+await page
+  .getByLabel("Maintenance question")
+  .fill("What is the bleed duct torque for the HX-200 regional jet?");
 await page.getByRole("button", { name: "Ask" }).click();
 await page.getByTestId("refusal-card").waitFor({ timeout: 30000 });
 await page.screenshot({ path: `${OUT}/f3-ask-refusal.png` });
@@ -58,7 +62,10 @@ await page.screenshot({ path: `${OUT}/f3-answers-library.png` });
 
 // Eval dashboard gate history
 await page.goto(`${BASE}/evals`, { waitUntil: "networkidle" });
-await page.getByTestId("eval-run-list").waitFor({ timeout: 30000 }).catch(() => {});
+await page
+  .getByTestId("eval-run-list")
+  .waitFor({ timeout: 30000 })
+  .catch(() => {});
 await page.waitForTimeout(500);
 await page.screenshot({ path: `${OUT}/f3-evals-history.png` });
 
