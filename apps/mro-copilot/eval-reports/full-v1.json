@@ -1,0 +1,1007 @@
+{
+  "fixtureVersion": 1,
+  "refusalFixtureVersion": 1,
+  "runId": "cad569c4-c8f4-422f-9a9c-07bc397e4a98",
+  "startedAt": "2026-09-25T13:01:12.542Z",
+  "baseUrl": "http://localhost:3003",
+  "metrics": {
+    "recallAt5": 0.9231,
+    "refusalAccuracy": 1,
+    "citationValidity": 1,
+    "groundedRate": 0.8462,
+    "citationsTotal": 132,
+    "askLatencyMs": {
+      "p50": 89.7,
+      "p95": 345,
+      "max": 618.8
+    },
+    "idempotentReplay": true
+  },
+  "gates": {
+    "recallAt5": {
+      "value": 0.9231,
+      "gate": 0.85,
+      "passed": true
+    },
+    "refusalAccuracy": {
+      "value": 1,
+      "gate": 1,
+      "passed": true
+    },
+    "citationValidity": {
+      "value": 1,
+      "gate": 1,
+      "passed": true
+    },
+    "groundedRate": {
+      "value": 0.8462,
+      "gate": 0.8,
+      "passed": true
+    }
+  },
+  "passed": true,
+  "perCase": {
+    "golden": [
+      {
+        "id": "gq-001",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-002",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-003",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-004",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-005",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-006",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-007",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-008",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-009",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-010",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-011",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-012",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-013",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-014",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-015",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-016",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-017",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-018",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-019",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-020",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-021",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-022",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-023",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-024",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-025",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-026",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-027",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-028",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-029",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-030",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-031",
+        "status": "refused",
+        "source": "none",
+        "provider": "none",
+        "citations": 0,
+        "expectedCited": 0,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": false
+      },
+      {
+        "id": "gq-032",
+        "status": "refused",
+        "source": "none",
+        "provider": "none",
+        "citations": 0,
+        "expectedCited": 0,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": false
+      },
+      {
+        "id": "gq-033",
+        "status": "refused",
+        "source": "none",
+        "provider": "none",
+        "citations": 0,
+        "expectedCited": 0,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": false
+      },
+      {
+        "id": "gq-034",
+        "status": "refused",
+        "source": "none",
+        "provider": "none",
+        "citations": 0,
+        "expectedCited": 0,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": false
+      },
+      {
+        "id": "gq-035",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-036",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-037",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-038",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-039",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-040",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-041",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-042",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-043",
+        "status": "refused",
+        "source": "none",
+        "provider": "none",
+        "citations": 0,
+        "expectedCited": 0,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": false
+      },
+      {
+        "id": "gq-044",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-045",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-046",
+        "status": "refused",
+        "source": "none",
+        "provider": "none",
+        "citations": 0,
+        "expectedCited": 0,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": false
+      },
+      {
+        "id": "gq-047",
+        "status": "refused",
+        "source": "none",
+        "provider": "none",
+        "citations": 0,
+        "expectedCited": 0,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": false
+      },
+      {
+        "id": "gq-048",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-049",
+        "status": "refused",
+        "source": "none",
+        "provider": "none",
+        "citations": 0,
+        "expectedCited": 0,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": false
+      },
+      {
+        "id": "gq-050",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-051",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      },
+      {
+        "id": "gq-052",
+        "status": "draft",
+        "source": "llm",
+        "provider": "mock",
+        "citations": 3,
+        "expectedCited": 1,
+        "expectedTotal": 1,
+        "citationValidity": true,
+        "grounded": true
+      }
+    ],
+    "refusal": [
+      {
+        "id": "rf-001",
+        "status": "refused",
+        "reason": "below_grounding_threshold",
+        "expectedReason": "below_grounding_threshold",
+        "integrity": true,
+        "pass": true
+      },
+      {
+        "id": "rf-002",
+        "status": "refused",
+        "reason": "below_grounding_threshold",
+        "expectedReason": "below_grounding_threshold",
+        "integrity": true,
+        "pass": true
+      },
+      {
+        "id": "rf-003",
+        "status": "refused",
+        "reason": "below_grounding_threshold",
+        "expectedReason": "below_grounding_threshold",
+        "integrity": true,
+        "pass": true
+      },
+      {
+        "id": "rf-004",
+        "status": "refused",
+        "reason": "below_grounding_threshold",
+        "expectedReason": "below_grounding_threshold",
+        "integrity": true,
+        "pass": true
+      },
+      {
+        "id": "rf-005",
+        "status": "refused",
+        "reason": "below_grounding_threshold",
+        "expectedReason": "below_grounding_threshold",
+        "integrity": true,
+        "pass": true
+      },
+      {
+        "id": "rf-006",
+        "status": "refused",
+        "reason": "below_grounding_threshold",
+        "expectedReason": "below_grounding_threshold",
+        "integrity": true,
+        "pass": true
+      },
+      {
+        "id": "rf-007",
+        "status": "refused",
+        "reason": "below_grounding_threshold",
+        "expectedReason": "below_grounding_threshold",
+        "integrity": true,
+        "pass": true
+      },
+      {
+        "id": "rf-008",
+        "status": "refused",
+        "reason": "below_grounding_threshold",
+        "expectedReason": "below_grounding_threshold",
+        "integrity": true,
+        "pass": true
+      },
+      {
+        "id": "rf-009",
+        "status": "refused",
+        "reason": "below_grounding_threshold",
+        "expectedReason": "below_grounding_threshold",
+        "integrity": true,
+        "pass": true
+      },
+      {
+        "id": "rf-010",
+        "status": "refused",
+        "reason": "below_grounding_threshold",
+        "expectedReason": "below_grounding_threshold",
+        "integrity": true,
+        "pass": true
+      },
+      {
+        "id": "rf-011",
+        "status": "refused",
+        "reason": "below_grounding_threshold",
+        "expectedReason": "below_grounding_threshold",
+        "integrity": true,
+        "pass": true
+      },
+      {
+        "id": "rf-012",
+        "status": "refused",
+        "reason": "below_grounding_threshold",
+        "expectedReason": "below_grounding_threshold",
+        "integrity": true,
+        "pass": true
+      },
+      {
+        "id": "rf-013",
+        "status": "refused",
+        "reason": "below_grounding_threshold",
+        "expectedReason": "below_grounding_threshold",
+        "integrity": true,
+        "pass": true
+      },
+      {
+        "id": "rf-014",
+        "status": "refused",
+        "reason": "below_grounding_threshold",
+        "expectedReason": "below_grounding_threshold",
+        "integrity": true,
+        "pass": true
+      },
+      {
+        "id": "rf-015",
+        "status": "refused",
+        "reason": "below_grounding_threshold",
+        "expectedReason": "below_grounding_threshold",
+        "integrity": true,
+        "pass": true
+      },
+      {
+        "id": "rf-016",
+        "status": "refused",
+        "reason": "below_grounding_threshold",
+        "expectedReason": "below_grounding_threshold",
+        "integrity": true,
+        "pass": true
+      },
+      {
+        "id": "rf-017",
+        "status": "refused",
+        "reason": "below_grounding_threshold",
+        "expectedReason": "below_grounding_threshold",
+        "integrity": true,
+        "pass": true
+      },
+      {
+        "id": "rf-018",
+        "status": "refused",
+        "reason": "below_grounding_threshold",
+        "expectedReason": "below_grounding_threshold",
+        "integrity": true,
+        "pass": true
+      },
+      {
+        "id": "rf-019",
+        "status": "refused",
+        "reason": "below_grounding_threshold",
+        "expectedReason": "below_grounding_threshold",
+        "integrity": true,
+        "pass": true
+      },
+      {
+        "id": "rf-020",
+        "status": "refused",
+        "reason": "below_grounding_threshold",
+        "expectedReason": "below_grounding_threshold",
+        "integrity": true,
+        "pass": true
+      },
+      {
+        "id": "rf-021",
+        "status": "refused",
+        "reason": "below_grounding_threshold",
+        "expectedReason": "below_grounding_threshold",
+        "integrity": true,
+        "pass": true
+      },
+      {
+        "id": "rf-022",
+        "status": "refused",
+        "reason": "below_grounding_threshold",
+        "expectedReason": "below_grounding_threshold",
+        "integrity": true,
+        "pass": true
+      }
+    ],
+    "retrieval": [
+      {
+        "id": "gq-001",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-002",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-003",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-004",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-005",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-006",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-007",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-008",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-009",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-010",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-011",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-012",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-013",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-014",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-015",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-016",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-017",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-018",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-019",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-020",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-021",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-022",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-023",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-024",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-025",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-026",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-027",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-028",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-029",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-030",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-031",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-032",
+        "recallAt5": 0
+      },
+      {
+        "id": "gq-033",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-034",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-035",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-036",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-037",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-038",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-039",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-040",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-041",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-042",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-043",
+        "recallAt5": 0
+      },
+      {
+        "id": "gq-044",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-045",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-046",
+        "recallAt5": 0
+      },
+      {
+        "id": "gq-047",
+        "recallAt5": 0
+      },
+      {
+        "id": "gq-048",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-049",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-050",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-051",
+        "recallAt5": 1
+      },
+      {
+        "id": "gq-052",
+        "recallAt5": 1
+      }
+    ]
+  }
+}

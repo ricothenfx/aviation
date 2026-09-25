@@ -65,7 +65,7 @@ describe("POST /api/v1/ask — RBAC", () => {
 
   it("400 on an over-short question", async () => {
     const cookie = await login(ENGINEER);
-    const res = await ask(cookie, "torque?");
+    const res = await ask(cookie, "abc");
     expect(res.status).toBe(400);
     const body = (await res.json()) as { error: { code: string } };
     expect(body.error.code).toBe("VALIDATION_ERROR");
@@ -178,10 +178,10 @@ describe("sign-off lifecycle (FR-14)", () => {
     );
     const selfDraft = (await selfAsk.json()) as { answerId: string; status: string };
     if (selfDraft.status === "draft") {
-      const selfApprove = await fetch(
-        `${BASE_URL}/api/v1/answers/${selfDraft.answerId}/approve`,
-        { method: "POST", headers: { Cookie: reviewerCookie } },
-      );
+      const selfApprove = await fetch(`${BASE_URL}/api/v1/answers/${selfDraft.answerId}/approve`, {
+        method: "POST",
+        headers: { Cookie: reviewerCookie },
+      });
       expect(selfApprove.status).toBe(403);
       const body = (await selfApprove.json()) as { error: { code: string } };
       expect(body.error.code).toBe("SELF_APPROVAL_FORBIDDEN");
@@ -244,7 +244,9 @@ describe("sign-off lifecycle (FR-14)", () => {
     const audit = await fetch(`${BASE_URL}/api/v1/answers/${draft.answerId}/audit`, {
       headers: { Cookie: reviewerCookie },
     });
-    const auditBody = (await audit.json()) as { events: Array<{ eventType: string; sequence: number }> };
+    const auditBody = (await audit.json()) as {
+      events: Array<{ eventType: string; sequence: number }>;
+    };
     const types = auditBody.events.map((e) => e.eventType);
     expect(types).toContain("answer.created");
     expect(types).toContain("answer.rejected");
@@ -264,8 +266,9 @@ describe("sign-off lifecycle (FR-14)", () => {
     );
     expect(rows.length).toBeGreaterThan(0);
     const id = rows[0]!.id as string;
-    await expect(pool.query("update audit_events set payload = '{}' where id = $1", [id])).rejects
-      .toThrow(/append-only/);
+    await expect(
+      pool.query("update audit_events set payload = '{}' where id = $1", [id]),
+    ).rejects.toThrow(/append-only/);
     await expect(pool.query("delete from audit_events where id = $1", [id])).rejects.toThrow(
       /append-only/,
     );

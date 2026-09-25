@@ -14,6 +14,8 @@ export default [
       "**/.pnpm-store/**",
       "**/dist/**",
       "**/.next/**",
+      // Secondary build dir used by provider-off web instances (FR-12 test).
+      "**/.next-off/**",
       "**/coverage/**",
       "**/next-env.d.ts",
       "**/drizzle/**",

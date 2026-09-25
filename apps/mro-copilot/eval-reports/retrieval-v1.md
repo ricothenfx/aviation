@@ -1,6 +1,6 @@
 # mro-copilot retrieval eval — golden QA v1
 
-Started: 2026-09-25T03:37:39.933Z · corpus corpus-manifest v1 · top-k=5 · public endpoint /api/v1/search
+Started: 2026-09-25T13:01:30.633Z · corpus corpus-manifest v1 · top-k=5 · public endpoint /api/v1/search
 
 | metric | value | gate |
 |---|---|---|

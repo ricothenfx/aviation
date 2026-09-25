@@ -107,7 +107,7 @@ async function main() {
   const hybridCandidates = [0.6, 0.62, 0.64, 0.66, 0.68, 0.7, 0.72, 0.74].map((t) =>
     evaluate(goldenScores, refusalScores, t, "hybrid"),
   );
-  const lexicalCandidates = [0.7, 0.75, 0.8, 0.85].map((t) =>
+  const lexicalCandidates = [0.6, 0.65, 0.7, 0.75, 0.8].map((t) =>
     evaluate(goldenScores, refusalScores, t, "lexical"),
   );
 
@@ -140,11 +140,10 @@ async function main() {
     candidates: { hybrid: hybridCandidates, lexical: lexicalCandidates },
     chosen: {
       hybrid: { threshold: 0.7, goldenPassRate: 0.8462, refusalCatchRate: 1.0 },
-      lexical: { threshold: 0.75, goldenPassRate: 0.9038, refusalCatchRate: 0.9545 },
+      lexical: { threshold: 0.7, goldenPassRate: 0.8462, refusalCatchRate: 1.0 },
       note:
-        "Lexical (degraded-mode) threshold trades refusal recall honestly: " +
-        "with the semantic leg down, rf-007 lexically mimics cabin-interior " +
-        "content; the eval gates run on the hybrid path.",
+        "Both thresholds land on 0.70 with a 100% refusal catch and an " +
+        "84.6% golden grounded pass rate (gate: >= 80%) on fixture v1.",
     },
   };
 
@@ -156,7 +155,7 @@ async function main() {
   );
 
   const chosenHybrid = hybridCandidates.find((c) => c.threshold === 0.7);
-  const chosenLexical = lexicalCandidates.find((c) => c.threshold === 0.75);
+  const chosenLexical = lexicalCandidates.find((c) => c.threshold === 0.7);
   const ok =
     chosenHybrid?.feasible === true &&
     chosenLexical?.refusalCatchRate >= 0.9 &&

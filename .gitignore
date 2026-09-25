@@ -5,6 +5,7 @@ node_modules/
 # builds
 dist/
 .next/
+.next-off/
 out/
 *.tsbuildinfo
 
@@ -23,6 +24,7 @@ coverage/
 
 # Playwright artifacts (F3 e2e)
 apps/turnaround-iq/test-results/
+apps/mro-copilot/test-results/
 apps/turnaround-iq/playwright-report/
 
 # Python tooling caches (mro-copilot ai-service)

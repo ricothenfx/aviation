@@ -56,11 +56,11 @@ describe("grounding score + guardrail pre-check (FR-10)", () => {
     expect(isBelowGroundingThreshold("lexical", 0)).toBe(true);
   });
 
-  it("respects the calibrated thresholds (0.70 hybrid / 0.75 lexical)", () => {
+  it("respects the calibrated thresholds (0.70 hybrid / 0.70 lexical)", () => {
     expect(isBelowGroundingThreshold("hybrid", 0.69)).toBe(true);
     expect(isBelowGroundingThreshold("hybrid", 0.7)).toBe(false);
-    expect(isBelowGroundingThreshold("lexical", 0.74)).toBe(true);
-    expect(isBelowGroundingThreshold("lexical", 0.75)).toBe(false);
+    expect(isBelowGroundingThreshold("lexical", 0.69)).toBe(true);
+    expect(isBelowGroundingThreshold("lexical", 0.7)).toBe(false);
   });
 });
 

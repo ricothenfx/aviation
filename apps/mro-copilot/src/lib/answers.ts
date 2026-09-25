@@ -68,23 +68,29 @@ export async function loadAnswerDetails(ids: string[]): Promise<AnswerDetail[]> 
     citationsByAnswer.set(c.answerId, list);
   }
 
-  return rows.map((row) => ({
-    id: row.id,
-    question: row.question,
-    status: row.status,
-    source: row.source,
-    provider: row.provider,
-    refusalReason: parseRefusalReason(row.refusalReason),
-    groundingScore: row.groundingScore,
-    answerText: row.answerText,
-    citations: citationsByAnswer.get(row.id) ?? [],
-    retrievalMeta: row.retrievalMeta as AnswerDetail["retrievalMeta"],
-    citationCount: (citationsByAnswer.get(row.id) ?? []).length,
-    createdBy: row.createdBy,
-    createdByName: row.authorName,
-    createdAt: row.createdAt.toISOString(),
-    review: parseReview(row.review),
-  }));
+  return (
+    rows
+      .map((row) => ({
+        id: row.id,
+        question: row.question,
+        status: row.status,
+        source: row.source,
+        provider: row.provider,
+        refusalReason: parseRefusalReason(row.refusalReason),
+        groundingScore: row.groundingScore,
+        answerText: row.answerText,
+        citations: citationsByAnswer.get(row.id) ?? [],
+        retrievalMeta: row.retrievalMeta as AnswerDetail["retrievalMeta"],
+        citationCount: (citationsByAnswer.get(row.id) ?? []).length,
+        createdBy: row.createdBy,
+        createdByName: row.authorName,
+        createdAt: row.createdAt.toISOString(),
+        review: parseReview(row.review),
+      }))
+      // Preserve the caller's id order (the route ordered by createdAt; the
+      // detail fetch is unordered).
+      .sort((a, b) => ids.indexOf(a.id) - ids.indexOf(b.id))
+  );
 }
 
 function parseRefusalReason(raw: string | null): AnswerDetail["refusalReason"] {

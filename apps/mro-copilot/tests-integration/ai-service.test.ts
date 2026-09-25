@@ -9,7 +9,8 @@ import { Pool } from "pg";
  */
 
 const AI_BASE_URL = process.env.MRO_AI_SERVICE_URL ?? "http://localhost:4103";
-const TOKEN = process.env.AI_SERVICE_TOKEN ?? "";
+// Compose dev bearer (CI passes the same value via env — mro.yml).
+const TOKEN = process.env.AI_SERVICE_TOKEN ?? "dev-only-insecure-ai-token-0123456789abcdef";
 const AUTH = { Authorization: `Bearer ${TOKEN}` };
 
 const pool = new Pool({

@@ -13,7 +13,7 @@ export const GROUNDING = {
   /** hybrid: 0.6·termCoverage + 0.4·vectorCosine must reach this. */
   MIN_SCORE_HYBRID: numEnv("GROUNDING_MIN_SCORE", 0.7),
   /** lexical (degraded): no cosine available — coverage-only bar. */
-  MIN_COVERAGE_LEXICAL: numEnv("GROUNDING_MIN_COVERAGE", 0.75),
+  MIN_COVERAGE_LEXICAL: numEnv("GROUNDING_MIN_COVERAGE", 0.7),
 } as const;
 
 export const RAG_CONFIG = {

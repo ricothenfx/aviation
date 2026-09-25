@@ -1,5 +1,5 @@
 {
-  "startedAt": "2026-09-25T10:51:01.998Z",
+  "startedAt": "2026-09-25T12:59:54.005Z",
   "baseUrl": "http://localhost:3003",
   "topK": 8,
   "formula": {
@@ -8,464 +8,464 @@
   },
   "golden": {
     "cases": 52,
-    "min": null,
-    "p5": null,
-    "p25": null,
-    "median": null,
-    "max": null,
+    "min": 0.4748,
+    "p5": 0.6168,
+    "p25": 0.7323,
+    "median": 0.7975,
+    "max": 0.9128,
     "perCase": [
       {
         "id": "gq-001",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.8843,
         "hits": 8
       },
       {
         "id": "gq-002",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.8469,
         "hits": 8
       },
       {
         "id": "gq-003",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.7809,
         "hits": 8
       },
       {
         "id": "gq-004",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.7741,
         "hits": 8
       },
       {
         "id": "gq-005",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.8992,
         "hits": 8
       },
       {
         "id": "gq-006",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.8774,
         "hits": 8
       },
       {
         "id": "gq-007",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.7124,
         "hits": 8
       },
       {
         "id": "gq-008",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.846,
         "hits": 8
       },
       {
         "id": "gq-009",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.795,
         "hits": 8
       },
       {
         "id": "gq-010",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.8868,
         "hits": 8
       },
       {
         "id": "gq-011",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.8102,
         "hits": 8
       },
       {
         "id": "gq-012",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.7856,
         "hits": 8
       },
       {
         "id": "gq-013",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.829,
         "hits": 8
       },
       {
         "id": "gq-014",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.7102,
         "hits": 8
       },
       {
         "id": "gq-015",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.8882,
         "hits": 8
       },
       {
         "id": "gq-016",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.856,
         "hits": 8
       },
       {
         "id": "gq-017",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.8276,
         "hits": 8
       },
       {
         "id": "gq-018",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.842,
         "hits": 8
       },
       {
         "id": "gq-019",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.8923,
         "hits": 8
       },
       {
         "id": "gq-020",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.8288,
         "hits": 8
       },
       {
         "id": "gq-021",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.8562,
         "hits": 8
       },
       {
         "id": "gq-022",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.8752,
         "hits": 8
       },
       {
         "id": "gq-023",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.8657,
         "hits": 8
       },
       {
         "id": "gq-024",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.8429,
         "hits": 8
       },
       {
         "id": "gq-025",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.8661,
         "hits": 8
       },
       {
         "id": "gq-026",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.9128,
         "hits": 8
       },
       {
         "id": "gq-027",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.8478,
         "hits": 8
       },
       {
         "id": "gq-028",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.7413,
         "hits": 8
       },
       {
         "id": "gq-029",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.7052,
         "hits": 8
       },
       {
         "id": "gq-030",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.7497,
         "hits": 8
       },
       {
         "id": "gq-031",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.6597,
         "hits": 8
       },
       {
         "id": "gq-032",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.6189,
         "hits": 8
       },
       {
         "id": "gq-033",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.654,
         "hits": 8
       },
       {
         "id": "gq-034",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.6168,
         "hits": 8
       },
       {
         "id": "gq-035",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.7855,
         "hits": 8
       },
       {
         "id": "gq-036",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.8902,
         "hits": 8
       },
       {
         "id": "gq-037",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.8873,
         "hits": 8
       },
       {
         "id": "gq-038",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.856,
         "hits": 8
       },
       {
         "id": "gq-039",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.7857,
         "hits": 8
       },
       {
         "id": "gq-040",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.8851,
         "hits": 8
       },
       {
         "id": "gq-041",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.761,
         "hits": 8
       },
       {
         "id": "gq-042",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.7925,
         "hits": 8
       },
       {
         "id": "gq-043",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.553,
         "hits": 8
       },
       {
         "id": "gq-044",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.7323,
         "hits": 8
       },
       {
         "id": "gq-045",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.7804,
         "hits": 8
       },
       {
         "id": "gq-046",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.4748,
         "hits": 8
       },
       {
         "id": "gq-047",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.6219,
         "hits": 8
       },
       {
         "id": "gq-048",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.7975,
         "hits": 8
       },
       {
         "id": "gq-049",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.62,
         "hits": 8
       },
       {
         "id": "gq-050",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.7814,
         "hits": 8
       },
       {
         "id": "gq-051",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.821,
         "hits": 8
       },
       {
         "id": "gq-052",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.7282,
         "hits": 8
       }
     ]
   },
   "refusal": {
     "cases": 22,
-    "min": null,
-    "p25": null,
-    "median": null,
-    "p95": null,
-    "max": null,
+    "min": 0.2088,
+    "p25": 0.3791,
+    "median": 0.4497,
+    "p95": 0.6466,
+    "max": 0.6755,
     "perCase": [
       {
         "id": "rf-001",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.4668,
         "hits": 8
       },
       {
         "id": "rf-002",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.3275,
         "hits": 8
       },
       {
         "id": "rf-003",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.2088,
         "hits": 8
       },
       {
         "id": "rf-004",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.6466,
         "hits": 8
       },
       {
         "id": "rf-005",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.3794,
         "hits": 8
       },
       {
         "id": "rf-006",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.5432,
         "hits": 8
       },
       {
         "id": "rf-007",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.6755,
         "hits": 8
       },
       {
         "id": "rf-008",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.3482,
         "hits": 8
       },
       {
         "id": "rf-009",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.4497,
         "hits": 8
       },
       {
         "id": "rf-010",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.3135,
         "hits": 8
       },
       {
         "id": "rf-011",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.503,
         "hits": 8
       },
       {
         "id": "rf-012",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.5172,
         "hits": 8
       },
       {
         "id": "rf-013",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.4064,
         "hits": 8
       },
       {
         "id": "rf-014",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.507,
         "hits": 8
       },
       {
         "id": "rf-015",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.3791,
         "hits": 8
       },
       {
         "id": "rf-016",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.4384,
         "hits": 8
       },
       {
         "id": "rf-017",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.3681,
         "hits": 8
       },
       {
         "id": "rf-018",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.4288,
         "hits": 8
       },
       {
         "id": "rf-019",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.4683,
         "hits": 8
       },
       {
         "id": "rf-020",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.451,
         "hits": 8
       },
       {
         "id": "rf-021",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.5735,
         "hits": 8
       },
       {
         "id": "rf-022",
         "mode": "hybrid",
-        "score": null,
+        "score": 0.4848,
         "hits": 8
       }
     ]
@@ -475,87 +475,94 @@
       {
         "mode": "hybrid",
         "threshold": 0.6,
-        "goldenPassRate": 0,
-        "refusalCatchRate": 0,
+        "goldenPassRate": 0.9615,
+        "refusalCatchRate": 0.9091,
         "feasible": false
       },
       {
         "mode": "hybrid",
         "threshold": 0.62,
-        "goldenPassRate": 0,
-        "refusalCatchRate": 0,
+        "goldenPassRate": 0.9231,
+        "refusalCatchRate": 0.9091,
         "feasible": false
       },
       {
         "mode": "hybrid",
         "threshold": 0.64,
-        "goldenPassRate": 0,
-        "refusalCatchRate": 0,
+        "goldenPassRate": 0.8846,
+        "refusalCatchRate": 0.9091,
         "feasible": false
       },
       {
         "mode": "hybrid",
         "threshold": 0.66,
-        "goldenPassRate": 0,
-        "refusalCatchRate": 0,
+        "goldenPassRate": 0.8462,
+        "refusalCatchRate": 0.9545,
         "feasible": false
       },
       {
         "mode": "hybrid",
         "threshold": 0.68,
-        "goldenPassRate": 0,
-        "refusalCatchRate": 0,
-        "feasible": false
+        "goldenPassRate": 0.8462,
+        "refusalCatchRate": 1,
+        "feasible": true
       },
       {
         "mode": "hybrid",
         "threshold": 0.7,
-        "goldenPassRate": 0,
-        "refusalCatchRate": 0,
-        "feasible": false
+        "goldenPassRate": 0.8462,
+        "refusalCatchRate": 1,
+        "feasible": true
       },
       {
         "mode": "hybrid",
         "threshold": 0.72,
-        "goldenPassRate": 0,
-        "refusalCatchRate": 0,
+        "goldenPassRate": 0.7885,
+        "refusalCatchRate": 1,
         "feasible": false
       },
       {
         "mode": "hybrid",
         "threshold": 0.74,
-        "goldenPassRate": 0,
-        "refusalCatchRate": 0,
+        "goldenPassRate": 0.75,
+        "refusalCatchRate": 1,
         "feasible": false
       }
     ],
     "lexical": [
       {
         "mode": "lexical",
-        "threshold": 0.7,
-        "goldenPassRate": 0,
-        "refusalCatchRate": 0,
+        "threshold": 0.6,
+        "goldenPassRate": 0.9615,
+        "refusalCatchRate": 0.9091,
         "feasible": false
       },
       {
         "mode": "lexical",
+        "threshold": 0.65,
+        "goldenPassRate": 0.8846,
+        "refusalCatchRate": 0.9545,
+        "feasible": false
+      },
+      {
+        "mode": "lexical",
+        "threshold": 0.7,
+        "goldenPassRate": 0.8462,
+        "refusalCatchRate": 1,
+        "feasible": true
+      },
+      {
+        "mode": "lexical",
         "threshold": 0.75,
-        "goldenPassRate": 0,
-        "refusalCatchRate": 0,
+        "goldenPassRate": 0.7115,
+        "refusalCatchRate": 1,
         "feasible": false
       },
       {
         "mode": "lexical",
         "threshold": 0.8,
-        "goldenPassRate": 0,
-        "refusalCatchRate": 0,
-        "feasible": false
-      },
-      {
-        "mode": "lexical",
-        "threshold": 0.85,
-        "goldenPassRate": 0,
-        "refusalCatchRate": 0,
+        "goldenPassRate": 0.5,
+        "refusalCatchRate": 1,
         "feasible": false
       }
     ]
@@ -567,10 +574,10 @@
       "refusalCatchRate": 1
     },
     "lexical": {
-      "threshold": 0.75,
-      "goldenPassRate": 0.9038,
-      "refusalCatchRate": 0.9545
+      "threshold": 0.7,
+      "goldenPassRate": 0.8462,
+      "refusalCatchRate": 1
     },
-    "note": "Lexical (degraded-mode) threshold trades refusal recall honestly: with the semantic leg down, rf-007 lexically mimics cabin-interior content; the eval gates run on the hybrid path."
+    "note": "Both thresholds land on 0.70 with a 100% refusal catch and an 84.6% golden grounded pass rate (gate: >= 80%) on fixture v1."
   }
 }

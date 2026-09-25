@@ -5,6 +5,14 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "src", "seed", "*.ts", ".next/types/**/*.ts"],
+  "include": [
+    "*.ts",
+    ".next/types/**/*.ts",
+    "next-env.d.ts",
+    "seed",
+    "src",
+    "e2e",
+    "playwright.config.ts"
+  ],
   "exclude": ["node_modules"]
 }

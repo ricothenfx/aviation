@@ -47,6 +47,7 @@ async function ask(cookie, question, idempotencyKey) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      Cookie: cookie,
       ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
     },
     body: JSON.stringify({ question }),
@@ -171,7 +172,11 @@ async function main() {
   // Also verify idempotent replay works on the wire (one sampled re-ask).
   const replayRes = await fetch(`${BASE_URL}/api/v1/ask`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "Idempotency-Key": `eval-full-${startedAt}-0` },
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: engineerCookie,
+      "Idempotency-Key": `eval-full-${startedAt}-0`,
+    },
     body: JSON.stringify({ question: golden.cases[0].question }),
   });
   const idempotentReplay = replayRes.headers.get("Idempotency-Replayed") === "true";

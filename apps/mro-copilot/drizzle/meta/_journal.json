@@ -22,6 +22,13 @@
       "when": 1790333566935,
       "tag": "0002_first_ogun",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790340959375,
+      "tag": "0003_volatile_tiger_shark",
+      "breakpoints": true
     }
   ]
 }

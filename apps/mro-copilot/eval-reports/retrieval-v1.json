@@ -4,7 +4,7 @@
   "refusalCases": 22,
   "baseUrl": "http://localhost:3003",
   "topK": 5,
-  "startedAt": "2026-09-25T03:37:39.933Z",
+  "startedAt": "2026-09-25T13:01:30.633Z",
   "cases": 52,
   "metrics": {
     "recallAt5": 0.9231,
