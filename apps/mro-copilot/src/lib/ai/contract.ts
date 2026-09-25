@@ -60,6 +60,11 @@ export const retrievalHitSchema = z.object({
   effectiveDate: z.string(),
   snippet: z.string(),
   score: z.number(),
+  /** Grounding-quality signals (F3, additive): query-chunk cosine — null in
+   *  lexical mode — and query-lexeme coverage. The ask guardrail blends them;
+   *  ranking never uses them. */
+  vectorScore: z.number().nullable(),
+  termCoverage: z.number().min(0).max(1),
 });
 export type RetrievalHit = z.infer<typeof retrievalHitSchema>;
 

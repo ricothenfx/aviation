@@ -45,7 +45,14 @@ class SearchFilters:
 
 @dataclass(frozen=True)
 class SearchHit:
-    """One fused result (SearchHit in api-contracts.md §1)."""
+    """One fused result (SearchHit in api-contracts.md §1).
+
+    ``vector_score`` / ``term_coverage`` are grounding-quality signals (F3):
+    cosine similarity of the query embedding against this chunk (null in
+    lexical mode) and the fraction of query lexemes present in the chunk's
+    tsv. The app composes its guardrail threshold from them (architecture
+    §3); they are additive fields, never used for ranking.
+    """
 
     chunk_id: str
     manual_id: str
@@ -58,6 +65,8 @@ class SearchHit:
     effective_date: str
     snippet: str
     score: float
+    vector_score: float | None = None
+    term_coverage: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -214,10 +223,29 @@ def build_search_sql(
         fused as (
             select chunk_id, 1.0::float8 / (%(rrf_k)s + rank) as score from lex
         )"""
+    # Grounding-quality signals (F3, additive): cosine of the query embedding
+    # against the chunk (hybrid mode only — null when degraded to lexical) and
+    # the fraction of query lexemes the chunk's tsv actually contains. The app
+    # blends them for its guardrail; they never affect ranking.
+    vector_score_expr = (
+        "case when c.embedding is null then null"
+        " else 1 - (c.embedding <=> %(embedding)s::vector) end"
+        if query_vector is not None
+        else "null::float8"
+    )
+    term_coverage_expr = """
+        greatest(
+            (
+                select count(*) from unnest((select lex from q)) as t
+                where t = any(tsvector_to_array(c.tsv))
+            )::float8 / greatest(cardinality((select lex from q)), 1),
+            0.0
+        )"""
 
     statement = f"""
     with q as (
-        select websearch_to_tsquery('english', %(query)s) as tsq
+        select websearch_to_tsquery('english', %(query)s) as tsq,
+               tsvector_to_array(to_tsvector('english', %(query)s)) as lex
     ),{vector_leg}
     lex as (
         select c.id as chunk_id,
@@ -242,15 +270,17 @@ def build_search_sql(
            c.page,
            m.revision,
            m.effective_date::text as effective_date,
-           ts_headline(
-               'english', c.content, (select tsq from q),
-               'StartSel=[[ StopSel=]] MaxWords=42 MinWords=18 MaxFragments=2'
-               ' FragmentDelimiter=…'
-           ) as snippet
+            ts_headline(
+                'english', c.content, (select tsq from q),
+                'StartSel=[[ StopSel=]] MaxWords=42 MinWords=18 MaxFragments=2'
+                ' FragmentDelimiter=…'
+            ) as snippet,
+            {vector_score_expr} as vector_score,
+            {term_coverage_expr} as term_coverage
     from fused f
     join chunks c on c.id = f.chunk_id
     join manuals m on m.id = c.manual_id
-    group by f.chunk_id, m.id, m.doc_type, m.task_no, m.ata_chapter,
+    group by f.chunk_id, c.id, m.id, m.doc_type, m.task_no, m.ata_chapter,
              c.section_path, c.page, m.revision, m.effective_date, c.content
     order by score desc
     limit %(k)s
@@ -272,6 +302,7 @@ def build_search_sql(
 
 def row_to_hit(row: tuple[Any, ...]) -> SearchHit:
     """Map one SQL row to a SearchHit."""
+    vector_score = row[11]
     return SearchHit(
         chunk_id=str(row[0]),
         manual_id=str(row[2]),
@@ -284,4 +315,6 @@ def row_to_hit(row: tuple[Any, ...]) -> SearchHit:
         effective_date=str(row[9]),
         snippet=str(row[10]),
         score=float(row[1]),
+        vector_score=float(vector_score) if vector_score is not None else None,
+        term_coverage=float(row[12]),
     )

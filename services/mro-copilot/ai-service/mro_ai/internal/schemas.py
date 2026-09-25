@@ -74,7 +74,12 @@ class RetrievalSearchRequest(BaseModel):
 
 
 class RetrievalHit(BaseModel):
-    """One fused result — wire shape mirrors SearchHit (api-contracts.md §1)."""
+    """One fused result — wire shape mirrors SearchHit (api-contracts.md §1).
+
+    ``vector_score`` / ``term_coverage`` are grounding-quality signals (F3,
+    additive): query-chunk cosine (null in lexical mode) and query-lexeme
+    coverage. The app's guardrail blends them; ranking never uses them.
+    """
 
     chunk_id: str = Field(alias="chunkId")
     manual_id: str = Field(alias="manualId")
@@ -87,6 +92,8 @@ class RetrievalHit(BaseModel):
     effective_date: str = Field(alias="effectiveDate")
     snippet: str
     score: float
+    vector_score: float | None = Field(default=None, alias="vectorScore")
+    term_coverage: float = Field(default=0.0, alias="termCoverage")
 
 
 class RetrievalSearchResponse(BaseModel):

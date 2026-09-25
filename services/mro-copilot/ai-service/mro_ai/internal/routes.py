@@ -93,6 +93,8 @@ async def retrieval_search(
                     "effectiveDate": hit.effective_date,
                     "snippet": hit.snippet,
                     "score": hit.score,
+                    "vectorScore": hit.vector_score,
+                    "termCoverage": hit.term_coverage,
                 }
             )
             for hit in result.hits

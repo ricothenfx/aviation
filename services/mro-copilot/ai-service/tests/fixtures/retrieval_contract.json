@@ -14,7 +14,9 @@
         "revision": "Rev 37",
         "effectiveDate": "2026-03-01",
         "snippet": "Torque the [[accumulator]] attach bolts to 34.5 Nm.",
-        "score": 0.0263
+        "score": 0.0263,
+        "vectorScore": 0.612,
+        "termCoverage": 0.71
       }
     ],
     "latencyMs": 42
@@ -31,6 +33,8 @@
     "revision",
     "effectiveDate",
     "snippet",
-    "score"
+    "score",
+    "vectorScore",
+    "termCoverage"
   ]
 }

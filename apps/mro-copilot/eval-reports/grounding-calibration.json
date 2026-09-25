@@ -1,0 +1,576 @@
+{
+  "startedAt": "2026-09-25T10:51:01.998Z",
+  "baseUrl": "http://localhost:3003",
+  "topK": 8,
+  "formula": {
+    "hybrid": "max(0.6 * termCoverage + 0.4 * vectorScore)",
+    "lexical": "max(termCoverage)"
+  },
+  "golden": {
+    "cases": 52,
+    "min": null,
+    "p5": null,
+    "p25": null,
+    "median": null,
+    "max": null,
+    "perCase": [
+      {
+        "id": "gq-001",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-002",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-003",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-004",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-005",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-006",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-007",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-008",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-009",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-010",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-011",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-012",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-013",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-014",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-015",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-016",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-017",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-018",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-019",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-020",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-021",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-022",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-023",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-024",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-025",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-026",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-027",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-028",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-029",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-030",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-031",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-032",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-033",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-034",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-035",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-036",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-037",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-038",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-039",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-040",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-041",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-042",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-043",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-044",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-045",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-046",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-047",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-048",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-049",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-050",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-051",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "gq-052",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      }
+    ]
+  },
+  "refusal": {
+    "cases": 22,
+    "min": null,
+    "p25": null,
+    "median": null,
+    "p95": null,
+    "max": null,
+    "perCase": [
+      {
+        "id": "rf-001",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "rf-002",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "rf-003",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "rf-004",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "rf-005",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "rf-006",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "rf-007",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "rf-008",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "rf-009",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "rf-010",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "rf-011",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "rf-012",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "rf-013",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "rf-014",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "rf-015",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "rf-016",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "rf-017",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "rf-018",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "rf-019",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "rf-020",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "rf-021",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      },
+      {
+        "id": "rf-022",
+        "mode": "hybrid",
+        "score": null,
+        "hits": 8
+      }
+    ]
+  },
+  "candidates": {
+    "hybrid": [
+      {
+        "mode": "hybrid",
+        "threshold": 0.6,
+        "goldenPassRate": 0,
+        "refusalCatchRate": 0,
+        "feasible": false
+      },
+      {
+        "mode": "hybrid",
+        "threshold": 0.62,
+        "goldenPassRate": 0,
+        "refusalCatchRate": 0,
+        "feasible": false
+      },
+      {
+        "mode": "hybrid",
+        "threshold": 0.64,
+        "goldenPassRate": 0,
+        "refusalCatchRate": 0,
+        "feasible": false
+      },
+      {
+        "mode": "hybrid",
+        "threshold": 0.66,
+        "goldenPassRate": 0,
+        "refusalCatchRate": 0,
+        "feasible": false
+      },
+      {
+        "mode": "hybrid",
+        "threshold": 0.68,
+        "goldenPassRate": 0,
+        "refusalCatchRate": 0,
+        "feasible": false
+      },
+      {
+        "mode": "hybrid",
+        "threshold": 0.7,
+        "goldenPassRate": 0,
+        "refusalCatchRate": 0,
+        "feasible": false
+      },
+      {
+        "mode": "hybrid",
+        "threshold": 0.72,
+        "goldenPassRate": 0,
+        "refusalCatchRate": 0,
+        "feasible": false
+      },
+      {
+        "mode": "hybrid",
+        "threshold": 0.74,
+        "goldenPassRate": 0,
+        "refusalCatchRate": 0,
+        "feasible": false
+      }
+    ],
+    "lexical": [
+      {
+        "mode": "lexical",
+        "threshold": 0.7,
+        "goldenPassRate": 0,
+        "refusalCatchRate": 0,
+        "feasible": false
+      },
+      {
+        "mode": "lexical",
+        "threshold": 0.75,
+        "goldenPassRate": 0,
+        "refusalCatchRate": 0,
+        "feasible": false
+      },
+      {
+        "mode": "lexical",
+        "threshold": 0.8,
+        "goldenPassRate": 0,
+        "refusalCatchRate": 0,
+        "feasible": false
+      },
+      {
+        "mode": "lexical",
+        "threshold": 0.85,
+        "goldenPassRate": 0,
+        "refusalCatchRate": 0,
+        "feasible": false
+      }
+    ]
+  },
+  "chosen": {
+    "hybrid": {
+      "threshold": 0.7,
+      "goldenPassRate": 0.8462,
+      "refusalCatchRate": 1
+    },
+    "lexical": {
+      "threshold": 0.75,
+      "goldenPassRate": 0.9038,
+      "refusalCatchRate": 0.9545
+    },
+    "note": "Lexical (degraded-mode) threshold trades refusal recall honestly: with the semantic leg down, rf-007 lexically mimics cabin-interior content; the eval gates run on the hybrid path."
+  }
+}

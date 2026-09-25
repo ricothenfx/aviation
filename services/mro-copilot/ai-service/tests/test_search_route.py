@@ -61,6 +61,8 @@ ROW = (
     "Rev 37",
     "2026-03-01",
     "Torque the [[accumulator]] attach bolts to 34.5 Nm.",
+    0.612,  # vector_score (F3 grounding signal)
+    0.71,  # term_coverage (F3 grounding signal)
 )
 
 
