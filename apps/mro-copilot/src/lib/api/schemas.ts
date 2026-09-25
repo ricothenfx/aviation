@@ -119,4 +119,164 @@ export const chunkDetailResponseSchema = z.object({
     nextChunkId: z.string().uuid().nullable(),
   }),
 });
+
+// --- POST /api/v1/ask ----------------------------------------------------------
+// (api-contracts.md §1 Copilot Q&A, PRD FR-9..FR-13)
+
+export const ANSWER_STATUSES = ["draft", "refused", "approved", "rejected"] as const;
+export const ANSWER_SOURCES = ["llm", "extractive", "none"] as const;
+export const REFUSAL_REASONS = ["below_grounding_threshold", "no_valid_citations"] as const;
+
+export const answerStatusSchema = z.enum(ANSWER_STATUSES);
+export type AnswerStatus = z.infer<typeof answerStatusSchema>;
+
+export const answerSourceSchema = z.enum(ANSWER_SOURCES);
+export type AnswerSource = z.infer<typeof answerSourceSchema>;
+
+export const refusalReasonSchema = z.enum(REFUSAL_REASONS);
+export type RefusalReason = z.infer<typeof refusalReasonSchema>;
+
+export const askRequestSchema = z.object({
+  question: z.string().trim().min(5).max(2_000),
+});
+export type AskRequest = z.infer<typeof askRequestSchema>;
+
+export const citationSchema = z.object({
+  chunkId: z.string().uuid(),
+  manualId: z.string().uuid(),
+  docType: docTypeSchema,
+  ataChapter: z.string(),
+  taskNo: z.string(),
+  sectionPath: z.string(),
+  page: z.number().int().positive(),
+  revision: z.string(),
+  snippet: z.string(),
+});
+export type Citation = z.infer<typeof citationSchema>;
+
+export const askResponseSchema = z.object({
+  answerId: z.string().uuid(),
+  status: z.enum(["draft", "refused"]),
+  answer: z.string().optional(),
+  citations: z.array(citationSchema).optional(),
+  refusalReason: refusalReasonSchema.optional(),
+  source: answerSourceSchema,
+  provider: z.string(),
+  groundingScore: z.number().min(0).max(1),
+  retrieval: z.object({
+    mode: z.enum(["hybrid", "lexical"]),
+    latencyMs: z.number().int().nonnegative(),
+  }),
+});
+export type AskResponse = z.infer<typeof askResponseSchema>;
+
+// --- GET /api/v1/answers (verified library + own drafts) ------------------------
+
+export const reviewBlockSchema = z.object({
+  reviewerId: z.string().uuid(),
+  reviewerName: z.string(),
+  note: z.string().nullable(),
+  at: z.string(),
+});
+export type ReviewBlock = z.infer<typeof reviewBlockSchema>;
+
+export const answerSummarySchema = z.object({
+  id: z.string().uuid(),
+  question: z.string(),
+  status: answerStatusSchema,
+  source: answerSourceSchema,
+  provider: z.string(),
+  refusalReason: refusalReasonSchema.nullable(),
+  groundingScore: z.number(),
+  citationCount: z.number().int().nonnegative(),
+  createdBy: z.string().uuid(),
+  createdByName: z.string(),
+  createdAt: z.string(),
+  review: reviewBlockSchema.nullable(),
+});
+export type AnswerSummary = z.infer<typeof answerSummarySchema>;
+
+export const answersResponseSchema = z.object({
+  answers: z.array(answerSummarySchema),
+  nextCursor: z.string().nullable(),
+});
+export type AnswersResponse = z.infer<typeof answersResponseSchema>;
+
+export const answerDetailSchema = answerSummarySchema.extend({
+  answerText: z.string().nullable(),
+  citations: z.array(citationSchema),
+  retrievalMeta: z.object({
+    mode: z.enum(["hybrid", "lexical"]),
+    topK: z.number().int().positive(),
+    latencyMs: z.number().int().nonnegative(),
+  }),
+});
+export type AnswerDetail = z.infer<typeof answerDetailSchema>;
+
+export const auditEventSchema = z.object({
+  id: z.string().uuid(),
+  sequence: z.number().int().nonnegative(),
+  eventType: z.string(),
+  actorName: z.string().nullable(),
+  payload: z.record(z.unknown()),
+  createdAt: z.string(),
+});
+export type AuditEvent = z.infer<typeof auditEventSchema>;
+
+// --- GET /api/v1/reviews/queue ---------------------------------------------------
+
+export const reviewQueueResponseSchema = z.object({
+  queue: z.array(answerDetailSchema),
+  nextCursor: z.string().nullable(),
+});
+export type ReviewQueueResponse = z.infer<typeof reviewQueueResponseSchema>;
+
+// --- POST /api/v1/answers/{id}/reject ---------------------------------------------
+
+export const rejectRequestSchema = z.object({
+  note: z.string().trim().min(3).max(2_000),
+});
+
+// --- Evaluation runs (api-contracts.md §1 Evaluation, PRD FR-21) -------------------
+
+export const evalGatesSchema = z.object({
+  recallAt5: z.number().nullable(),
+  refusalAccuracy: z.number().nullable(),
+  citationValidity: z.number().nullable(),
+  groundedRate: z.number().nullable(),
+});
+export type EvalGates = z.infer<typeof evalGatesSchema>;
+
+export const evalRunSummarySchema = z.object({
+  runId: z.string().uuid(),
+  mode: z.string(),
+  fixtureVersion: z.number().int(),
+  startedAt: z.string(),
+  gates: evalGatesSchema,
+  passed: z.boolean(),
+});
+export type EvalRunSummary = z.infer<typeof evalRunSummarySchema>;
+
+export const evalRunsResponseSchema = z.object({
+  runs: z.array(evalRunSummarySchema),
+});
+export type EvalRunsResponse = z.infer<typeof evalRunsResponseSchema>;
+
+export const evalRunDetailSchema = evalRunSummarySchema.extend({
+  metrics: z.record(z.unknown()),
+  caseSummaries: z.record(z.unknown()),
+  reportPath: z.string().nullable(),
+});
+export type EvalRunDetail = z.infer<typeof evalRunDetailSchema>;
+
+export const createEvalRunRequestSchema = z.object({
+  mode: z.enum(["retrieval", "full"]),
+  fixtureVersion: z.number().int().positive(),
+  startedAt: z.string().datetime(),
+  metrics: z.record(z.unknown()),
+  gates: evalGatesSchema,
+  passed: z.boolean(),
+  caseSummaries: z.record(z.unknown()),
+  reportPath: z.string().max(500).optional(),
+});
 export type ChunkDetailResponse = z.infer<typeof chunkDetailResponseSchema>;

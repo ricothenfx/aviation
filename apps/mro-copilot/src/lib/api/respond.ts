@@ -27,6 +27,9 @@ export const MRO_ERROR_CODES = [
   "MODEL_NOT_LOADED",
   "AI_SERVICE_UNAVAILABLE",
   "SELF_APPROVAL_FORBIDDEN",
+  // F3 (additive): answer lifecycle violation, e.g. approving a non-draft
+  // answer (api-contracts.md §2 mro additions).
+  "LIFECYCLE_CONFLICT",
 ] as const;
 
 export type MroErrorCode = (typeof MRO_ERROR_CODES)[number];
@@ -36,6 +39,7 @@ const MRO_ERROR_STATUS: { [K in MroErrorCode]: number } = {
   MODEL_NOT_LOADED: 503,
   AI_SERVICE_UNAVAILABLE: 503,
   SELF_APPROVAL_FORBIDDEN: 403,
+  LIFECYCLE_CONFLICT: 409,
 };
 
 export type ErrorCode = StandardErrorCode | MroErrorCode;

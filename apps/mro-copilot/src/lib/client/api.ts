@@ -55,3 +55,33 @@ export async function apiGet<T>(
 export function apiSearch(params: URLSearchParams, signal?: AbortSignal): Promise<SearchResponse> {
   return apiGet(`/api/v1/search?${params.toString()}`, searchResponseSchema.parse, signal);
 }
+
+/** POST JSON with the same error-envelope handling as apiGet. */
+export async function apiPost<T>(
+  path: string,
+  body: unknown,
+  parse: (raw: unknown) => T,
+): Promise<T> {
+  let res: Response;
+  try {
+    res = await fetch(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      cache: "no-store",
+    });
+  } catch {
+    throw new ApiClientError("NETWORK_ERROR", "network request failed", 0);
+  }
+  const parsed: unknown = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const error = (parsed as ApiErrorBody).error;
+    throw new ApiClientError(
+      error?.code ?? "INTERNAL",
+      error?.message ?? `request failed (${res.status})`,
+      res.status,
+      error?.requestId,
+    );
+  }
+  return parse(parsed);
+}
