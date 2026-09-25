@@ -43,3 +43,30 @@ export const aiServiceReadySchema = z.object({
   }),
 });
 export type AiServiceReady = z.infer<typeof aiServiceReadySchema>;
+
+// --- Hybrid retrieval (api-contracts.md §3 /internal/v1/retrieval/search) ----
+// The pydantic twin is mro_ai/internal/schemas.py; cross-language parity is
+// asserted by both runtimes parsing tests/fixtures/retrieval_contract.json.
+
+export const retrievalHitSchema = z.object({
+  chunkId: z.string().uuid(),
+  manualId: z.string().uuid(),
+  docType: z.enum(["AMM", "IPC", "TSM", "SB"]),
+  taskNo: z.string(),
+  ataChapter: z.string(),
+  sectionPath: z.string(),
+  page: z.number().int().positive(),
+  revision: z.string(),
+  effectiveDate: z.string(),
+  snippet: z.string(),
+  score: z.number(),
+});
+export type RetrievalHit = z.infer<typeof retrievalHitSchema>;
+
+/** `mode` flags degraded retrieval (hybrid | lexical) per FR-7. */
+export const retrievalSearchResponseSchema = z.object({
+  mode: z.enum(["hybrid", "lexical"]),
+  results: z.array(retrievalHitSchema),
+  latencyMs: z.number().int().nonnegative(),
+});
+export type RetrievalSearchResponse = z.infer<typeof retrievalSearchResponseSchema>;

@@ -3,9 +3,11 @@ import {
   aiServiceReadySchema,
   embedRequestSchema,
   embedResponseSchema,
+  retrievalSearchResponseSchema,
   type AiServiceReady,
   type EmbedRequest,
   type EmbedResponse,
+  type RetrievalSearchResponse,
 } from "@/lib/ai/contract";
 import { logger } from "@/lib/logger";
 
@@ -69,6 +71,35 @@ export async function embed(request: EmbedRequest, requestId?: string): Promise<
   const body = embedRequestSchema.parse(request);
   const raw = await postJson("/internal/v1/embed", body, requestId);
   return embedResponseSchema.parse(raw);
+}
+
+export interface RetrievalSearchParams {
+  query: string;
+  k: number;
+  docTypes?: string[];
+  ataChapters?: string[];
+  revision?: string;
+}
+
+/**
+ * Hybrid retrieval via the ai-service (ADR-0010). The response names its mode:
+ * "lexical" means degraded retrieval (embedding provider unavailable), which
+ * callers must surface in the API/UI (FR-7, architecture.md §4).
+ */
+export async function retrievalSearch(
+  params: RetrievalSearchParams,
+  requestId?: string,
+): Promise<RetrievalSearchResponse> {
+  const body: Record<string, unknown> = { query: params.query, k: params.k };
+  if (params.docTypes?.length || params.ataChapters?.length || params.revision) {
+    body.filters = {
+      ...(params.docTypes?.length ? { docTypes: params.docTypes } : {}),
+      ...(params.ataChapters?.length ? { ataChapters: params.ataChapters } : {}),
+      ...(params.revision ? { revision: params.revision } : {}),
+    };
+  }
+  const raw = await postJson("/internal/v1/retrieval/search", body, requestId);
+  return retrievalSearchResponseSchema.parse(raw);
 }
 
 export async function aiServiceReady(requestId?: string): Promise<AiServiceReady> {

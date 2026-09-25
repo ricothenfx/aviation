@@ -76,11 +76,11 @@ function makeRand(seed: number): Rand {
     pick(items) {
       return items[Math.floor(next() * items.length)] as never;
     },
-    some(items, count) {
+    some<T2>(items: readonly T2[], count: number): T2[] {
       const pool = [...items];
-      const out: T[] = [];
+      const out: T2[] = [];
       while (out.length < count && pool.length > 0) {
-        out.push(pool.splice(Math.floor(next() * pool.length), 1)[0] as never);
+        out.push(pool.splice(Math.floor(next() * pool.length), 1)[0] as T2);
       }
       return out;
     },

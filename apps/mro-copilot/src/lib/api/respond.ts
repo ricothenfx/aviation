@@ -40,6 +40,9 @@ const MRO_ERROR_STATUS: { [K in MroErrorCode]: number } = {
 
 export type ErrorCode = StandardErrorCode | MroErrorCode;
 
+/** Re-exported so route handlers import the full error surface from one place. */
+export { ApiError };
+
 export const ERROR_STATUS: { [K in ErrorCode]: number } = {
   ...STANDARD_ERROR_STATUS,
   ...MRO_ERROR_STATUS,
