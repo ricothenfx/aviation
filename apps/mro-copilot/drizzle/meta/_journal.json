@@ -15,6 +15,13 @@
       "when": 1790298378895,
       "tag": "0001_complex_orphan",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790333566935,
+      "tag": "0002_first_ogun",
+      "breakpoints": true
     }
   ]
 }
