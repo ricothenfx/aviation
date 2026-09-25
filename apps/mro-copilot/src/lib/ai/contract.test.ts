@@ -94,7 +94,8 @@ describe("embed contract (zod side)", () => {
  */
 const RUL_FIXTURE_URL = new URL(
   "../../../../../services/mro-copilot/ai-service/tests/fixtures/rul_contract.json",
-  import.meta.url);
+  import.meta.url,
+);
 
 interface RulFixture {
   predictResponse: unknown;

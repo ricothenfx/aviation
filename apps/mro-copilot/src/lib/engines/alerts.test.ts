@@ -20,9 +20,11 @@ describe("evaluateAlert", () => {
   });
 
   it("deduplicates while an alert is open (raised or acknowledged)", () => {
-    expect(
-      evaluateAlert({ predictedRul: 12, threshold: 30, openAlertExists: true }),
-    ).toEqual({ raise: false, leadCycles: 12, reason: "already_open" });
+    expect(evaluateAlert({ predictedRul: 12, threshold: 30, openAlertExists: true })).toEqual({
+      raise: false,
+      leadCycles: 12,
+      reason: "already_open",
+    });
   });
 
   it("treats the threshold boundary as crossing", () => {
