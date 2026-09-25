@@ -5,7 +5,6 @@ import Link from "next/link";
 
 import {
   CHART_TOKENS,
-  Disclaimer,
   EmptyState,
   ErrorState,
   LiveDot,
@@ -556,9 +555,10 @@ async function loadAlerts() {
 }
 
 function Footer() {
+  // The app shell renders the persistent simulated-data Disclaimer
+  // (data-ethics §2); C-MAPSS views ADD the dataset citation (FR-3).
   return (
     <footer className="flex flex-wrap items-center justify-between gap-2 pb-2 text-[11px] text-muted">
-      <Disclaimer />
       <span>
         Data: NASA C-MAPSS FD001 — Saxena &amp; Goebel (2008), PHM08 · fleet identities fictional
         (NX-E)

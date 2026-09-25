@@ -161,6 +161,28 @@ class RulScoreFleetResponse(BaseModel):
     insufficient_history: list[str] = Field(alias="insufficientHistory")
 
 
+class RulBackfillEntry(BaseModel):
+    unit_id: str = Field(alias="unitId", min_length=1, max_length=64)
+    model_config = ConfigDict(populate_by_name=True)
+
+    cycles: list[Annotated[int, Field(ge=1)]] = Field(min_length=1, max_length=48)
+
+
+class RulBackfillRequest(BaseModel):
+    """Offline scoring at explicit historical cycles — used by the app to
+    backfill a trend series for units that have no predictions yet. Feature
+    windows stop AT each requested cycle (no look-ahead)."""
+
+    entries: list[RulBackfillEntry] = Field(min_length=1, max_length=500)
+
+
+class RulBackfillResponse(BaseModel):
+    model_version: str = Field(alias="modelVersion")
+    model_sha256: str = Field(alias="modelSha256")
+    results: list[RulPrediction]
+    skipped: list[str] = Field(default_factory=list)
+
+
 class ModelMetrics(BaseModel):
     rmse: float
     nasaScore: float

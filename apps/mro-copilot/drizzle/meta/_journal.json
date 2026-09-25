@@ -36,6 +36,13 @@
       "when": 1790354537953,
       "tag": "0004_graceful_freak",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790364501329,
+      "tag": "0005_slippery_warstar",
+      "breakpoints": true
     }
   ]
 }

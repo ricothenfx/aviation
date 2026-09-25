@@ -13,7 +13,7 @@ from fastapi.testclient import TestClient
 
 from mro_ai.config import load_config
 from mro_ai.gateway import Gateway
-from mro_ai.internal.schemas import RulPrediction, RulScoreFleetResponse
+from mro_ai.internal.schemas import RulBackfillResponse, RulPrediction, RulScoreFleetResponse
 from mro_ai.main import create_app
 from mro_ai.rul import ModelNotLoadedError, ModelRegistry
 
@@ -192,6 +192,55 @@ def test_score_fleet_reports_insufficient_units(
     for prediction in body.results:
         assert isinstance(prediction, RulPrediction)
         assert prediction.model_version == body.model_version
+
+
+def test_backfill_scores_explicit_cycles_without_lookahead(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import mro_ai.rul as rul_module
+
+    def fake_bulk(conn: object, unit_ids: list[str]) -> dict:
+        return {
+            unit_id: [
+                rul_module.HistoryRow(cycle=c, sensors=tuple([100.0 + 0.5 * c] + [10.0 + c] * 20))
+                for c in range(1, 41)
+            ]
+            for unit_id in unit_ids
+        }
+
+    monkeypatch.setattr(rul_module, "_fetch_history_bulk", fake_bulk)
+    monkeypatch.setattr(rul_module, "_connect", lambda _url: nullcontext())
+    res = client.post(
+        "/internal/v1/rul/backfill",
+        headers=AUTH,
+        json={"entries": [{"unitId": "NX-E202", "cycles": [12, 20, 40, 99]}]},
+    )
+    assert res.status_code == 200
+    body = RulBackfillResponse.model_validate(res.json())
+    # cycle 99 exceeds the 40-row history -> dropped, never extrapolated.
+    assert [p.cycle for p in body.results] == [12, 20, 40]
+    assert body.skipped == []
+    for prediction in body.results:
+        assert prediction.model_version == body.model_version
+        assert len(prediction.model_sha256) == 64
+
+
+def test_backfill_skips_short_history_units(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import mro_ai.rul as rul_module
+
+    monkeypatch.setattr(rul_module, "_fetch_history_bulk", lambda conn, ids: {})
+    monkeypatch.setattr(rul_module, "_connect", lambda _url: nullcontext())
+    res = client.post(
+        "/internal/v1/rul/backfill",
+        headers=AUTH,
+        json={"entries": [{"unitId": "NX-E203", "cycles": [12]}]},
+    )
+    assert res.status_code == 200
+    body = RulBackfillResponse.model_validate(res.json())
+    assert body.results == []
+    assert body.skipped == ["NX-E203"]
 
 
 def test_rul_routes_require_bearer_token(client: TestClient) -> None:

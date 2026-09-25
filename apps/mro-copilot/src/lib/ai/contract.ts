@@ -112,6 +112,26 @@ export const rulScoreFleetResponseSchema = z.object({
 });
 export type RulScoreFleetResponse = z.infer<typeof rulScoreFleetResponseSchema>;
 
+export const rulBackfillRequestSchema = z.object({
+  entries: z
+    .array(
+      z.object({
+        unitId: z.string().min(1).max(64),
+        cycles: z.array(z.number().int().positive()).min(1).max(48),
+      }),
+    )
+    .min(1)
+    .max(500),
+});
+
+export const rulBackfillResponseSchema = z.object({
+  modelVersion: z.string().min(1),
+  modelSha256: z.string().length(64),
+  results: z.array(rulPredictionSchema),
+  skipped: z.array(z.string().min(1)),
+});
+export type RulBackfillResponse = z.infer<typeof rulBackfillResponseSchema>;
+
 export const modelInfoSchema = z.object({
   version: z.string().min(1),
   sha256: z.string().length(64),

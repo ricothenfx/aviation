@@ -22,6 +22,8 @@ from mro_ai.internal.schemas import (
     RetrievalHit,
     RetrievalSearchRequest,
     RetrievalSearchResponse,
+    RulBackfillRequest,
+    RulBackfillResponse,
     RulPrediction,
     RulPredictRequest,
     RulScoreFleetRequest,
@@ -215,6 +217,25 @@ async def rul_score_fleet(payload: RulScoreFleetRequest, request: Request) -> Ru
         modelSha256=info.sha256,
         results=[RulPrediction.model_validate(_prediction_to_schema(p)) for p in predictions],
         insufficientHistory=insufficient,
+    )
+
+
+@router.post("/internal/v1/rul/backfill")
+async def rul_backfill(payload: RulBackfillRequest, request: Request) -> RulBackfillResponse:
+    """Offline scoring at explicit historical cycles (trend backfill, F4
+    additive): one bulk history round trip, batched predict, no look-ahead.
+    Units that cannot support a cycle are reported in `skipped`."""
+    service = _rul_service(request)
+    info = service.registry_info()
+    entries = [(entry.unit_id, list(entry.cycles)) for entry in payload.entries]
+    with RUL_LATENCY.time():
+        predictions, skipped = await anyio.to_thread.run_sync(service.backfill, entries)
+    RUL_REQUESTS.inc(len(predictions))
+    return RulBackfillResponse(
+        modelVersion=info.version,
+        modelSha256=info.sha256,
+        results=[RulPrediction.model_validate(_prediction_to_schema(p)) for p in predictions],
+        skipped=skipped,
     )
 
 

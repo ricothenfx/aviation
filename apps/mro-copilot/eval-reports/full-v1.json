@@ -1,8 +1,8 @@
 {
   "fixtureVersion": 1,
   "refusalFixtureVersion": 1,
-  "runId": "8b3e3c7f-8cf9-485e-9ee9-c8f22d16bd08",
-  "startedAt": "2026-09-25T19:14:11.848Z",
+  "runId": "43610708-4721-4d11-b4c7-b7612a932368",
+  "startedAt": "2026-09-25T20:19:21.932Z",
   "baseUrl": "http://localhost:3003",
   "metrics": {
     "recallAt5": 0.9231,
@@ -11,9 +11,9 @@
     "groundedRate": 0.8462,
     "citationsTotal": 132,
     "askLatencyMs": {
-      "p50": 125.4,
-      "p95": 481.8,
-      "max": 659.9
+      "p50": 94.1,
+      "p95": 255.2,
+      "max": 398.8
     },
     "idempotentReplay": true
   },

@@ -35,6 +35,26 @@
     "insufficientHistory": ["NX-E203"]
   },
   "scoreFleetFields": ["modelVersion", "modelSha256", "results", "insufficientHistory"],
+  "backfillRequest": {
+    "entries": [{ "unitId": "NX-E202", "cycles": [20, 60, 100, 140] }]
+  },
+  "backfillResponse": {
+    "modelVersion": "1.0.0",
+    "modelSha256": "f612eb432e728136c886f19bf6b0dcc62ec940150ba2c0816d6a61ef7f902a23",
+    "results": [
+      {
+        "unitId": "NX-E202",
+        "cycle": 20,
+        "rulCycles": 121,
+        "bandLow": 85,
+        "bandHigh": 157,
+        "modelVersion": "1.0.0",
+        "modelSha256": "f612eb432e728136c886f19bf6b0dcc62ec940150ba2c0816d6a61ef7f902a23"
+      }
+    ],
+    "skipped": []
+  },
+  "backfillFields": ["modelVersion", "modelSha256", "results", "skipped"],
   "modelInfoResponse": {
     "version": "1.0.0",
     "sha256": "f612eb432e728136c886f19bf6b0dcc62ec940150ba2c0816d6a61ef7f902a23",

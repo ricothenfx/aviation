@@ -143,6 +143,8 @@ export function EngineDetail({ unitId }: { unitId: string }) {
               <ComposedChart data={trend} margin={{ top: 12, right: 16, bottom: 24, left: 8 }}>
                 <XAxis
                   dataKey="cycle"
+                  type="number"
+                  domain={["dataMin", "dataMax"]}
                   label={{
                     value: "Cycle (synthetic days since 2000-01-01)",
                     position: "insideBottom",
@@ -253,7 +255,6 @@ export function EngineDetail({ unitId }: { unitId: string }) {
       </Panel>
 
       <footer className="flex flex-wrap items-center justify-between gap-2 pb-2 text-[11px] text-muted">
-        <span data-testid="simulated-data-disclaimer">Simulated data for portfolio purposes</span>
         <span>
           Data: NASA C-MAPSS FD001 — Saxena &amp; Goebel (2008), PHM08 · synthetic time axis: 1
           cycle = 1 day from 2000-01-01

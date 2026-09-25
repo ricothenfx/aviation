@@ -1,10 +1,10 @@
-import { asc } from "drizzle-orm";
+import { asc, sql } from "drizzle-orm";
 
 import { engineUnits, rulPredictions } from "@/db/schema";
 import { getSingletonDb } from "@/lib/db-singleton";
 import { logger } from "@/lib/logger";
 import { scoreFleetResponseSchema } from "@/lib/api/schemas";
-import { AiInsufficientHistoryError, rulScoreFleet } from "@/lib/ai/client";
+import { AiInsufficientHistoryError, rulBackfill, rulScoreFleet } from "@/lib/ai/client";
 import {
   MroApiError,
   handleRouteError,
@@ -67,10 +67,24 @@ async function runScoreFleet(requestId: string) {
     ms: Date.now() - started,
   });
 
-  const resultByUnit = new Map(scoring.results.map((r) => [r.unitId, r]));
-  const persisted = scoring.results.length > 0 ? await persistPredictions(scoring) : [];
+  // Units that already had a prediction BEFORE this run — first-scoring
+  // units get a trend backfill below (PRD F-5 "per-unit trend").
+  const withPredictions = new Set(
+    (await db.selectDistinct({ unitId: rulPredictions.unitId }).from(rulPredictions)).map(
+      (r) => r.unitId,
+    ),
+  );
+
+  const persisted = scoring.results.length > 0 ? await persistPredictions(scoring.results) : [];
+
+  // First-scoring backfill: offline trend series at evenly spaced historical
+  // checkpoints (one bulk round trip in the ai-service; no look-ahead — each
+  // point's feature window stops AT its cycle). Provenance identical to the
+  // live score.
+  const backfilledCount = await backfillTrends(scoring, active, withPredictions, requestId);
 
   // Alert engine (architecture.md §2: rules are app-side product logic).
+  const resultByUnit = new Map(scoring.results.map((r) => [r.unitId, r]));
   const raisedAlerts = [];
   for (const unitId of scoring.results.map((r) => r.unitId)) {
     const prediction = resultByUnit.get(unitId)!;
@@ -102,10 +116,66 @@ async function runScoreFleet(requestId: string) {
     results: scoring.results,
     raisedAlerts: raisedAlerts.map((a) => alertToApi(a, names)),
   });
+  logger.info({ msg: "score_fleet_done", requestId, backfilledPoints: backfilledCount });
   return jsonResponse(body);
 }
 
-async function persistPredictions(scoring: {
+/** Trend checkpoints: up to 12 evenly spaced cycles from the earliest
+ * scoreable point to the unit's latest cycle (latest included — upsert makes
+ * it identical to the primary score). */
+function trendCheckpoints(latestCycle: number): number[] {
+  const earliest = MIN_TREND_CYCLES;
+  if (latestCycle <= earliest) return [latestCycle];
+  const points = 12;
+  const step = (latestCycle - earliest) / (points - 1);
+  const cycles = Array.from({ length: points }, (_, i) => Math.round(earliest + i * step)).filter(
+    (c) => c >= earliest && c < latestCycle,
+  );
+  return [...new Set([...cycles, latestCycle])].sort((a, b) => a - b);
+}
+
+const MIN_TREND_CYCLES = 12;
+
+async function backfillTrends(
+  scoring: { modelVersion: string },
+  active: Array<{ unitId: string; windowThresholdCycles: number; status: string }>,
+  withPredictions: Set<string>,
+  requestId: string,
+): Promise<number> {
+  const needing = active.filter((u) => !withPredictions.has(u.unitId));
+  if (needing.length === 0) return 0;
+  // Latest cycle per unit comes from the score just persisted.
+  const latest = new Map(
+    (
+      await getSingletonDb()
+        .select({ unitId: rulPredictions.unitId, cycle: rulPredictions.cycle })
+        .from(rulPredictions)
+    ).map((r) => [r.unitId, r.cycle]),
+  );
+  const entries = needing
+    .map((u) => {
+      const latestCycle = latest.get(u.unitId);
+      return latestCycle ? { unitId: u.unitId, cycles: trendCheckpoints(latestCycle) } : null;
+    })
+    .filter((e): e is { unitId: string; cycles: number[] } => e !== null);
+  if (entries.length === 0) return 0;
+
+  const backfill = await rulBackfill(entries, requestId);
+  if (backfill.results.length > 0) {
+    await persistPredictions(backfill.results);
+  }
+  logger.info({
+    msg: "score_fleet_backfilled",
+    requestId,
+    modelVersion: scoring.modelVersion,
+    units: entries.length,
+    points: backfill.results.length,
+    skipped: backfill.skipped.length,
+  });
+  return backfill.results.length;
+}
+
+async function persistPredictions(
   results: Array<{
     unitId: string;
     cycle: number;
@@ -114,13 +184,13 @@ async function persistPredictions(scoring: {
     bandHigh: number;
     modelVersion: string;
     modelSha256: string;
-  }>;
-}) {
+  }>,
+) {
   const db = getSingletonDb();
   return db
     .insert(rulPredictions)
     .values(
-      scoring.results.map((r) => ({
+      results.map((r) => ({
         unitId: r.unitId,
         cycle: r.cycle,
         rulCycles: r.rulCycles,
@@ -130,5 +200,16 @@ async function persistPredictions(scoring: {
         modelSha256: r.modelSha256,
       })),
     )
+    .onConflictDoUpdate({
+      target: [rulPredictions.unitId, rulPredictions.cycle],
+      set: {
+        rulCycles: sql`excluded.rul_cycles`,
+        bandLow: sql`excluded.band_low`,
+        bandHigh: sql`excluded.band_high`,
+        modelVersion: sql`excluded.model_version`,
+        modelSha256: sql`excluded.model_sha256`,
+        createdAt: sql`now()`,
+      },
+    })
     .returning({ id: rulPredictions.id, unitId: rulPredictions.unitId });
 }

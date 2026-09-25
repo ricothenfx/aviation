@@ -5,6 +5,7 @@ import {
   embedResponseSchema,
   modelInfoSchema,
   retrievalSearchResponseSchema,
+  rulBackfillResponseSchema,
   rulPredictRequestSchema,
   rulPredictionSchema,
   rulScoreFleetRequestSchema,
@@ -15,6 +16,7 @@ import {
   type ModelInfo,
   type RetrievalSearchResponse,
   type RulPrediction,
+  type RulBackfillResponse,
   type RulScoreFleetResponse,
 } from "@/lib/ai/contract";
 import { logger } from "@/lib/logger";
@@ -202,6 +204,15 @@ export async function rulScoreFleet(
   // default 10 s (PRD §7 has no score-fleet gate; honesty beats a flaky cut).
   const raw = await postJson("/internal/v1/rul/score-fleet", body, requestId, 30_000);
   return rulScoreFleetResponseSchema.parse(raw);
+}
+
+/** Offline scoring at explicit historical cycles (trend backfill). */
+export async function rulBackfill(
+  entries: Array<{ unitId: string; cycles: number[] }>,
+  requestId?: string,
+): Promise<RulBackfillResponse> {
+  const raw = await postJson("/internal/v1/rul/backfill", { entries }, requestId, 30_000);
+  return rulBackfillResponseSchema.parse(raw);
 }
 
 /** Current artifact provenance + committed metrics. */

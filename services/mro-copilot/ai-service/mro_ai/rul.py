@@ -209,9 +209,7 @@ def _fetch_history_on(conn: Any, unit_id: str, up_to_cycle: int | None) -> list[
     return [HistoryRow(cycle=int(r[0]), sensors=tuple(float(v) for v in r[1:])) for r in rows]
 
 
-def _fetch_history_bulk(
-    conn: Any, unit_ids: list[str]
-) -> dict[str, list[SensorRow]]:
+def _fetch_history_bulk(conn: Any, unit_ids: list[str]) -> dict[str, list[SensorRow]]:
     """History for many units in ONE round trip (cycles ascending per unit)."""
     if not unit_ids:
         return {}
@@ -250,6 +248,65 @@ class RulService:
         with _connect(self._database_url) as conn:
             rows = _fetch_history_on(conn, unit_id, cycle)
         return self._predict_from(payload, sha, unit_id, rows, cycle)
+
+    def backfill(self, entries: list[tuple[str, list[int]]]) -> tuple[list[Prediction], list[str]]:
+        """Offline scoring at explicit historical cycles (trend backfill).
+
+        ONE bulk history round trip for all units, then batched prediction.
+        Feature windows stop AT each requested cycle — no look-ahead. Units
+        whose history cannot support a requested cycle are reported in
+        `skipped` (the app drops those points rather than fabricating them).
+        """
+        payload, sha, _metrics = self._registry.ensure_loaded()
+        model = payload["model"]
+        channels = [int(c) for c in payload["channels"]]
+        min_cycles = int(payload["minCycles"])
+        residual_std = float(payload["residualStd"])
+
+        all_units = sorted({unit_id for unit_id, _cycles in entries})
+        with _connect(self._database_url) as conn:
+            history = _fetch_history_bulk(conn, all_units)
+
+        predictions: list[Prediction] = []
+        skipped: list[str] = []
+        batch: list[np.ndarray[Any, Any]] = []
+        batch_meta: list[tuple[str, int]] = []
+        for unit_id, cycles in entries:
+            rows = history.get(unit_id, [])
+            if len(rows) < min_cycles:
+                skipped.append(unit_id)
+                continue
+            last_cycle = rows[-1].cycle
+            scored_any = False
+            for cycle in cycles:
+                if cycle < min_cycles or cycle > last_cycle:
+                    continue
+                try:
+                    batch.append(features_for_cycle(rows, cycle, channels))
+                except ValueError:
+                    continue
+                batch_meta.append((unit_id, int(cycle)))
+                scored_any = True
+            if not scored_any:
+                skipped.append(unit_id)
+
+        if batch:
+            stacked = np.vstack(batch)
+            ruls = model.predict(stacked)
+            for i, (unit_id, cycle) in enumerate(batch_meta):
+                rul = float(ruls[i])
+                predictions.append(
+                    Prediction(
+                        unit_id=unit_id,
+                        cycle=cycle,
+                        rul_cycles=max(0, round(rul)),
+                        band_low=max(0, round(rul - BAND_Z * residual_std)),
+                        band_high=round(rul + BAND_Z * residual_std),
+                        model_version=str(payload["version"]),
+                        model_sha256=sha,
+                    )
+                )
+        return predictions, skipped
 
     def score_fleet(self, unit_ids: list[str]) -> tuple[list[Prediction], list[str]]:
         """Score a batch: ONE history round trip + ONE batched model.predict

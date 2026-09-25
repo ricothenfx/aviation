@@ -8,6 +8,8 @@ import {
   embedRequestSchema,
   embedResponseSchema,
   modelInfoSchema,
+  rulBackfillRequestSchema,
+  rulBackfillResponseSchema,
   rulPredictionSchema,
   rulScoreFleetResponseSchema,
   tokenUsageSchema,
@@ -102,6 +104,9 @@ interface RulFixture {
   predictFields: string[];
   scoreFleetResponse: unknown;
   scoreFleetFields: string[];
+  backfillRequest: unknown;
+  backfillResponse: unknown;
+  backfillFields: string[];
   modelInfoResponse: unknown;
   modelInfoFields: string[];
 }
@@ -135,6 +140,13 @@ describe("rul contract (zod side)", () => {
       "insufficientHistory",
     ]);
     expect(parsed.insufficientHistory).toEqual(["NX-E203"]);
+  });
+
+  it("parses the shared backfill fixture and matches declared fields", () => {
+    expect(() => rulBackfillRequestSchema.parse(fixture.backfillRequest)).not.toThrow();
+    const parsed = rulBackfillResponseSchema.parse(fixture.backfillResponse);
+    expect(fixture.backfillFields).toEqual(["modelVersion", "modelSha256", "results", "skipped"]);
+    expect(parsed.results[0]!.cycle).toBe(20);
   });
 
   it("parses the shared model-info fixture", () => {

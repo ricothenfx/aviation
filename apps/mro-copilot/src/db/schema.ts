@@ -402,7 +402,9 @@ export const rulPredictions = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
-    index("rul_predictions_unit_cycle_idx").on(table.unitId, table.cycle),
+    /** One latest-known prediction per (unit, cycle): re-scoring the same
+     * cycle supersedes (upsert) instead of appending duplicates. */
+    uniqueIndex("rul_predictions_unit_cycle_key").on(table.unitId, table.cycle),
     index("rul_predictions_unit_created_idx").on(table.unitId, table.createdAt),
   ],
 );
