@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { href: "/manuals", label: "Library" },
   { href: "/search", label: "Search" },
   { href: "/ask", label: "Copilot" },
+  { href: "/answers", label: "Answers" },
   { href: "/reviews", label: "Reviews" },
   { href: "/engines", label: "Engines" },
   { href: "/evals", label: "Evals" },

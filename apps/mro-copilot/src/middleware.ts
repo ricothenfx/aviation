@@ -26,7 +26,15 @@ export async function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-const APP_PAGE_PREFIXES = ["/manuals", "/search", "/ask", "/reviews", "/engines", "/evals"];
+const APP_PAGE_PREFIXES = [
+  "/manuals",
+  "/search",
+  "/ask",
+  "/answers",
+  "/reviews",
+  "/engines",
+  "/evals",
+];
 
 export const config = {
   matcher: [
@@ -34,6 +42,7 @@ export const config = {
     "/manuals/:path*",
     "/search/:path*",
     "/ask/:path*",
+    "/answers/:path*",
     "/reviews/:path*",
     "/engines/:path*",
     "/evals/:path*",
