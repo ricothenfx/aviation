@@ -47,7 +47,7 @@ function withWarnings(
   const kinds = ["WARNING", "CAUTION", "NOTE"] as const;
   return steps.map((step, i) => {
     const roll = noteRand.next();
-    if (roll < 0.26) {
+    if (roll < 0.30) {
       const kind = kinds[Math.floor(roll * kinds.length * 4.5)] ?? "NOTE";
       const hazard = i % 2 === 0 ? noteRand.pick(bank.hazards) : null;
       const note =
@@ -176,7 +176,11 @@ const CHAPTERS: ChapterBank[] = [
       "no fretting is visible on the carriage rollers",
       "the feel force gradient stays within the tolerance band",
     ],
-    quantities: ["aileron deflection 22.4°", "feel force gradient 4.1 daN", "flap skew margin 1.8°"],
+    quantities: [
+      "aileron deflection 22.4°",
+      "feel force gradient 4.1 daN",
+      "flap skew margin 1.8°",
+    ],
   },
   {
     chapter: "28",
@@ -313,7 +317,11 @@ const CHAPTERS: ChapterBank[] = [
       "leak detection loop resistance stays inside the pass band",
       "the pre-cooler outlet stays below the stated ceiling at max flow",
     ],
-    quantities: ["regulated bleed pressure 42 psi", "pre-cooler outlet 178 °C", "loop resistance 4.2 Ω"],
+    quantities: [
+      "regulated bleed pressure 42 psi",
+      "pre-cooler outlet 178 °C",
+      "loop resistance 4.2 Ω",
+    ],
   },
   {
     chapter: "26",
@@ -338,11 +346,7 @@ const CHAPTERS: ChapterBank[] = [
       "the bottle pressure gauge reads within the green band",
       "the smoke detector alarms on the reference test smoke pattern",
     ],
-    quantities: [
-      "bottle pressure 1250 psi",
-      "loop resistance 3.8 Ω",
-      "alarm response 12 s",
-    ],
+    quantities: ["bottle pressure 1250 psi", "loop resistance 3.8 Ω", "alarm response 12 s"],
   },
   {
     chapter: "49",
@@ -367,7 +371,11 @@ const CHAPTERS: ChapterBank[] = [
       "oil pressure reaches the idle floor within the stated seconds",
       "the intake door reaches full open within its acceptance time",
     ],
-    quantities: ["idle oil pressure 58 psi", "intake door open time 6.5 s", "start peak EGT 512 °C"],
+    quantities: [
+      "idle oil pressure 58 psi",
+      "intake door open time 6.5 s",
+      "start peak EGT 512 °C",
+    ],
   },
 ];
 
@@ -390,7 +398,12 @@ const TOOL_NAMES = [
   "NXT-911 generator load bank",
 ];
 
-const SUPPLIERS = ["Nordwind Aero Supply", "Kepler Avionics", "Halcyon Hydraulics", "Meridian Gear Co."];
+const SUPPLIERS = [
+  "Nordwind Aero Supply",
+  "Kepler Avionics",
+  "Halcyon Hydraulics",
+  "Meridian Gear Co.",
+];
 
 function pad(n: number, width: number): string {
   return String(n).padStart(width, "0");
@@ -431,7 +444,8 @@ function ammTasks(rand: Rand): AmmTask[] {
       const title = `${component} — ${kind}`;
       const torque = rand.int(12, 96) + rand.pick([0.5, 0, 0.5]);
       const torqueUnit = rand.pick(["Nm", "Nm", "lbf·ft"]);
-      const torqueText = torqueUnit === "Nm" ? `${torque.toFixed(1)} Nm` : `${(torque * 0.74).toFixed(1)} lbf·ft`;
+      const torqueText =
+        torqueUnit === "Nm" ? `${torque.toFixed(1)} Nm` : `${(torque * 0.74).toFixed(1)} lbf·ft`;
       const pressure = rand.int(28, 3000);
       const partBase = `NX-${bank.chapter}${pad(rand.int(10, 99), 2)}`;
       const pn = `${partBase}-${rand.int(100, 999)}-${rand.pick(["A", "B", "C"])}`;
@@ -616,9 +630,9 @@ function tsmTasks(rand: Rand): TsmTask[] {
     const symptom = symptoms[idx % symptoms.length] ?? "indication fault";
     const faultCode = `FC-${bank.chapter}${pad(rand.int(10, 99), 2)}-${pad(rand.int(100, 999), 3)}`;
     const taskNo = `${bank.chapter}-${pad(rand.int(10, 49), 2)}-00-${pad(rand.int(200, 490), 3)}-${pad(rand.int(210, 418), 3)}`;
-    const causes = rand.some(bank.components, 3).map(
-      (c) => `Faulty or contaminated ${c} in the ${bank.system} circuit.`,
-    );
+    const causes = rand
+      .some(bank.components, 3)
+      .map((c) => `Faulty or contaminated ${c} in the ${bank.system} circuit.`);
     causes.push(`Open or chafed wiring between the ${component} and its control unit.`);
     const isolation: string[] = [];
     isolation.push(
@@ -726,8 +740,19 @@ function ipcDocs(rand: Rand): IpcDoc[] {
         const item =
           r === 1
             ? rand.pick(bank.components)
-            : rand.pick([...bank.components, "o-ring seal", "attach bolt", "lock washer", "clamp collar", "gasket", "retainer ring", "coupling half"]);
-        rows.push(`| ${pad(r, 2)} | ${pn} | ${item} | ${rand.int(1, 8)} | ${rand.pick(SUPPLIERS)} |`);
+            : rand.pick([
+                ...bank.components,
+                "o-ring seal",
+                "attach bolt",
+                "lock washer",
+                "clamp collar",
+                "gasket",
+                "retainer ring",
+                "coupling half",
+              ]);
+        rows.push(
+          `| ${pad(r, 2)} | ${pn} | ${item} | ${rand.int(1, 8)} | ${rand.pick(SUPPLIERS)} |`,
+        );
       }
       return { figNo: `${figureId}-F${f}`, name: `${assembly} — figure ${f}`, rows };
     });
@@ -800,7 +825,9 @@ function sbDocs(rand: Rand): SbDoc[] {
     "TRU cooling fin corrosion protection",
   ];
   return banks.map((bank, i) => {
-    const sbNo = `SB-${bank.chapter}-${pad(i + 1, 3)}`;
+    // The first bullet is numbered SB-29-002 so its Rev 02 (renderSbRev02)
+    // forms the committed supersession pair under the same task_no.
+    const sbNo = i === 0 ? "SB-29-002" : `SB-${bank.chapter}-${pad(i + 1, 3)}`;
     const component = rand.pick(bank.components);
     const fromLn = rand.int(12, 40);
     const toLn = fromLn + rand.int(30, 90);
@@ -1026,7 +1053,11 @@ function main(): void {
   };
   const evalDir = path.join(OUT_DIR, "eval");
   mkdirSync(evalDir, { recursive: true });
-  writeFileSync(path.join(evalDir, "corpus-manifest.json"), JSON.stringify(manifest, null, 2) + "\n", "utf8");
+  writeFileSync(
+    path.join(evalDir, "corpus-manifest.json"),
+    JSON.stringify(manifest, null, 2) + "\n",
+    "utf8",
+  );
 
   console.info(
     JSON.stringify({
@@ -1037,7 +1068,7 @@ function main(): void {
       amm: amms.length,
       tsm: tsms.length,
       ipc: ipcs.length,
-      sb: sbs.length + 1,
+      sb: writes.filter((w) => w.entry.docType === "SB").length,
     }),
   );
 }

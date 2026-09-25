@@ -780,13 +780,13 @@
       "docType": "SB",
       "title": "electric motor pump (EMP) — reservoir pressurization module fleet improvement",
       "ataChapter": "29",
-      "taskNo": "SB-29-001",
+      "taskNo": "SB-29-002",
       "revision": "Rev 01",
       "effectiveDate": "2025-03-21",
-      "sourcePath": "manuals/sb/SB-29-001-rev01.md",
+      "sourcePath": "manuals/sb/SB-29-002-rev01.md",
       "facts": [
-        "SB-29-001 applies to NX-320 line numbers 40–118.",
-        "SB-29-001 accomplishment interval: within 569 flight hours of the effective date."
+        "SB-29-002 applies to NX-320 line numbers 40–118.",
+        "SB-29-002 accomplishment interval: within 569 flight hours of the effective date."
       ]
     },
     {
@@ -839,6 +839,18 @@
       "facts": [
         "SB-24-005 applies to NX-320 line numbers 37–119.",
         "SB-24-005 accomplishment interval: within 2286 flight hours of the effective date."
+      ]
+    },
+    {
+      "docType": "SB",
+      "title": "electric motor pump (EMP) — reservoir pressurization module fleet improvement",
+      "ataChapter": "29",
+      "taskNo": "SB-29-002",
+      "revision": "Rev 02",
+      "effectiveDate": "2026-02-14",
+      "sourcePath": "manuals/sb/SB-29-002-rev02.md",
+      "facts": [
+        "SB-29-002 Rev 02 supersedes Rev 01 (effective 2026-02-14)."
       ]
     }
   ]

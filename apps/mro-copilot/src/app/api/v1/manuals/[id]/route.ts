@@ -19,10 +19,7 @@ import { chunks, manuals } from "@/db/schema";
  */
 export const dynamic = "force-dynamic";
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const requestId = newRequestId();
   try {
     await requireSession("viewer");
@@ -44,6 +41,7 @@ export async function GET(
           Number,
         ),
         chunkCount: sql<number>`count(*)`.mapWith(Number),
+        firstChunkId: sql<string>`(array_agg(${chunks.id} order by ${chunks.chunkIndex}))[1]`,
         firstIndex: sql<number>`min(${chunks.chunkIndex})`.mapWith(Number),
       })
       .from(chunks)
@@ -51,7 +49,13 @@ export async function GET(
       .groupBy(chunks.sectionPath)
       .orderBy(sql`min(${chunks.chunkIndex}) asc`);
 
-    const breadcrumb = manualBreadcrumb(manual.docType, manual.ataChapter, manual.taskNo, manual.revision, manual.title);
+    const breadcrumb = manualBreadcrumb(
+      manual.docType,
+      manual.ataChapter,
+      manual.taskNo,
+      manual.revision,
+      manual.title,
+    );
     const sections = rows.map((row) => {
       const suffix = row.sectionPath.startsWith(`${breadcrumb} · `)
         ? row.sectionPath.slice(breadcrumb.length + 3)
@@ -62,6 +66,7 @@ export async function GET(
         depth: suffix.split(" · ").length,
         page: row.page,
         chunkCount: row.chunkCount,
+        firstChunkId: row.firstChunkId,
       };
     });
 

@@ -182,6 +182,10 @@ def parse_document(path: Path, corpus_root: Path) -> ParsedDocument:
             page = int(page_match.group(1))
             current = None
             continue
+        if line.startswith("# "):
+            # Level-1 heading (document title): already carried by the
+            # breadcrumb via front-matter — never a content block.
+            continue
         heading = HEADING_RE.match(line)
         if heading:
             flush()

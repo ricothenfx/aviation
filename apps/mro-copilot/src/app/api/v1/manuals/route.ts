@@ -69,9 +69,10 @@ export async function GET(request: NextRequest) {
         revision: manuals.revision,
         effectiveDate: manuals.effectiveDate,
         status: manuals.status,
-        chunkCount: sql<number>`(select count(*) from ${chunks} where ${chunks.manualId} = ${manuals.id})`.mapWith(
-          Number,
-        ),
+        chunkCount:
+          sql<number>`(select count(*) from ${chunks} where ${chunks.manualId} = ${manuals.id})`.mapWith(
+            Number,
+          ),
       })
       .from(manuals)
       .where(conditions.length ? and(...conditions) : undefined)

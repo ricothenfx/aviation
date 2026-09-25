@@ -1,11 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-import {
-  chunkDetailResponseSchema,
-  manualsResponseSchema,
-  searchResponseSchema,
-} from "./schemas";
+import { chunkDetailResponseSchema, manualsResponseSchema, searchResponseSchema } from "./schemas";
 
 /**
  * Zod half of the cross-runtime retrieval contract (see the pydantic twin at

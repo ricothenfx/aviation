@@ -73,9 +73,7 @@ export async function GET(
       navigation: {
         prevChunkId: position > 0 ? neighbours[position - 1]!.id : null,
         nextChunkId:
-          position >= 0 && position < neighbours.length - 1
-            ? neighbours[position + 1]!.id
-            : null,
+          position >= 0 && position < neighbours.length - 1 ? neighbours[position + 1]!.id : null,
       },
     });
     return jsonResponse(body);

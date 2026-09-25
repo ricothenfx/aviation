@@ -80,6 +80,7 @@ export const manualSectionSchema = z.object({
   depth: z.number().int().nonnegative(),
   page: z.number().int().positive(),
   chunkCount: z.number().int().nonnegative(),
+  firstChunkId: z.string().uuid(),
 });
 export type ManualSection = z.infer<typeof manualSectionSchema>;
 
