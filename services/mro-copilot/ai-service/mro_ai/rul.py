@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Any
 
 import joblib
+import numpy as np
 
 from mro_ai.features import MIN_CYCLES, SensorRow, features_for_cycle
 
@@ -180,7 +181,18 @@ def _connect(database_url: str) -> Any:
 
 
 def fetch_history(database_url: str, unit_id: str, up_to_cycle: int | None) -> list[SensorRow]:
-    """Sensor history for a unit (cycles ascending), optionally truncated."""
+    """Sensor history for a unit (cycles ascending), optionally truncated.
+
+    Single-unit convenience path (predict). Fleet scoring uses
+    `RulService.score_fleet`, which fetches ALL units' history in ONE
+    round trip (PRD §7 latency budget — per-request handshakes dominate at
+    fleet scale).
+    """
+    with _connect(database_url) as conn:
+        return _fetch_history_on(conn, unit_id, up_to_cycle)
+
+
+def _fetch_history_on(conn: Any, unit_id: str, up_to_cycle: int | None) -> list[SensorRow]:
     query = (
         "select cycle, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, "
         "s11, s12, s13, s14, s15, s16, s17, s18, s19, s20, s21 "
@@ -191,10 +203,32 @@ def fetch_history(database_url: str, unit_id: str, up_to_cycle: int | None) -> l
         query += " and cycle <= %(cycle)s"
         params["cycle"] = up_to_cycle
     query += " order by cycle asc"
-    with _connect(database_url) as conn, conn.cursor() as cur:
+    with conn.cursor() as cur:
         cur.execute(query, params)
         rows = cur.fetchall() or []
     return [HistoryRow(cycle=int(r[0]), sensors=tuple(float(v) for v in r[1:])) for r in rows]
+
+
+def _fetch_history_bulk(
+    conn: Any, unit_ids: list[str]
+) -> dict[str, list[SensorRow]]:
+    """History for many units in ONE round trip (cycles ascending per unit)."""
+    if not unit_ids:
+        return {}
+    query = (
+        "select unit_id, cycle, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, "
+        "s11, s12, s13, s14, s15, s16, s17, s18, s19, s20, s21 "
+        "from sensor_readings where unit_id = any(%(units)s) "
+        "order by unit_id asc, cycle asc"
+    )
+    grouped: dict[str, list[SensorRow]] = {}
+    with conn.cursor() as cur:
+        cur.execute(query, {"units": unit_ids})
+        for r in cur.fetchall() or []:
+            grouped.setdefault(str(r[0]), []).append(
+                HistoryRow(cycle=int(r[1]), sensors=tuple(float(v) for v in r[2:]))
+            )
+    return grouped
 
 
 class RulService:
@@ -213,12 +247,73 @@ class RulService:
 
     def predict(self, unit_id: str, cycle: int | None = None) -> Prediction:
         payload, sha, _metrics = self._registry.ensure_loaded()
+        with _connect(self._database_url) as conn:
+            rows = _fetch_history_on(conn, unit_id, cycle)
+        return self._predict_from(payload, sha, unit_id, rows, cycle)
+
+    def score_fleet(self, unit_ids: list[str]) -> tuple[list[Prediction], list[str]]:
+        """Score a batch: ONE history round trip + ONE batched model.predict
+        (per-call sklearn overhead dominates at fleet scale otherwise).
+
+        Returns (predictions, insufficientHistory): units with too little
+        history are reported, never fabricated (D-15 precedent).
+        """
+        payload, sha, _metrics = self._registry.ensure_loaded()
         model = payload["model"]
         channels = [int(c) for c in payload["channels"]]
         min_cycles = int(payload["minCycles"])
         residual_std = float(payload["residualStd"])
 
-        rows = fetch_history(self._database_url, unit_id, cycle)
+        with _connect(self._database_url) as conn:
+            history = _fetch_history_bulk(conn, unit_ids)
+
+        predictions: list[Prediction] = []
+        insufficient: list[str] = []
+        batch: list[np.ndarray[Any, Any]] = []
+        batch_meta: list[tuple[str, int]] = []
+        for unit_id in unit_ids:  # caller-supplied order preserved
+            rows = history.get(unit_id, [])
+            if len(rows) < min_cycles:
+                insufficient.append(unit_id)
+                continue
+            target_cycle = rows[-1].cycle
+            try:
+                batch.append(features_for_cycle(rows, target_cycle, channels))
+                batch_meta.append((unit_id, int(target_cycle)))
+            except ValueError:
+                insufficient.append(unit_id)
+
+        if batch:
+            stacked = np.vstack(batch)
+            ruls = model.predict(stacked)
+            for i, (unit_id, cycle) in enumerate(batch_meta):
+                rul = float(ruls[i])
+                predictions.append(
+                    Prediction(
+                        unit_id=unit_id,
+                        cycle=cycle,
+                        rul_cycles=max(0, round(rul)),
+                        band_low=max(0, round(rul - BAND_Z * residual_std)),
+                        band_high=round(rul + BAND_Z * residual_std),
+                        model_version=str(payload["version"]),
+                        model_sha256=sha,
+                    )
+                )
+        return predictions, insufficient
+
+    def _predict_from(
+        self,
+        payload: dict[str, Any],
+        sha: str,
+        unit_id: str,
+        rows: list[SensorRow],
+        cycle: int | None,
+    ) -> Prediction:
+        model = payload["model"]
+        channels = [int(c) for c in payload["channels"]]
+        min_cycles = int(payload["minCycles"])
+        residual_std = float(payload["residualStd"])
+
         if len(rows) < min_cycles:
             raise InsufficientHistoryError(
                 f"unit {unit_id} has {len(rows)} readings; "

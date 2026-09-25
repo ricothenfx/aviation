@@ -98,6 +98,15 @@ pnpm db:migrate:mro     # apply pending mro-copilot migrations (pgvector + chunk
 # mro-copilot stack (web :3003, ai-service :4103 loopback, shared postgres, DB mro_copilot — ADR-0012):
 docker compose --profile mro up -d
 
+# mro-copilot RUL training (F4): pinned-image train CLI — commit the artifact
+# + metrics.json it produces under services/mro-copilot/ai-service/models/
+# (fd001 requires seed/cmapss/download.sh to have run; `--dataset sample`
+# trains on the committed synthetic 3-unit sample):
+docker run --rm -v "$PWD/services/mro-copilot/ai-service:/srv" \
+  -v "$PWD/apps/mro-copilot/seed/cmapss:/seed-cmapss" -w /srv python:3.12-slim sh -c \
+  "pip install -q -r requirements.txt && MRO_CMAPSS_DATA_DIR=/seed-cmapss/data OMP_NUM_THREADS=1 \
+   python -m mro_ai.train --dataset fd001 --version <semver> --out /srv/models"
+
 # mro-copilot Python ai-service checks (host has no pip; run in the pinned image):
 docker run --rm -v "$PWD/services/mro-copilot/ai-service:/srv" -w /srv python:3.12-slim sh -c \
   "pip install -q -r requirements-dev.txt && ruff check . && ruff format --check . && mypy mro_ai && pytest"

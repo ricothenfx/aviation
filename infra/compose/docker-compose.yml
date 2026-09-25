@@ -310,7 +310,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 24
-      start_period: 240s
+      # F4: the image now installs the pinned ML stack (scikit-learn/numpy)
+      # at boot — allow a longer warm-up.
+      start_period: 420s
 
   # Load-run evidence stack (ADR-0007): k6 remote-writes metrics here during
   # `scripts/loadtest/run-loadtest.mjs --prom`; Grafana renders the committed

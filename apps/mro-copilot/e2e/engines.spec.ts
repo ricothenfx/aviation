@@ -67,6 +67,6 @@ test.describe("mro-copilot engine health (F4)", () => {
     await expect(page.getByTestId("trend-chart")).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText("Predicted RUL (cycles)").first()).toBeVisible();
     await expect(page.getByText(/Maintenance window \(30 cyc\)/).first()).toBeVisible();
-    await expect(page.getByText(/Simulated data for portfolio purposes/)).toBeVisible();
+    await expect(page.getByText(/Simulated data for portfolio purposes/).first()).toBeVisible();
   });
 });

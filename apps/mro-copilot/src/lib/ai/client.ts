@@ -43,9 +43,14 @@ function aiServiceToken(): string {
   return token;
 }
 
-async function postJson(path: string, body: unknown, requestId?: string): Promise<unknown> {
+async function postJson(
+  path: string,
+  body: unknown,
+  requestId?: string,
+  timeoutMs: number = DEFAULT_TIMEOUT_MS,
+): Promise<unknown> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const res = await fetch(`${AI_SERVICE_URL}${path}`, {
       method: "POST",
@@ -192,7 +197,10 @@ export async function rulScoreFleet(
   requestId?: string,
 ): Promise<RulScoreFleetResponse> {
   const body = rulScoreFleetRequestSchema.parse(params);
-  const raw = await postJson("/internal/v1/rul/score-fleet", body, requestId);
+  // Fleet scale: one bulk history round trip + N model inferences; the mock
+  // provider path is fast, but real fleets deserve a roomier budget than the
+  // default 10 s (PRD §7 has no score-fleet gate; honesty beats a flaky cut).
+  const raw = await postJson("/internal/v1/rul/score-fleet", body, requestId, 30_000);
   return rulScoreFleetResponseSchema.parse(raw);
 }
 

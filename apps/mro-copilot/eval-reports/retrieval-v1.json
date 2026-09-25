@@ -4,12 +4,12 @@
   "refusalCases": 22,
   "baseUrl": "http://localhost:3003",
   "topK": 5,
-  "startedAt": "2026-09-25T13:37:30.495Z",
+  "startedAt": "2026-09-25T19:13:56.798Z",
   "cases": 52,
   "metrics": {
     "recallAt5": 0.9231,
     "hitRateAt5": 0.9231,
-    "mrr": 0.8458,
+    "mrr": 0.8554,
     "gate": {
       "recallAt5": 0.85
     },
@@ -822,7 +822,7 @@
           "docType": "AMM",
           "ataChapter": "32",
           "taskNo": "32-35-00-242-227",
-          "score": 0.0308
+          "score": 0.0306
         },
         {
           "docType": "AMM",
@@ -895,13 +895,13 @@
         {
           "docType": "AMM",
           "ataChapter": "34",
-          "taskNo": "34-23-00-246-250",
+          "taskNo": "34-40-00-420-209",
           "score": 0.0161
         },
         {
           "docType": "AMM",
           "ataChapter": "34",
-          "taskNo": "34-40-00-420-209",
+          "taskNo": "34-23-00-246-250",
           "score": 0.0161
         },
         {
@@ -956,7 +956,7 @@
         {
           "docType": "AMM",
           "ataChapter": "34",
-          "taskNo": "34-37-00-266-126",
+          "taskNo": "34-11-00-350-186",
           "score": 0.0159
         }
       ],
@@ -1099,18 +1099,18 @@
       ],
       "recalled": 1,
       "recallAt5": 1,
-      "mrr": 0.5,
+      "mrr": 1,
       "topHits": [
         {
           "docType": "AMM",
           "ataChapter": "26",
-          "taskNo": "26-48-00-372-276",
+          "taskNo": "26-34-00-220-313",
           "score": 0.0325
         },
         {
           "docType": "AMM",
           "ataChapter": "26",
-          "taskNo": "26-34-00-220-313",
+          "taskNo": "26-48-00-372-276",
           "score": 0.0325
         },
         {
@@ -1128,7 +1128,7 @@
         {
           "docType": "AMM",
           "ataChapter": "26",
-          "taskNo": "26-34-00-220-313",
+          "taskNo": "26-33-00-278-264",
           "score": 0.0156
         }
       ],
@@ -1937,15 +1937,15 @@
           "score": 0.0161
         },
         {
-          "docType": "TSM",
-          "ataChapter": "29",
-          "taskNo": "29-32-00-337-312",
-          "score": 0.0159
-        },
-        {
           "docType": "IPC",
           "ataChapter": "29",
           "taskNo": "29-45-01",
+          "score": 0.0159
+        },
+        {
+          "docType": "TSM",
+          "ataChapter": "29",
+          "taskNo": "29-32-00-337-312",
           "score": 0.0159
         }
       ],

@@ -54,6 +54,15 @@ jobs:
         working-directory: services/mro-copilot/ai-service
         run: mypy mro_ai
 
+      # F4 DoD: same seed ⇒ identical artifact sha256 — trained on the
+      # committed synthetic 3-unit sample (clearly labeled synthetic,
+      # data-ethics.md; CI never downloads C-MAPSS).
+      - name: RUL training reproducibility gate (seeded GBM, synthetic sample)
+        working-directory: services/mro-copilot/ai-service
+        env:
+          AI_SERVICE_TOKEN: ci-only-token-0123456789abcdef
+        run: pytest tests/test_rul_train.py -q
+
       - name: Unit tests (pytest)
         working-directory: services/mro-copilot/ai-service
         env:
@@ -106,8 +115,17 @@ jobs:
             -d '{"email":"tom.ng@mro-sim.example","password":"viewer-nx-01"}' \
             | grep -o '"role":"viewer"'
           echo "seeded logins OK for all three roles"
+          curl -sf -X POST http://localhost:3003/api/v1/auth/login \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"tom.ng@mro-sim.example","password":"viewer-nx-01"}' \
+            -c /tmp/mro-viewer.jar > /dev/null
+          curl -sf http://localhost:3003/api/v1/engines -b /tmp/mro-viewer.jar \
+            | grep -o '"unitId":"NX-E203"'
+          echo "fleet snapshot OK (engine-health F4 fixtures present)"
+          curl -sf http://localhost:4103/readyz | grep -o '"model":"up"'
+          echo "RUL artifact loaded (model: up)"
 
-      - name: Integration tests (migration · RBAC · embed determinism · ingest idempotency · corpus · contract · degradation ladder)
+      - name: Integration tests (migration · RBAC · embed determinism · ingest idempotency · corpus · contract · degradation ladder · engine health)
         env:
           MRO_DATABASE_URL: postgresql://turnaround:turnaround@localhost:5433/mro_copilot
           MRO_BASE_URL: http://localhost:3003

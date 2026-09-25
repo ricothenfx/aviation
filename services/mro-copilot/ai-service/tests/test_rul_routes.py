@@ -4,6 +4,7 @@ MODEL_NOT_LOADED, INSUFFICIENT_HISTORY, and the cross-runtime fixture."""
 from __future__ import annotations
 
 import json
+from contextlib import nullcontext
 from pathlib import Path
 from typing import Any
 
@@ -36,7 +37,10 @@ def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
 def _stub_history(monkeypatch: pytest.MonkeyPatch, rows: int, ramp: bool = True) -> None:
     import mro_ai.rul as rul_module
 
-    def fake_history(database_url: str, unit_id: str, up_to_cycle: int | None) -> list:
+    # No database in unit tests: the fetch layer is stubbed below.
+    monkeypatch.setattr(rul_module, "_connect", lambda _url: nullcontext())
+
+    def fake_history_on(conn: object, unit_id: str, up_to_cycle: int | None) -> list:
         return [
             rul_module.HistoryRow(
                 cycle=c,
@@ -45,7 +49,7 @@ def _stub_history(monkeypatch: pytest.MonkeyPatch, rows: int, ramp: bool = True)
             for c in range(1, rows + 1)
         ]
 
-    monkeypatch.setattr(rul_module, "fetch_history", fake_history)
+    monkeypatch.setattr(rul_module, "_fetch_history_on", fake_history_on)
 
 
 def test_model_info_carries_provenance(client: TestClient) -> None:
@@ -87,13 +91,14 @@ def test_predict_at_explicit_cycle_uses_truncated_history(
 
     seen: list[int | None] = []
     _stub_history(monkeypatch, rows=40)
-    stub = rul_module.fetch_history
+    stub = rul_module._fetch_history_on
 
-    def spy(database_url: str, unit_id: str, up_to_cycle: int | None) -> list:
+    def spy(conn: object, unit_id: str, up_to_cycle: int | None) -> list:
         seen.append(up_to_cycle)
-        return stub(database_url, unit_id, up_to_cycle)
+        return stub(conn, unit_id, up_to_cycle)
 
-    monkeypatch.setattr(rul_module, "fetch_history", spy)
+    monkeypatch.setattr(rul_module, "_fetch_history_on", spy)
+    monkeypatch.setattr(rul_module, "_connect", lambda _url: nullcontext())
     res = client.post(
         "/internal/v1/rul/predict", headers=AUTH, json={"unitId": "NX-E101", "cycle": 12}
     )
@@ -163,14 +168,17 @@ def test_score_fleet_reports_insufficient_units(
         return real(database_url, unit_id, up_to_cycle)
 
     # Real DB is unavailable in unit tests — return synthetic rows instead.
-    def fake(database_url: str, unit_id: str, up_to_cycle: int | None) -> list:
-        rows_count = 6 if unit_id.endswith("203") else 40
-        return [
-            rul_module.HistoryRow(cycle=c, sensors=tuple([100.0 + 0.5 * c] + [10.0 + c] * 20))
-            for c in range(1, rows_count + 1)
-        ]
+    def fake_bulk(conn: object, unit_ids: list[str]) -> dict:
+        return {
+            unit_id: [
+                rul_module.HistoryRow(cycle=c, sensors=tuple([100.0 + 0.5 * c] + [10.0 + c] * 20))
+                for c in range(1, (6 if unit_id.endswith("203") else 40) + 1)
+            ]
+            for unit_id in unit_ids
+        }
 
-    monkeypatch.setattr(rul_module, "fetch_history", fake)
+    monkeypatch.setattr(rul_module, "_fetch_history_bulk", fake_bulk)
+    monkeypatch.setattr(rul_module, "_connect", lambda _url: nullcontext())
     res = client.post(
         "/internal/v1/rul/score-fleet",
         headers=AUTH,

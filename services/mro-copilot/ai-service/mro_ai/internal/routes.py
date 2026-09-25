@@ -30,7 +30,7 @@ from mro_ai.internal.schemas import (
 )
 from mro_ai.metrics import EMBED_LATENCY, EMBED_REQUESTS, INGEST_CHUNKS, RUL_LATENCY, RUL_REQUESTS
 from mro_ai.retrieval import RetrievalService, SearchFilters
-from mro_ai.rul import InsufficientHistoryError, ModelNotLoadedError, RulService
+from mro_ai.rul import ModelNotLoadedError, RulService
 
 router = APIRouter(dependencies=[Depends(require_service_token)])
 
@@ -201,25 +201,19 @@ async def rul_predict(payload: RulPredictRequest, request: Request) -> RulPredic
 async def rul_score_fleet(payload: RulScoreFleetRequest, request: Request) -> RulScoreFleetResponse:
     """Score a batch of units synchronously; per-unit results carry
     provenance; short-history units are reported in insufficientHistory
-    (additive — the app composes latestRul: null for them)."""
+    (additive — the app composes latestRul: null for them). One bulk history
+    round trip serves the whole batch (PRD §7 latency budget)."""
     service = _rul_service(request)
     info = service.registry_info()  # fail fast on a missing/mismatched artifact
-
-    results: list[RulPrediction] = []
-    insufficient: list[str] = []
-    for unit_id in payload.unit_ids:
-        try:
-            with RUL_LATENCY.time():
-                prediction = await anyio.to_thread.run_sync(_call_predict, service, unit_id, None)
-        except InsufficientHistoryError:
-            insufficient.append(unit_id)
-            continue
-        results.append(RulPrediction.model_validate(_prediction_to_schema(prediction)))
-    RUL_REQUESTS.inc(len(results))
+    with RUL_LATENCY.time():
+        predictions, insufficient = await anyio.to_thread.run_sync(
+            service.score_fleet, payload.unit_ids
+        )
+    RUL_REQUESTS.inc(len(predictions))
     return RulScoreFleetResponse(
         modelVersion=info.version,
         modelSha256=info.sha256,
-        results=results,
+        results=[RulPrediction.model_validate(_prediction_to_schema(p)) for p in predictions],
         insufficientHistory=insufficient,
     )
 

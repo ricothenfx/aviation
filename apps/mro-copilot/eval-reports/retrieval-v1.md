@@ -1,12 +1,12 @@
 # mro-copilot retrieval eval — golden QA v1
 
-Started: 2026-09-25T13:37:30.495Z · corpus corpus-manifest v1 · top-k=5 · public endpoint /api/v1/search
+Started: 2026-09-25T19:13:56.798Z · corpus corpus-manifest v1 · top-k=5 · public endpoint /api/v1/search
 
 | metric | value | gate |
 |---|---|---|
 | recall@5 | 0.9231 | >= 0.85 PASS |
 | hit-rate@5 | 0.9231 | informational |
-| MRR | 0.8458 | informational |
+| MRR | 0.8554 | informational |
 | cases | 52 | >= 50 (FR-19) |
 
 Refusal fixture v1 loaded (22 cases) — scored by the full eval from F3 (ask flow).

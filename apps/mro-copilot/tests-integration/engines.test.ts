@@ -51,9 +51,22 @@ function post(path: string, cookie: string, body?: unknown, idempotencyKey?: str
   });
 }
 
-async function scoreFleet(cookie: string, key?: string) {
-  const res = await post("/api/v1/engines/score-fleet", cookie, {}, key ?? `score-${Date.now()}`);
-  return { res, body: (await res.json()) as Record<string, unknown> };
+interface ScoreFleetBody {
+  modelVersion: string;
+  modelSha256: string;
+  scored: number;
+  results: Array<{
+    unitId: string;
+    rulCycles: number;
+    modelVersion: string;
+    modelSha256: string;
+  }>;
+  insufficientHistory: string[];
+  raisedAlerts: Array<Record<string, unknown>>;
+}
+
+async function scoreFleet(cookie: string, key?: string): Promise<Response> {
+  return post("/api/v1/engines/score-fleet", cookie, {}, key ?? `score-${Date.now()}`);
 }
 
 describe("GET /api/v1/engines — RBAC + shape", () => {
@@ -102,7 +115,7 @@ describe("GET /api/v1/engines — RBAC + shape", () => {
 describe("POST /api/v1/engines/score-fleet — RBAC + provenance + honesty", () => {
   it("viewer is 403 (engineer+)", async () => {
     const viewer = await login(VIEWER);
-    const { res } = await scoreFleet(viewer);
+    const res = await scoreFleet(viewer);
     expect(res.status).toBe(403);
     const body = (await res.json()) as { error: { code: string } };
     expect(body.error.code).toBe("FORBIDDEN");
@@ -110,8 +123,9 @@ describe("POST /api/v1/engines/score-fleet — RBAC + provenance + honesty", () 
 
   it("engineer scores the fleet; insufficient-history units get no RUL", async () => {
     const engineer = await login(ENGINEER);
-    const { res, body } = await scoreFleet(engineer, `score-int-${Date.now()}`);
+    const res = await scoreFleet(engineer, `score-int-${Date.now()}`);
     expect(res.status).toBe(200);
+    const body = (await res.json()) as unknown as ScoreFleetBody;
 
     const results = body.results as Array<{
       unitId: string;

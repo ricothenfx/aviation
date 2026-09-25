@@ -45,12 +45,13 @@
 ### Engine Health (PRD F-5)
 | Method | Path | Role | Notes |
 |---|---|---|---|
-| GET | `/api/v1/engines` | viewer+ | fleet: per-unit `{unitId, latestRul, bandLow, bandHigh, modelVersion, status, alertCount}` — `latestRul` is `null` until the unit has ≥ minimum window for scoring (renders "—", never 0; D-15 honesty precedent) |
-| GET | `/api/v1/engines/{unitId}` | viewer+ | prediction history, trend series (labeled axes), alerts, thresholds |
-| POST | `/api/v1/engines/score-fleet` | engineer+ | synchronous rescoring via ai-service; returns per-unit results + `modelVersion` |
-| GET | `/api/v1/engines/alerts` | viewer+ | `status` filter; `{alertId, unitId, projectedRul, threshold, leadCycles, raisedAt, state}` |
+| GET | `/api/v1/engines` | viewer+ | fleet: per-unit `{unitId, latestRul, bandLow, bandHigh, modelVersion, status, alertCount}` — `latestRul` is `null` until the unit has ≥ minimum window for scoring (renders "—", never 0; D-15 honesty precedent). F4 additive fields: `modelSha256`, `latestCycle`, `dataset` (`cmapss-fd001 \| synthetic-sample`), `windowThresholdCycles` |
+| GET | `/api/v1/engines/{unitId}` | viewer+ | prediction history, trend series (labeled axes), alerts, thresholds. F4 additive: per-unit `readingCount`, per-prediction `predictedAt` |
+| GET | `/api/v1/engines/model` | viewer+ | **F4 additive endpoint**: serving artifact provenance `{modelVersion, modelSha256, trainedAt, dataset, metrics: {rmse, nasaScore}}` (mirrors ai-service `/internal/v1/model`) |
+| POST | `/api/v1/engines/score-fleet` | engineer+ | synchronous rescoring via ai-service; returns per-unit results + `modelVersion`. F4 additive: `modelSha256`, `insufficientHistory: [unitId]`, `raisedAlerts`, `scored` |
+| GET | `/api/v1/engines/alerts` | viewer+ | `status` filter; `{alertId, unitId, projectedRul, threshold, leadCycles, raisedAt, state}`. F4 additive (provenance, §4): `modelVersion`, `modelSha256`, `acknowledgedAt/ByName`, `resolvedAt/ByName`, `resolveNote` |
 | POST | `/api/v1/engines/alerts/{id}/acknowledge` | engineer+ | `raised → acknowledged` |
-| POST | `/api/v1/engines/alerts/{id}/resolve` | engineer+ | `{note}` · `→ resolved` |
+| POST | `/api/v1/engines/alerts/{id}/resolve` | engineer+ | `{note}` (mandatory) · `→ resolved`; strict chain — resolve before acknowledge is 409 `LIFECYCLE_CONFLICT` |
 
 ### Admin / Ingest (PRD US-10)
 | Method | Path | Role | Notes |
@@ -80,7 +81,7 @@ mro-copilot additions: `INGEST_IN_PROGRESS` 409 · `MODEL_NOT_LOADED` 503 ·
 | POST | `/internal/v1/embed` | `{texts: string[]} → {model, vectors: number[][], usage}` |
 | POST | `/internal/v1/retrieval/search` | `{query, k, filters?: {docTypes?, ataChapters?, revision?}} → {mode: "hybrid"\|"lexical", results: [{chunkId, manualId, score, snippet, metadata}]}` — query embedding happens inside (ADR-0012) |
 | POST | `/internal/v1/rul/predict` | `{unitId} → {unitId, cycle, rulCycles, bandLow, bandHigh, modelVersion, modelSha256}` |
-| POST | `/internal/v1/rul/score-fleet` | `{unitIds: string[]} → {modelVersion, results: [<predict shape>]}` |
+| POST | `/internal/v1/rul/score-fleet` | `{unitIds: string[]} → {modelVersion, modelSha256, results: [<predict shape>], insufficientHistory: [unitId]}` — F4 additive: units with < min window history are listed in `insufficientHistory` (no prediction row; the app composes `latestRul: null`) instead of erroring the batch |
 | POST | `/internal/v1/ingest` | runs the ingest job (same code path as the CLI); 200 report / 409 in-progress |
 | GET | `/internal/v1/model` | `{version, sha256, trainedAt, dataset, metrics: {rmse, nasaScore}}` |
 
@@ -88,6 +89,10 @@ mro-copilot additions: `INGEST_IN_PROGRESS` 409 · `MODEL_NOT_LOADED` 503 ·
   semantics — same request/response field names and `ProviderUnavailable` behavior;
   cross-language parity is asserted by contract tests.
 - Errors: RFC-7807-style `{title, status, code, detail, requestId}` JSON.
+  F4 codes: `MODEL_NOT_LOADED` 503 (artifact missing/hash-mismatch — no
+  predictions served, architecture.md §6) · `INSUFFICIENT_HISTORY` 422
+  (unit has < min-window readings). Cross-runtime RUL fixtures:
+  `tests/fixtures/rul_contract.json` (pydantic + zod parity).
 
 ## 4. Behavioral Contracts (CI-asserted)
 

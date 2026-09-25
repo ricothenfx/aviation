@@ -140,14 +140,27 @@ Markdown source of truth is the committed corpus; the DB is derived and rebuilda
 
 ## 8. C-MAPSS Ingest & Time Mapping
 
-- `download.sh` fetches FD001 (CMAPSSData.zip) from the pinned NASA repository URL and
-  verifies sha256 before extraction; files are gitignored, the committed `sample/`
-  (3 synthetic units, clearly labeled) keeps CI and offline dev hermetic (data-ethics §1).
-- `recorded_at = EPOCH + cycle × 1 day` (fixed epoch) — a **deterministic synthetic
-  timestamp** so the Timescale hypertable, compression policy, and trend charts have a
-  real time axis; charts label it as synthetic time (ui-design-system §8: axes labeled).
-- RUL training features are computed by ai-service from `sensor_readings` windows — the
-  feature code that trains is the code that serves (ADR-0011 consequence).
+- Seed provenance (`seed/cmapss/README.md`): the original `CMAPSSData.zip` is
+  no longer fetchable without an interactive NASA portal, so `download.sh`
+  pins the four FD001 source files **per file** from a documented public
+  mirror of the NASA release, with sha256 verified on every fetch (tamper ⇒
+  hard fail). Pin authenticity evidence: byte-equality across two independent
+  mirrors + structure matching the published data card (train 20,631 rows /
+  100 units; test 13,096 / 100; RUL 100). Files are gitignored; the committed
+  `sample/` (3 synthetic units, clearly labeled, deterministic generator)
+  keeps CI and offline dev hermetic (data-ethics §1).
+- `recorded_at = EPOCH + cycle × 1 day` — **EPOCH = 2000-01-01T00:00:00Z**
+  (fixed at F4), a **deterministic synthetic timestamp** enforced by a CHECK
+  constraint so the hypertable, compression policy, and trend charts have a
+  real, drift-free time axis; charts label it as synthetic time
+  (ui-design-system §8: axes labeled). Hypertable requirement: unique
+  constraints must include the partition column — uniqueness is
+  `(unit_id, cycle, recorded_at)`, equivalent to `(unit_id, cycle)` because
+  `recorded_at` is a pure function of `cycle`. Compression: chunks older than
+  90 synthetic days (data-model §6).
+- RUL training features are computed by ai-service from `sensor_readings`
+  windows — the feature code that trains is the code that serves
+  (ADR-0011 consequence).
 
 ## 9. Eval Sets (versioned fixtures, PRD F-6)
 

@@ -26,8 +26,8 @@ afterAll(async () => {
 describe("ai-service readiness", () => {
   it("reports db, pgvector, model and provider", async () => {
     const res = await fetch(`${AI_BASE_URL}/readyz`, { headers: AUTH });
-    // The service reports ready once its dependencies are up; the model
-    // artifact is honestly "not_loaded" until F4 (ADR-0011).
+    // F4: the committed artifact loads and hash-verifies — readiness includes
+    // the RUL model dependency (architecture.md §6).
     expect([200, 503]).toContain(res.status);
     const body = (await res.json()) as {
       status: string;
@@ -43,8 +43,11 @@ describe("ai-service readiness", () => {
       expect(body.dependencies.postgres).toBe("up");
       expect(body.dependencies.pgvector).toBe("up");
       expect(body.dependencies.provider).toBe("up");
+      expect(body.dependencies.model).toBe("up");
+      expect(body.status).toBe("ready");
+    } else {
+      expect(body.dependencies.model).toBe("not_loaded");
     }
-    expect(body.dependencies.model).toBe("not_loaded");
   });
 
   it("exposes prometheus metrics", async () => {

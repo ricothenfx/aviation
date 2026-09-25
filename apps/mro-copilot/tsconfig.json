@@ -2,17 +2,22 @@
   "extends": "@aviation/config/tsconfig/nextjs.json",
   "compilerOptions": {
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ]
     }
   },
   "include": [
     "*.ts",
     ".next/types/**/*.ts",
+    "e2e",
     "next-env.d.ts",
+    "playwright.config.ts",
     "seed",
     "src",
-    "e2e",
-    "playwright.config.ts"
+    ".next-off/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }
