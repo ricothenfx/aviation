@@ -266,11 +266,16 @@ export function FleetDashboard({ role }: { role: "viewer" | "engineer" | "review
         }
       >
         {scored.length === 0 ? (
-          <EmptyState
-            title="No predictions yet"
-            body="Units appear with '—' until the fleet is scored. Run Score fleet (engineer+) to produce the first predictions with full provenance."
-          />
-        ) : (
+          <p
+            className="border-b border-border/60 px-4 py-2 text-xs text-muted"
+            data-testid="no-predictions-hint"
+          >
+            No predictions yet — run <span className="text-fg">Score fleet</span> (engineer+) to
+            produce the first predictions with full provenance. Until then every row reads "—",
+            never a placeholder number.
+          </p>
+        ) : null}
+        {
           <table className="w-full text-left text-xs" data-testid="fleet-table">
             <thead>
               <tr className="border-b border-border text-muted">
@@ -350,7 +355,7 @@ export function FleetDashboard({ role }: { role: "viewer" | "engineer" | "review
               })}
             </tbody>
           </table>
-        )}
+        }
       </Panel>
 
       <AlertsPanel canOperate={canOperate} onChanged={refresh} />
