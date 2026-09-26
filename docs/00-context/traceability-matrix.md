@@ -22,14 +22,24 @@
 | 10 | CI/CD, automated testing, logging, monitoring | GitHub Actions pipeline; structured JSON logs; Prometheus + Grafana evidence dashboard; ×10 load gate | `.github/workflows/ci.yml`, `src/lib/api/respond.ts`, `infra/observability/`, `scripts/loadtest/` | pipeline green; k6 gate p95=198 ms < 1 s (load-report-f5.md §2) | F1 pipeline + logs done; metrics/dashboard/load F5 done |
 | 11 | Problem discovery → prototyping → production ownership | PRD problem statement + demo script + production-hardening milestone | docs/04-projects/turnaround-iq (PRD, demo-script.md), load-report-f5.md §3–4 | F5 gate; honest findings documented (data-ethics.md §4) | docs + F5 done |
 
-## 2. CAG ML Engineer (Req 7167) → mro-copilot (spec pending, D-02)
+## 2. CAG ML Engineer (Req 7167) + Full Stack GenAI rows (Req 7133) → mro-copilot
 
-| # | JD requirement | Feature | Code path | Tests | Status |
+Requirement sources: target-roles.md §2 (Req 7167 MLOps rows; Req 7133 GenAI +
+AI-app-reliability rows). Feature refs are PRD F-1…F-7 / FR-n; evidence links are the
+milestone reports and final eval/load reports under `docs/04-projects/mro-copilot/`.
+
+| # | JD requirement | Feature (PRD ref) | Code path | Tests | Status |
 |---|---|---|---|---|---|
-| 1 | RAG with grounding/citations | Manual Q&A copilot with page-level citations | — | golden Q&A eval set | spec pending |
-| 2 | Guardrails + human-in-the-loop | Answer sign-off workflow, refuse-when-ungrounded | — | guardrail tests | spec pending |
-| 3 | MLOps: versioning, eval, drift | Model/eval harness (RAGAS-style), experiment tracking | — | eval report | spec pending |
-| 4 | Predictive model in production | NASA C-MAPSS RUL model served via API | — | model API tests | spec pending |
+| 1 | RAG with grounding/citations (7133/7167) | Hybrid retrieval + manual browser with revision-traceable citations (F-1/F-2, FR-6/FR-7) | `services/mro-copilot/ai-service/mro_ai/retrieval.py` (RRF over HNSW+GIN, ADR-0010), `apps/mro-copilot/src/lib/ai/client.ts`, `src/app/api/v1/manuals`, `src/app/api/v1/search` | `pnpm eval:mro` recall@5 **0.9231** (golden-QA 52); search-contract + corpus integration tests; migration test (HNSW/GIN exist) | F2 done |
+| 2 | LLM integration, prompt design (7133) | RAG orchestration: retrieval→prompt assembly→gateway→guardrails (F-3, FR-9); provider-agnostic gateway + deterministic mock (ADR-0003/0012) | `apps/mro-copilot/src/lib/rag/engine.ts`, `packages/llm-gateway`, `services/mro-copilot/ai-service/mro_ai/gateway/` | pydantic↔zod cross-runtime contract fixtures; extractive-fallback integration test (FR-12) | F3 done |
+| 3 | Guardrails: grounding, validation (7133) | Refuse-when-ungrounded with calibrated threshold; citation-validity invariant; refusal integrity — no answer/citations fields (FR-10/FR-11) | `src/lib/rag/engine.ts`, `src/app/api/v1/ask/route.ts` | refusal accuracy **100%** + citation validity **100%** (CI eval); refusal-integration tests | F3 done |
+| 4 | Human-in-the-loop (7133) | Answer sign-off `draft → approved \| rejected`, separation of duties, append-only audit, verified library (F-4, FR-14/FR-15) | `src/app/api/v1/answers/[id]/{approve,reject}`, `src/lib/audit.ts` | integration lifecycle + `SELF_APPROVAL_FORBIDDEN` + 409 tests; e2e `ask-signoff.spec.ts` | F3 done |
+| 5 | Evaluation (7133/7167) | Versioned fixtures (golden-QA 52, refusal 22), CI-gated full eval, persisted run history + reviewer dashboard (F-6, FR-19…FR-21) | `scripts/eval-mro/{retrieval,full}.mjs`, `src/app/api/v1/evals`, `eval-reports/` | CI gates: recall@5 0.9231 · refusal 1.00 · citation validity 1.00 · grounded 0.8462 (final-eval-report-f5.md) | F3+F5 done |
+| 6 | Predictive model in production (7167) | C-MAPSS-trained GBM RUL serving with provenance on every response, fleet dashboard, maintenance-window alert lifecycle (F-5, FR-16…FR-18, ADR-0011) | `services/mro-copilot/ai-service/mro_ai/{train,rul,cmapss}.py`, `models/`, `src/app/api/v1/engines`, `src/lib/engines/alerts.ts` | pytest reproducibility (same seed ⇒ identical sha256) + tamper + committed-RMSE gate; engines integration (RBAC, provenance, honesty `latestRul: null`); e2e `engines.spec.ts` | F4 done |
+| 7 | MLOps: model versioning (7167) | Seeded training CLI → semver artifact + metrics.json + sha256 pinning, verified at load; `MODEL_NOT_LOADED` 503 (ADR-0011) | `mro_ai/train.py`, `models/metrics.json`, `mro_ai/main.py` (registry) | `tests/test_rul_train.py`, `tests/test_health.py`; provenance contract fixtures (`rul_contract.json`) | F4 done |
+| 8 | AI-app reliability: observability, degradation (7133) | `/healthz` `/readyz` dependency reports on both services; degradation ladder `hybrid→lexical`; error envelopes with requestIds; idempotency keys (FR-2/FR-7) | `src/app/api/v1/{healthz,readyz}`, `src/lib/api/respond.ts`, `retrieval.py`, ADR-0013 pool | degradation-ladder integration tests; readyz readiness matrix; schema/idempotency tests | F3–F4 done |
+| 9 | Drift handling / automated retraining (7167) | **Documented OUT of scope** (PRD §6): versioned artifacts + committed eval reports are the bar; revisit via ADR | PRD §6, data-model.md §9 | — (honest limitation, D-07) | documented F5 |
+| 10 | Load/latency evidence (engineering-standards, milestones §F5) | k6 + independent probe harness; ask gate verified within stated host-load envelope; search 100-VU honestly unverified on shared desktop (D-07) | `scripts/loadtest/mro-*.js`, `run-mro-loadtest.mjs`, load-report-f5.md | committed run archives + host-noise snapshots; ask p95 1.7–2.0 s < 2.5 s at load ≲ 15 | F5 done (degradation documented) |
 
 ## 3. Usage Protocol
 
