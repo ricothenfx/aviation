@@ -92,8 +92,8 @@ table in [traceability-matrix.md](docs/00-context/traceability-matrix.md).
 | # | Project | Status | Spec |
 |---|---|---|---|
 | 1 | **turnaround-iq** — AI-assisted aircraft turnaround command center | **F5 complete** (milestones F1–F5) | `docs/04-projects/turnaround-iq/` |
-| 2 | **mro-copilot** — maintenance-manual RAG copilot + engine health | spec pending | `docs/04-projects/mro-copilot/PRD.md` |
-| 3 | **rebook-ai** — passenger disruption concierge | spec pending | `docs/04-projects/rebook-ai/PRD.md` |
+| 2 | **mro-copilot** — maintenance-manual RAG copilot + engine health | **F5 complete** (milestones F1–F5) | `docs/04-projects/mro-copilot/` |
+| 3 | **rebook-ai** — passenger disruption concierge | **F2 complete** (spec + F1 scaffold + F2 core domain) | `docs/04-projects/rebook-ai/PRD.md` |
 
 ## Quickstart (turnaround-iq)
 

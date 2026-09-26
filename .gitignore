@@ -36,3 +36,5 @@ __pycache__/
 # C-MAPSS downloaded dataset (F4): pinned download.sh output, never committed
 # (the committed synthetic sample under seed/cmapss/sample/ is the CI path).
 apps/mro-copilot/seed/cmapss/data/
+apps/rebook-ai/test-results/
+apps/rebook-ai/playwright-report/

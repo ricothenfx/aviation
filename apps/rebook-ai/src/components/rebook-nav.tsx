@@ -15,6 +15,7 @@ import { cn } from "@/lib/cn";
 const NAV_ITEMS = [
   { href: "/trip", label: "My trip", roles: ["passenger", "agent", "supervisor"] },
   { href: "/console", label: "Agent console", roles: ["agent", "supervisor"] },
+  { href: "/supervisor", label: "Supervisor", roles: ["supervisor"] },
 ] as const;
 
 export function RebookNav({ user }: { user: { email: string; role: string } }) {

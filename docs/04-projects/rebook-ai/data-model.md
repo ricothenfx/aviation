@@ -31,7 +31,7 @@ event_log (append-only envelope: id, type, occurred_at, aggregate_type, aggregat
 |---|---|
 | `users` | Seeded demo users (D-09): `passenger < agent < supervisor` (PRD F-7). argon2id hashes. |
 | `flights` | Reference-day schedule for fictional NX/SV/BH (data-ethics.md §2): flight no (fictional blocks), origin/dest (OurAirports-style codes), sched dep/arr, aircraft, status (`scheduled | delayed | cancelled`), delay minutes. |
-| `pnr` | PNR-*like* booking (synthetic): record locator (6-char fictional), passenger display name, tier (`standard | silver | gold`), fare class, contact handle (fictional), `document` JSONB — the deliberately document-shaped payload (ADR-0015): fare rules, SSR flags, loyalty balances. |
+| `pnr` | PNR-*like* booking (synthetic): record locator (6-char fictional), passenger display name, tier (`standard | silver | gold`), fare class, contact handle (fictional), `document` JSONB — the deliberately document-shaped payload (ADR-0015): fare rules, SSR flags, loyalty balances. F2 adds `user_id` (nullable, D-09 auth linkage): seeded demo-cast bookings point at their login users so ownership scoping is a UUID comparison; background PNRs carry `null`. |
 | `pnr_segments` | Booked itinerary rows per PNR (airline code, flight no, date, origin/dest, cabin, status). |
 | `offers` | One offer set per (pnr, disruption): `state (proposed | confirmed | expired | superseded)`, `context` JSONB (disruption snapshot + ranking inputs for explainability), expires_at. |
 | `offer_options` | Ranked options: `rank`, `kind (fast | cheap | flexible)`, `reason` (human-readable), priced itinerary JSONB (segments incl. partner codes), fare delta, `interline` bool (supervisor approval gate, architecture §3.3). |

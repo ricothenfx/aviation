@@ -12,7 +12,13 @@ import {
   EVENT_TYPES,
   eventTypeSchema,
   loginRequestSchema,
+  paxSummaryViewSchema,
   parseTypedEvent,
+  poisonEventViewSchema,
+  queueSnapshotViewSchema,
+  rebookLiveFrameSchema,
+  scenarioInjectRequestSchema,
+  scenarioInjectResponseSchema,
   taskStateSchema,
   wsFrameSchema,
 } from "../src";
@@ -376,5 +382,217 @@ describe("rebook-ai event contracts (rebook-ai api-contracts.md §2, F1 DoD)", (
       errorCode: "X",
     });
     expect(domainEventSchema.safeParse(bad).success).toBe(false);
+  });
+});
+
+describe("rebook-ai REST read-models + live frames (rebook-ai api-contracts.md §1/§3, F2 DoD)", () => {
+  const uuidA = "0d5c1e59-cc2d-4cfe-b7c9-3573c3ef1a2e";
+  const uuidB = "7b3a1f29-1c5e-4a3f-9d2e-6f0f21fdba31";
+  const ts = "2026-09-26T08:14:03+08:00";
+
+  const option = {
+    id: uuidB,
+    rank: 1,
+    kind: "fast",
+    reason: "Earliest arrival on SV 1102",
+    segments: [
+      {
+        airline: "SV",
+        flightNo: "SV 1102",
+        origin: "SIN",
+        dest: "AMS",
+        depart: ts,
+        arrive: ts,
+        cabin: "economy",
+      },
+    ],
+    fareDelta: 120,
+    currency: "SGD",
+    interline: true,
+    refundable: false,
+    changeable: true,
+    overCap: false,
+  };
+
+  const offerSet = {
+    id: uuidB,
+    pnrId: uuidA,
+    state: "proposed",
+    expiresAt: ts,
+    createdAt: ts,
+    options: [option],
+    context: {
+      flightNo: "NX 288",
+      disruptionKind: "cancellation",
+      delayMinutes: 0,
+      reasonCode: "SIM-CANCEL-01",
+      voucherIssued: true,
+      rankingHash: "abc123",
+    },
+    confirmation: null,
+  };
+
+  it("validates the passenger summary (disruption null or full view)", () => {
+    expect(
+      paxSummaryViewSchema.safeParse({
+        passenger: { name: "Nadia Cho", email: "nadia.cho@pax-sim.example" },
+        disruption: null,
+        offers: [],
+        vouchers: [],
+        notifications: [],
+      }).success,
+    ).toBe(true);
+    const withOffer = paxSummaryViewSchema.safeParse({
+      passenger: { name: "Nadia Cho", email: "nadia.cho@pax-sim.example" },
+      disruption: {
+        flightNo: "NX 288",
+        kind: "cancellation",
+        delayMinutes: null,
+        reasonCode: "SIM-CANCEL-01",
+        origin: "SIN",
+        dest: "AMS",
+        schedDep: ts,
+        disruptedAt: ts,
+      },
+      offers: [offerSet],
+      vouchers: [
+        {
+          id: uuidB,
+          amount: 55,
+          currency: "SGD",
+          state: "issued",
+          reason: "cancellation meal voucher",
+          criteria: [
+            {
+              rule: "cancellation",
+              description: "Flight cancelled",
+              met: true,
+              detail: "kind=cancellation",
+            },
+          ],
+          issuedAt: ts,
+        },
+      ],
+      notifications: [
+        {
+          id: uuidB,
+          channel: "inbox",
+          state: "delivered",
+          subject: "NX 288 cancelled",
+          body: "3 rebooking options are ready.",
+          createdAt: ts,
+        },
+      ],
+    });
+    expect(withOffer.success).toBe(true);
+  });
+
+  it("rejects offers whose context lacks the ranking hash (determinism evidence)", () => {
+    const { rankingHash: _drop, ...withoutHash } = offerSet.context;
+    expect(
+      paxSummaryViewSchema.safeParse({
+        passenger: { name: "Nadia Cho", email: "nadia.cho@pax-sim.example" },
+        disruption: null,
+        offers: [{ ...offerSet, context: withoutHash }],
+        vouchers: [],
+        notifications: [],
+      }).success,
+    ).toBe(false);
+  });
+
+  it("validates queue snapshots and the scenario inject contract", () => {
+    expect(
+      queueSnapshotViewSchema.safeParse({
+        items: [
+          {
+            pnrId: uuidA,
+            locator: "NXQ4ZK",
+            passengerName: "Nadia Cho",
+            tier: "gold",
+            partySize: 1,
+            flightNo: "NX 288",
+            disruptionKind: "cancellation",
+            disruptedAt: ts,
+            waitMinutes: 2,
+            priority: 442,
+            offerState: "proposed",
+          },
+        ],
+        waiting: 1,
+        containmentPct: null,
+        generatedAt: ts,
+      }).success,
+    ).toBe(true);
+    // containmentPct is 0–100 or honest null — never a fabricated 0 (D-15).
+    expect(
+      queueSnapshotViewSchema.safeParse({
+        items: [],
+        waiting: 0,
+        containmentPct: 0,
+        generatedAt: ts,
+      }).success,
+    ).toBe(true);
+    expect(
+      scenarioInjectRequestSchema.safeParse({ scenario: "cancellation", flightNo: "NX 288" })
+        .success,
+    ).toBe(true);
+    expect(
+      scenarioInjectRequestSchema.safeParse({ scenario: "divert", flightNo: "NX 288" }).success,
+    ).toBe(false);
+    expect(
+      scenarioInjectResponseSchema.safeParse({
+        eventId: uuidB,
+        flightNo: "NX 288",
+        disruptionKind: "long_delay",
+        affectedPnrs: 14,
+        delayMinutes: 240,
+      }).success,
+    ).toBe(true);
+  });
+
+  it("validates poison event views (honest processed=false surfacing)", () => {
+    expect(
+      poisonEventViewSchema.safeParse({
+        id: uuidB,
+        type: "flight.disrupted",
+        aggregateType: "flight",
+        aggregateId: uuidA,
+        occurredAt: ts,
+        attempts: 3,
+        processError: "payload failed schema validation",
+      }).success,
+    ).toBe(true);
+  });
+
+  it("validates the three live frame types and rejects unknown ones", () => {
+    const frame = { id: "f1", ts, channel: "chan:rb:live", lastEventId: null };
+    expect(
+      rebookLiveFrameSchema.safeParse({
+        ...frame,
+        type: "queue.delta",
+        payload: { waiting: 3, containmentPct: 25, reason: "disruption" },
+      }).success,
+    ).toBe(true);
+    expect(
+      rebookLiveFrameSchema.safeParse({
+        ...frame,
+        type: "offers.update",
+        payload: { pnrId: uuidA, offerId: uuidB, state: "proposed", voucherIssued: true },
+      }).success,
+    ).toBe(true);
+    expect(
+      rebookLiveFrameSchema.safeParse({
+        ...frame,
+        type: "saga.update",
+        payload: { pnrId: uuidA, sagaId: uuidB, state: "running", currentStep: "payment" },
+      }).success,
+    ).toBe(true);
+    expect(
+      rebookLiveFrameSchema.safeParse({
+        ...frame,
+        type: "board.batch",
+        payload: {},
+      }).success,
+    ).toBe(false);
   });
 });

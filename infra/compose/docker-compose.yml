@@ -333,6 +333,10 @@ services:
              pnpm --filter rebook-ai start"
     environment:
       REBOOK_DATABASE_URL: postgresql://turnaround:turnaround@postgres:5432/rebook_ai
+      REDIS_URL: redis://redis:6379
+      # Committed fixtures (data-model.md §4) for policy lookups in the server
+      # bundle (import.meta.dirname is undefined under webpack).
+      REBOOK_SEED_DIR: /repo/apps/rebook-ai/seed
       AUTH_SECRET: dev-only-insecure-secret-0123456789abcdef
       REBOOK_AUTH_COOKIE_NAME: rbo_session
       # LLM gateway provider (ADR-0003). Host .env can override ("off" exercises
@@ -379,6 +383,7 @@ services:
     environment:
       REBOOK_DATABASE_URL: postgresql://turnaround:turnaround@postgres:5432/rebook_ai
       REDIS_URL: redis://redis:6379
+      REBOOK_SEED_DIR: /repo/apps/rebook-ai/seed
       LOG_LEVEL: info
       ORCHESTRATOR_PORT: "4104"
       LLM_PROVIDER: ${LLM_PROVIDER:-mock}

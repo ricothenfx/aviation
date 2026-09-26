@@ -1,0 +1,1317 @@
+{
+  "referenceDay": "2026-10-15",
+  "pnrs": [
+    {
+      "locator": "NXQ4ZK",
+      "email": "nadia.cho@pax-sim.example",
+      "passengerName": "Nadia Cho",
+      "tier": "gold",
+      "fareClass": "Y",
+      "partySize": 1,
+      "contactHandle": "handle-p01@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 288",
+          "flightDate": "2026-10-15T09:15:00+08:00",
+          "origin": "SIN",
+          "dest": "AMS",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 48250
+        }
+      }
+    },
+    {
+      "locator": "NXK7P2",
+      "email": null,
+      "passengerName": "Wei Lim Family",
+      "tier": "standard",
+      "fareClass": "Y",
+      "partySize": 4,
+      "contactHandle": "handle-p02@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 288",
+          "flightDate": "2026-10-15T09:15:00+08:00",
+          "origin": "SIN",
+          "dest": "AMS",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": ["UMNR-1"],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 1274
+        }
+      }
+    },
+    {
+      "locator": "NXM3TD",
+      "email": null,
+      "passengerName": "Priya Raman",
+      "tier": "silver",
+      "fareClass": "B",
+      "partySize": 2,
+      "contactHandle": "handle-p03@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 288",
+          "flightDate": "2026-10-15T09:15:00+08:00",
+          "origin": "SIN",
+          "dest": "AMS",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": ["MEAL_AVML"],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 1311
+        }
+      }
+    },
+    {
+      "locator": "NXA9QF",
+      "email": null,
+      "passengerName": "Jonas Berg",
+      "tier": "standard",
+      "fareClass": "M",
+      "partySize": 1,
+      "contactHandle": "handle-p04@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 288",
+          "flightDate": "2026-10-15T09:15:00+08:00",
+          "origin": "SIN",
+          "dest": "AMS",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 1348
+        }
+      }
+    },
+    {
+      "locator": "NXT5HL",
+      "email": null,
+      "passengerName": "Amara Okafor",
+      "tier": "gold",
+      "fareClass": "Y",
+      "partySize": 2,
+      "contactHandle": "handle-p05@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 288",
+          "flightDate": "2026-10-15T09:15:00+08:00",
+          "origin": "SIN",
+          "dest": "AMS",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 1385
+        }
+      }
+    },
+    {
+      "locator": "NXC8RR",
+      "email": null,
+      "passengerName": "Diego Santos",
+      "tier": "standard",
+      "fareClass": "Y",
+      "partySize": 3,
+      "contactHandle": "handle-p06@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 288",
+          "flightDate": "2026-10-15T09:15:00+08:00",
+          "origin": "SIN",
+          "dest": "AMS",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": ["WCHR"],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 1422
+        }
+      }
+    },
+    {
+      "locator": "NXB2NV",
+      "email": null,
+      "passengerName": "Hana Yusof",
+      "tier": "silver",
+      "fareClass": "Y",
+      "partySize": 1,
+      "contactHandle": "handle-p07@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 288",
+          "flightDate": "2026-10-15T09:15:00+08:00",
+          "origin": "SIN",
+          "dest": "AMS",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 1459
+        }
+      }
+    },
+    {
+      "locator": "NXD6WJ",
+      "email": null,
+      "passengerName": "Tomas Novak",
+      "tier": "standard",
+      "fareClass": "B",
+      "partySize": 2,
+      "contactHandle": "handle-p08@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 288",
+          "flightDate": "2026-10-15T09:15:00+08:00",
+          "origin": "SIN",
+          "dest": "AMS",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 1496
+        }
+      }
+    },
+    {
+      "locator": "NXF4KG",
+      "email": null,
+      "passengerName": "Ingrid Halvorsen",
+      "tier": "standard",
+      "fareClass": "Y",
+      "partySize": 1,
+      "contactHandle": "handle-p09@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 288",
+          "flightDate": "2026-10-15T09:15:00+08:00",
+          "origin": "SIN",
+          "dest": "AMS",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 1533
+        }
+      }
+    },
+    {
+      "locator": "NXG1PS",
+      "email": null,
+      "passengerName": "Ravi Chandran",
+      "tier": "silver",
+      "fareClass": "M",
+      "partySize": 2,
+      "contactHandle": "handle-p10@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 288",
+          "flightDate": "2026-10-15T09:15:00+08:00",
+          "origin": "SIN",
+          "dest": "AMS",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 1570
+        }
+      }
+    },
+    {
+      "locator": "NXH7ZL",
+      "email": null,
+      "passengerName": "Mei Ling Wong",
+      "tier": "gold",
+      "fareClass": "C",
+      "partySize": 1,
+      "contactHandle": "handle-p11@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 288",
+          "flightDate": "2026-10-15T09:15:00+08:00",
+          "origin": "SIN",
+          "dest": "AMS",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": true,
+          "changeable": true,
+          "changeFee": 0
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 1607
+        }
+      }
+    },
+    {
+      "locator": "NXJ3BV",
+      "email": null,
+      "passengerName": "Oliver Bennett",
+      "tier": "standard",
+      "fareClass": "Y",
+      "partySize": 2,
+      "contactHandle": "handle-p12@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 288",
+          "flightDate": "2026-10-15T09:15:00+08:00",
+          "origin": "SIN",
+          "dest": "AMS",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 1644
+        }
+      }
+    },
+    {
+      "locator": "NXK9MD",
+      "email": null,
+      "passengerName": "Fatima Al-Sayed",
+      "tier": "standard",
+      "fareClass": "Y",
+      "partySize": 5,
+      "contactHandle": "handle-p13@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 288",
+          "flightDate": "2026-10-15T09:15:00+08:00",
+          "origin": "SIN",
+          "dest": "AMS",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": ["MEAL_MOML", "UMNR-1"],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 1681
+        }
+      }
+    },
+    {
+      "locator": "NXL5NR",
+      "email": null,
+      "passengerName": "Kenji Sato",
+      "tier": "silver",
+      "fareClass": "Y",
+      "partySize": 1,
+      "contactHandle": "handle-p14@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 288",
+          "flightDate": "2026-10-15T09:15:00+08:00",
+          "origin": "SIN",
+          "dest": "AMS",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 1718
+        }
+      }
+    },
+    {
+      "locator": "NXM8QT",
+      "email": "sofia.rossi@pax-sim.example",
+      "passengerName": "Sofia Rossi",
+      "tier": "standard",
+      "fareClass": "Y",
+      "partySize": 2,
+      "contactHandle": "handle-p15@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 203",
+          "flightDate": "2026-10-15T06:15:00+08:00",
+          "origin": "SIN",
+          "dest": "LHR",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 1755
+        }
+      }
+    },
+    {
+      "locator": "NXN2WX",
+      "email": null,
+      "passengerName": "Liam Byrne",
+      "tier": "silver",
+      "fareClass": "B",
+      "partySize": 1,
+      "contactHandle": "handle-p16@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 203",
+          "flightDate": "2026-10-15T06:15:00+08:00",
+          "origin": "SIN",
+          "dest": "LHR",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 1792
+        }
+      }
+    },
+    {
+      "locator": "NXP6ZC",
+      "email": null,
+      "passengerName": "Aisha Rahman",
+      "tier": "gold",
+      "fareClass": "Y",
+      "partySize": 3,
+      "contactHandle": "handle-p17@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 203",
+          "flightDate": "2026-10-15T06:15:00+08:00",
+          "origin": "SIN",
+          "dest": "LHR",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 1829
+        }
+      }
+    },
+    {
+      "locator": "NXQ4VJ",
+      "email": null,
+      "passengerName": "Noah Klein",
+      "tier": "standard",
+      "fareClass": "M",
+      "partySize": 1,
+      "contactHandle": "handle-p18@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 203",
+          "flightDate": "2026-10-15T06:15:00+08:00",
+          "origin": "SIN",
+          "dest": "LHR",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 1866
+        }
+      }
+    },
+    {
+      "locator": "NXR7DH",
+      "email": null,
+      "passengerName": "Chloe Dubois",
+      "tier": "standard",
+      "fareClass": "Y",
+      "partySize": 2,
+      "contactHandle": "handle-p19@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 206",
+          "flightDate": "2026-10-15T06:30:00+08:00",
+          "origin": "SIN",
+          "dest": "HND",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 1903
+        }
+      }
+    },
+    {
+      "locator": "NXS1FK",
+      "email": null,
+      "passengerName": "Arjun Mehta",
+      "tier": "silver",
+      "fareClass": "Y",
+      "partySize": 1,
+      "contactHandle": "handle-p20@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 206",
+          "flightDate": "2026-10-15T06:30:00+08:00",
+          "origin": "SIN",
+          "dest": "HND",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 1940
+        }
+      }
+    },
+    {
+      "locator": "NXT9LP",
+      "email": null,
+      "passengerName": "Grace Wu",
+      "tier": "standard",
+      "fareClass": "Y",
+      "partySize": 4,
+      "contactHandle": "handle-p21@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 206",
+          "flightDate": "2026-10-15T06:30:00+08:00",
+          "origin": "SIN",
+          "dest": "HND",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": ["WCHR"],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 1977
+        }
+      }
+    },
+    {
+      "locator": "NXV3BN",
+      "email": null,
+      "passengerName": "Erik Johansson",
+      "tier": "standard",
+      "fareClass": "B",
+      "partySize": 2,
+      "contactHandle": "handle-p22@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 209",
+          "flightDate": "2026-10-15T07:15:00+08:00",
+          "origin": "SIN",
+          "dest": "SYD",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 2014
+        }
+      }
+    },
+    {
+      "locator": "NXW6YR",
+      "email": null,
+      "passengerName": "Isabella Ferrari",
+      "tier": "silver",
+      "fareClass": "Y",
+      "partySize": 2,
+      "contactHandle": "handle-p23@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 209",
+          "flightDate": "2026-10-15T07:15:00+08:00",
+          "origin": "SIN",
+          "dest": "SYD",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 2051
+        }
+      }
+    },
+    {
+      "locator": "NXX0GH",
+      "email": null,
+      "passengerName": "Daniel Mwangi",
+      "tier": "standard",
+      "fareClass": "Y",
+      "partySize": 1,
+      "contactHandle": "handle-p24@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 212",
+          "flightDate": "2026-10-15T07:00:00+08:00",
+          "origin": "SIN",
+          "dest": "FRA",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 2088
+        }
+      }
+    },
+    {
+      "locator": "NXY5KM",
+      "email": null,
+      "passengerName": "Yuki Nakamura",
+      "tier": "gold",
+      "fareClass": "C",
+      "partySize": 1,
+      "contactHandle": "handle-p25@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 212",
+          "flightDate": "2026-10-15T07:00:00+08:00",
+          "origin": "SIN",
+          "dest": "FRA",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": true,
+          "changeable": true,
+          "changeFee": 0
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 2125
+        }
+      }
+    },
+    {
+      "locator": "NXZ2PQ",
+      "email": null,
+      "passengerName": "Anya Petrova",
+      "tier": "standard",
+      "fareClass": "Y",
+      "partySize": 1,
+      "contactHandle": "handle-p26@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 221",
+          "flightDate": "2026-10-15T08:15:00+08:00",
+          "origin": "SIN",
+          "dest": "BKK",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 2162
+        }
+      }
+    },
+    {
+      "locator": "NYA8LT",
+      "email": null,
+      "passengerName": "Marcus Chen",
+      "tier": "silver",
+      "fareClass": "Y",
+      "partySize": 2,
+      "contactHandle": "handle-p27@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 224",
+          "flightDate": "2026-10-15T08:30:00+08:00",
+          "origin": "SIN",
+          "dest": "HKG",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 2199
+        }
+      }
+    },
+    {
+      "locator": "NYB3RV",
+      "email": null,
+      "passengerName": "Leila Hassan",
+      "tier": "standard",
+      "fareClass": "M",
+      "partySize": 3,
+      "contactHandle": "handle-p28@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 227",
+          "flightDate": "2026-10-15T09:15:00+08:00",
+          "origin": "SIN",
+          "dest": "ICN",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 2236
+        }
+      }
+    },
+    {
+      "locator": "NYC7XW",
+      "email": null,
+      "passengerName": "Pablo Ortega",
+      "tier": "standard",
+      "fareClass": "Y",
+      "partySize": 1,
+      "contactHandle": "handle-p29@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 230",
+          "flightDate": "2026-10-15T09:30:00+08:00",
+          "origin": "SIN",
+          "dest": "DPS",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 2273
+        }
+      }
+    },
+    {
+      "locator": "NYD1ZJ",
+      "email": null,
+      "passengerName": "Emma Wilson",
+      "tier": "gold",
+      "fareClass": "B",
+      "partySize": 2,
+      "contactHandle": "handle-p30@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 233",
+          "flightDate": "2026-10-15T09:45:00+08:00",
+          "origin": "SIN",
+          "dest": "PER",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 2310
+        }
+      }
+    },
+    {
+      "locator": "NYE4QD",
+      "email": null,
+      "passengerName": "Kim Min-jun",
+      "tier": "standard",
+      "fareClass": "Y",
+      "partySize": 1,
+      "contactHandle": "handle-p31@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 236",
+          "flightDate": "2026-10-15T10:00:00+08:00",
+          "origin": "SIN",
+          "dest": "AKL",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 2347
+        }
+      }
+    },
+    {
+      "locator": "NYF8SN",
+      "email": null,
+      "passengerName": "Zara Ahmed",
+      "tier": "silver",
+      "fareClass": "Y",
+      "partySize": 2,
+      "contactHandle": "handle-p32@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 239",
+          "flightDate": "2026-10-15T10:45:00+08:00",
+          "origin": "SIN",
+          "dest": "DOH",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 2384
+        }
+      }
+    },
+    {
+      "locator": "NYG2TF",
+      "email": null,
+      "passengerName": "Lucas Meyer",
+      "tier": "standard",
+      "fareClass": "M",
+      "partySize": 1,
+      "contactHandle": "handle-p33@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 242",
+          "flightDate": "2026-10-15T10:30:00+08:00",
+          "origin": "SIN",
+          "dest": "JNB",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 2421
+        }
+      }
+    },
+    {
+      "locator": "NYH6BK",
+      "email": null,
+      "passengerName": "Nadia Rahman",
+      "tier": "standard",
+      "fareClass": "Y",
+      "partySize": 3,
+      "contactHandle": "handle-p34@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 245",
+          "flightDate": "2026-10-15T11:15:00+08:00",
+          "origin": "SIN",
+          "dest": "CPT",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 2458
+        }
+      }
+    },
+    {
+      "locator": "NYJ0MV",
+      "email": null,
+      "passengerName": "Chen Jiahui",
+      "tier": "silver",
+      "fareClass": "C",
+      "partySize": 1,
+      "contactHandle": "handle-p35@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 248",
+          "flightDate": "2026-10-15T11:30:00+08:00",
+          "origin": "SIN",
+          "dest": "SFO",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 2495
+        }
+      }
+    },
+    {
+      "locator": "NYK4PR",
+      "email": null,
+      "passengerName": "Jack Thompson",
+      "tier": "standard",
+      "fareClass": "Y",
+      "partySize": 2,
+      "contactHandle": "handle-p36@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 251",
+          "flightDate": "2026-10-15T11:45:00+08:00",
+          "origin": "SIN",
+          "dest": "LAX",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 2532
+        }
+      }
+    },
+    {
+      "locator": "NYL9WD",
+      "email": null,
+      "passengerName": "Aya Al-Rashid",
+      "tier": "standard",
+      "fareClass": "Y",
+      "partySize": 1,
+      "contactHandle": "handle-p37@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 254",
+          "flightDate": "2026-10-15T12:00:00+08:00",
+          "origin": "SIN",
+          "dest": "PEK",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 2569
+        }
+      }
+    },
+    {
+      "locator": "NYM5XH",
+      "email": null,
+      "passengerName": "Bongani Dlamini",
+      "tier": "silver",
+      "fareClass": "B",
+      "partySize": 2,
+      "contactHandle": "handle-p38@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 257",
+          "flightDate": "2026-10-15T12:45:00+08:00",
+          "origin": "SIN",
+          "dest": "PVG",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 2606
+        }
+      }
+    },
+    {
+      "locator": "NYN7CQ",
+      "email": null,
+      "passengerName": "Elena Marin",
+      "tier": "standard",
+      "fareClass": "Y",
+      "partySize": 1,
+      "contactHandle": "handle-p39@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 260",
+          "flightDate": "2026-10-15T13:00:00+08:00",
+          "origin": "SIN",
+          "dest": "MNL",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 2643
+        }
+      }
+    },
+    {
+      "locator": "NYP3JL",
+      "email": null,
+      "passengerName": "Omar Farouk",
+      "tier": "gold",
+      "fareClass": "Y",
+      "partySize": 2,
+      "contactHandle": "handle-p40@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 263",
+          "flightDate": "2026-10-15T13:15:00+08:00",
+          "origin": "SIN",
+          "dest": "CGK",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": [],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 2680
+        }
+      }
+    },
+    {
+      "locator": "NYQ6VA",
+      "email": null,
+      "passengerName": "Siti Nurhaliza",
+      "tier": "standard",
+      "fareClass": "Y",
+      "partySize": 4,
+      "contactHandle": "handle-p41@pax-sim.invalid",
+      "segments": [
+        {
+          "airline": "NX",
+          "flightNo": "NX 266",
+          "flightDate": "2026-10-15T13:30:00+08:00",
+          "origin": "SIN",
+          "dest": "KUL",
+          "cabin": "economy",
+          "status": "confirmed"
+        }
+      ],
+      "document": {
+        "fareRules": {
+          "refundable": false,
+          "changeable": true,
+          "changeFee": 90
+        },
+        "ssr": ["MEAL_KSML"],
+        "loyalty": {
+          "program": "NX TopTier",
+          "balance": 2717
+        }
+      }
+    }
+  ]
+}

@@ -16,5 +16,11 @@
     "displayName": "Grace Tan",
     "role": "supervisor",
     "password": "supervisor-nx-01"
+  },
+  {
+    "email": "sofia.rossi@pax-sim.example",
+    "displayName": "Sofia Rossi",
+    "role": "passenger",
+    "password": "passenger-nx-02"
   }
 ]

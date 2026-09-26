@@ -1,38 +1,37 @@
 import { sql } from "drizzle-orm";
 
 import { LlmGateway } from "@aviation/llm-gateway";
-import { createDb } from "@aviation/db/client";
 import { createRedis } from "@aviation/db/redis";
 
 /**
- * Service entrypoint (rebook-ai architecture.md §1–2, ADR-0014): F1 ships the
- * skeleton — dependencies, health/readiness/metrics surface and the LLM
- * provider wiring via `packages/llm-gateway` (ADR-0003). F2 adds the event-log
- * tail loop (offers/notifications/queue), F3 the propose-only agent loop and
- * the fulfillment saga executor. The browser never talks to this service;
- * commands arrive via PostgreSQL + the Redis control channel.
+ * Service entrypoint (rebook-ai architecture.md §1–2, ADR-0014). F2 wires the
+ * domain engine: event-log tail (offers/notifications/vouchers/queue), the
+ * offer expiry sweep, the SNS-shaped inbox publisher and the control channel
+ * for the web app (queue rebuild). F3 adds the propose-only agent loop and
+ * the fulfillment saga executor. The browser never talks to this service.
  */
 import { createLogger } from "./logger";
+import { createOrchestratorDb } from "./db";
+import { createInboxNotificationPublisher } from "./domain/notifications";
+import { createQueueProjector } from "./domain/queue";
+import { expireOffers } from "./domain/handlers";
+import { startControlListener } from "./engine/control";
+import { startEventTail } from "./engine/tail";
+import type { EngineMetrics } from "./domain/handlers";
 import { createOrchestratorServer, listenOrchestratorServer } from "./server";
 
 const logger = createLogger("rb-orchestrator");
 
 const ORCHESTRATOR_PORT = Number(process.env.ORCHESTRATOR_PORT ?? 4104);
-
-/**
- * rebook-ai database in the shared cluster (rebook-ai data-model.md, ADR-0015).
- * `@aviation/db`'s createDb resolves turnaround-iq's DATABASE_URL by default —
- * this service must never read it (mirrors the mro-copilot client isolation).
- */
-const DEFAULT_REBOOK_DATABASE_URL = "postgresql://turnaround:turnaround@localhost:5433/rebook_ai";
+const POLL_MS = Number(process.env.RB_POLL_MS ?? 150);
+const OFFER_SWEEP_MS = Number(process.env.RB_OFFER_SWEEP_MS ?? 20_000);
 
 async function main(): Promise<void> {
-  const connectionString = process.env.REBOOK_DATABASE_URL ?? DEFAULT_REBOOK_DATABASE_URL;
-  const { db, close: closeDb } = createDb(connectionString);
+  const { db, close: closeDb } = createOrchestratorDb();
   const redis = await createRedis();
 
   // Provider wiring (ADR-0003): "mock" is the mandatory offline default;
-  // "off" is a supported mode — the agent loop will degrade to rules and
+  // "off" is a supported mode — the F3 agent loop will degrade to rules and
   // label proposals `source: "rules"` (D-10). Readiness reflects it honestly.
   let gateway: LlmGateway | null = null;
   let providerMode = "off (degrade)";
@@ -41,9 +40,58 @@ async function main(): Promise<void> {
     providerMode = `up (${gateway.providerName})`;
   }
 
+  const metrics: EngineMetrics = {
+    counters: {
+      rb_orchestrator_events_processed_total: 0,
+      rb_orchestrator_event_failures_total: 0,
+      rb_orchestrator_offers_created_total: 0,
+      rb_orchestrator_vouchers_issued_total: 0,
+      rb_orchestrator_notifications_sent_total: 0,
+      rb_orchestrator_offers_expired_total: 0,
+    },
+  };
+  const publisher = createInboxNotificationPublisher(db);
+  const projector = createQueueProjector(db, redis.redis);
+
+  const tail = startEventTail({
+    db,
+    redis: redis.redis,
+    publisher,
+    metrics,
+    pollMs: POLL_MS,
+    onLog: (msg, fields) => logger.info({ msg, ...fields }),
+  });
+  const control = startControlListener({
+    redis: redis.redis,
+    projector,
+    onLog: (msg, fields) => logger.info({ msg, ...fields }),
+  });
+
+  // Offer expiry sweep (architecture.md §3.1): expired offers flip honestly to
+  // `expired` with an offer.expired event — never silently confirmable.
+  const sweep = setInterval(() => {
+    void expireOffers({
+      db,
+      redis: redis.redis,
+      publisher,
+      metrics,
+      onLog: (msg, fields) => logger.info({ msg, ...fields }),
+    }).then((count) => {
+      if (count > 0) {
+        metrics.counters["rb_orchestrator_offers_expired_total"] =
+          (metrics.counters["rb_orchestrator_offers_expired_total"] ?? 0) + count;
+        logger.info({ msg: "offers_expired", count });
+      }
+    });
+  }, OFFER_SWEEP_MS);
+
   const health = createOrchestratorServer({
     port: ORCHESTRATOR_PORT,
     onLog: (msg, fields) => logger.warn({ msg, ...fields }),
+    metrics: () =>
+      Object.entries(metrics.counters).map(
+        (name_value) => `# TYPE ${name_value[0]} counter\n${name_value[0]} ${name_value[1] ?? 0}`,
+      ),
     checks: {
       postgres: async () => {
         await db.execute(sql`select 1`);
@@ -69,12 +117,17 @@ async function main(): Promise<void> {
     msg: "rebook orchestrator ready",
     port: ORCHESTRATOR_PORT,
     provider: providerMode,
+    pollMs: POLL_MS,
+    offerSweepMs: OFFER_SWEEP_MS,
   });
 
   const shutdown = (signal: string): void => {
     logger.info({ msg: "shutting down", signal });
     health.close();
     void (async () => {
+      clearInterval(sweep);
+      await tail.stop();
+      await control.stop();
       await redis.close();
       await closeDb();
       process.exit(0);

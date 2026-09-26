@@ -30,7 +30,10 @@
     "db:migrate:rebook": "pnpm --filter rebook-ai db:migrate",
     "eval:mro:full": "node scripts/eval-mro/full.mjs",
     "bench:mro-ask": "node scripts/benchmarks/mro-ask-latency.mjs",
-    "test:e2e:mro": "pnpm --filter mro-copilot test:e2e"
+    "test:e2e:mro": "pnpm --filter mro-copilot test:e2e",
+    "test:e2e:rebook": "pnpm --filter rebook-ai test:e2e",
+    "bench:rebook": "node scripts/benchmarks/rebook-offer-pipeline.mjs",
+    "bench:rebook-queue": "node scripts/benchmarks/rebook-queue-latency.mjs"
   },
   "devDependencies": {
     "@aviation/config": "workspace:*",

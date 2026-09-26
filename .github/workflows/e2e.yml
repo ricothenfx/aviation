@@ -106,3 +106,43 @@ jobs:
       - name: Teardown
         if: always()
         run: docker compose --profile mro down -v --remove-orphans
+
+  playwright-rebook:
+    name: playwright (rebook passenger e2e)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Boot the rebook stack (postgres + redis + web :3004 + orchestrator :4104)
+        run: docker compose --profile rebook up -d --wait --wait-timeout 900
+
+      - name: Install Playwright browsers
+        run: pnpm --filter rebook-ai exec playwright install --with-deps chromium
+
+      - name: Run e2e (inject → notification → confirm → saga stubs visible)
+        env:
+          REBOOK_E2E_BASE_URL: http://localhost:3004
+        run: pnpm test:e2e:rebook
+
+      - name: Upload traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces-rebook
+          path: apps/rebook-ai/test-results/
+          retention-days: 7
+
+      - name: Teardown
+        if: always()
+        run: docker compose --profile rebook down -v --remove-orphans

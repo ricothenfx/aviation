@@ -77,26 +77,29 @@ describe("rbac matrix (PRD F-7 ladder, server-side)", () => {
     expect(blocked.body).toMatchObject({ error: { code: "FORBIDDEN" } });
   });
 
-  it("serves /api/v1/queue to agent and supervisor (F1 empty snapshot contract)", async () => {
+  it("serves /api/v1/queue to agent and supervisor (F2: live snapshot contract)", async () => {
     for (const credentials of [AGENT, SUPERVISOR]) {
       const session = await login(credentials);
       const res = await get("/api/v1/queue", session.cookie);
       expect(res.status).toBe(200);
-      expect(res.body).toMatchObject({ items: [], containmentPct: null });
+      // F2 filled the snapshot (items/containment) — the F1 RBAC claim here is
+      // the status + envelope shape, not the (now live) content.
+      expect(Array.isArray(res.body.items)).toBe(true);
       expect(typeof res.body.generatedAt).toBe("string");
+      expect(res.body).toHaveProperty("containmentPct");
     }
   });
 
-  it("serves the passenger summary to every role (self data only, honest empty)", async () => {
+  it("serves the passenger summary to every role (ownership-scoped)", async () => {
     const passenger = await login(PASSENGER);
     const res = await get("/api/v1/pax/summary", passenger.cookie);
     expect(res.status).toBe(200);
-    expect(res.body).toMatchObject({
-      disruption: null,
-      offers: [],
-      vouchers: [],
-      notifications: [],
-      passenger: { email: PASSENGER.email },
-    });
+    // F2 filled disruption/offers/vouchers/notifications; the contract shape
+    // and the ownership scoping (passenger key) stay the assertion target.
+    expect(res.body.passenger).toMatchObject({ email: PASSENGER.email });
+    expect(res.body).toHaveProperty("disruption");
+    expect(res.body).toHaveProperty("offers");
+    expect(res.body).toHaveProperty("vouchers");
+    expect(res.body).toHaveProperty("notifications");
   });
 });

@@ -1,0 +1,12 @@
+{
+  "currency": "SGD",
+  "voucher": {
+    "cancellation": { "baseAmount": 40, "reason": "Cancellation meal voucher" },
+    "longDelay": { "thresholdMinutes": 180, "amount": 25, "reason": "Long-delay meal voucher" },
+    "tierBonus": { "gold": 15, "silver": 8, "standard": 0 },
+    "maxAmount": 80
+  },
+  "fareCaps": { "standard": 150, "silver": 300, "gold": 500 },
+  "offer": { "ttlMinutes": 30, "maxOptions": 3 },
+  "disruption": { "longDelayMinutes": 240 }
+}

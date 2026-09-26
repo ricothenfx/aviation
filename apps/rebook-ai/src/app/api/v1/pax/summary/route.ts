@@ -1,31 +1,22 @@
-import { z } from "zod";
-
 import { handleRouteError, jsonResponse, requireSession } from "@/lib/api/respond";
+import { buildPaxSummary } from "@/lib/data/views";
+import { paxSummaryViewSchema } from "@aviation/contracts";
+
+export const dynamic = "force-dynamic";
 
 /**
  * GET /api/v1/pax/summary (rebook-ai api-contracts.md §1) — the current user's
- * disruption state. F1 contract slice: the response shape is final, the data
- * arrives with F2. `disruption: null` is the honest "no active disruption"
- * value — never a fabricated placeholder (data-ethics.md §4).
+ * disruption state, ownership-scoped to PNRs linked to the session user
+ * (pnr.user_id, D-09). `disruption: null` stays the honest "no active
+ * disruption" value (data-ethics.md §4). The response validates against the
+ * F2 read-model contract before returning.
  */
-const summarySchema = z.object({
-  disruption: z.null(),
-  offers: z.array(z.never()),
-  vouchers: z.array(z.never()),
-  notifications: z.array(z.never()),
-});
-
 export async function GET(): Promise<Response> {
   const requestId = `req_${crypto.randomUUID()}`;
   try {
     const session = await requireSession("passenger");
-    const summary = summarySchema.parse({
-      disruption: null,
-      offers: [],
-      vouchers: [],
-      notifications: [],
-    });
-    return jsonResponse({ ...summary, passenger: { email: session.email, name: session.name } });
+    const summary = paxSummaryViewSchema.parse(await buildPaxSummary(session));
+    return jsonResponse(summary);
   } catch (err) {
     return handleRouteError(err, requestId);
   }
