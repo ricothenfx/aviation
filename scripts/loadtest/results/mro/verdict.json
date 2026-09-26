@@ -1,0 +1,26 @@
+{
+  "ranAt": "2026-09-26T03:08:57.822Z",
+  "duration": "120s",
+  "offer": {
+    "searchVus": 100,
+    "searchThinkMs": 4000,
+    "askVus": 25,
+    "askThinkMs": 0,
+    "note": "thinkMs=0 is a closed-loop saturation offer (throughput probe); thinkMs>0 models concurrent users and makes the gates per-request latency claims"
+  },
+  "gates": {
+    "search": {
+      "gate": "p95 < 300 ms",
+      "k6": 3375.293135199998,
+      "probe": 2760.8427460000094,
+      "pass": false
+    },
+    "ask": {
+      "gate": "p95 < 2500 ms",
+      "k6": 2365.8240752499964,
+      "probe": 3185.817102000001,
+      "pass": false
+    }
+  },
+  "passed": false
+}

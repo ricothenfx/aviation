@@ -14,12 +14,13 @@ Degradation ladder (architecture.md §4):
 
 from __future__ import annotations
 
+import contextlib
 import functools
 import json
 import logging
 import threading
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from typing import Any
 
@@ -87,12 +88,17 @@ def default_connection_factory(database_url: str) -> psycopg.Connection[tuple[An
 
 
 class RetrievalService:
-    """Owns retrieval SQL; keeps one pooled connection (serialized by a lock).
+    """Owns retrieval SQL; draws connections from a small bounded pool.
 
-    Latency budget note (PRD FR-8): per-request TCP+auth handshakes dominate
-    at this corpus scale, so the connection is pooled. psycopg3 connections
-    are safe under serialized cross-thread use; a broken connection is closed
-    and the error raised (caller maps DB-down to the 503 error state).
+    F2 kept one pooled connection behind a lock — right for single-client
+    latency, but it serializes every search (and every ask, which retrieves
+    first), capping throughput at 1000/per-request-ms and making the F5 gate
+    (search p95 < 300 ms @ 100 VU) structurally unreachable. ADR-0013 replaced
+    it with an in-module bounded pool (capacity 8, psycopg stdlib only): idle
+    connections are reused, the pool grows to capacity on demand, and burst
+    demand beyond capacity uses transient connections that are closed on
+    return — concurrency is never queued behind a lock. Broken connections are
+    closed and never reused; the next checkout reconnects.
     """
 
     def __init__(
@@ -100,12 +106,15 @@ class RetrievalService:
         database_url: str,
         gateway: Gateway | None,
         connection_factory: ConnectionFactory | None = None,
+        pool_capacity: int = 8,
     ) -> None:
         self._database_url = database_url
         self._gateway = gateway
-        self._connection_factory = connection_factory or default_connection_factory
-        self._lock = threading.Lock()
-        self._conn: psycopg.Connection[tuple[Any, ...]] | None = None
+        self._pool = _ConnectionPool(
+            connection_factory or default_connection_factory,
+            database_url,
+            capacity=pool_capacity,
+        )
 
     async def search(
         self,
@@ -159,19 +168,77 @@ class RetrievalService:
         k: int,
         filters: SearchFilters | None,
     ) -> list[SearchHit]:
-        with self._lock:
-            if self._conn is None or self._conn.closed:
-                self._conn = self._connection_factory(self._database_url)
-            try:
-                statement, params = build_search_sql(query, query_vector, k, filters)
-                rows = self._conn.execute(statement, params).fetchall() or []
-            except psycopg.Error:
-                # Broken connection (DB restart, network): drop it; next call
-                # reconnects. The error itself surfaces to the caller.
-                self._conn.close()
-                self._conn = None
-                raise
+        with self._pool.checkout() as conn:
+            statement, params = build_search_sql(query, query_vector, k, filters)
+            rows = conn.execute(statement, params).fetchall() or []
         return [row_to_hit(row) for row in rows]
+
+
+class _ConnectionPool:
+    """Fixed-capacity connection pool built on psycopg stdlib only (ADR-0013).
+
+    - checkout hands out any idle connection; when none is free and the pool
+      still has capacity, a new connection is created and pooled on return;
+    - demand beyond capacity creates a TRANSIENT connection, closed on return
+      (burst concurrency is never queued behind a lock);
+    - a broken connection is closed and never reused; the next checkout
+      reconnects (pool slot accounting drops with it).
+    """
+
+    def __init__(
+        self,
+        factory: ConnectionFactory,
+        database_url: str,
+        capacity: int = 8,
+    ) -> None:
+        self._factory = factory
+        self._database_url = database_url
+        self._capacity = capacity
+        self._lock = threading.Lock()
+        self._idle: list[psycopg.Connection[tuple[Any, ...]]] = []
+        self._live = 0  # pooled connections currently created (idle + checked out)
+
+    @contextlib.contextmanager
+    def checkout(self) -> Iterator[psycopg.Connection[tuple[Any, ...]]]:
+        with self._lock:
+            conn = self._idle.pop() if self._idle else None
+            pooled = conn is not None or self._live < self._capacity
+            if conn is None and pooled:
+                self._live += 1
+        if conn is None:
+            # Not covered by the lock: TCP + auth handshake must not block
+            # other checkouts (same reason search runs in a worker thread).
+            try:
+                conn = self._factory(self._database_url)
+            except Exception:
+                if pooled:
+                    with self._lock:
+                        self._live -= 1
+                raise
+
+        transient = not pooled
+        try:
+            yield conn
+        except psycopg.Error:
+            # Broken connection (DB restart, network): drop it either way; the
+            # error itself surfaces to the caller (503 shape, unchanged).
+            try:
+                conn.close()
+            finally:
+                with self._lock:
+                    if not transient:
+                        self._live -= 1
+            raise
+        else:
+            if transient:
+                conn.close()
+            else:
+                with self._lock:
+                    self._idle.append(conn)
+
+    def idle_count(self) -> int:
+        with self._lock:
+            return len(self._idle)
 
 
 def build_search_sql(

@@ -1,0 +1,6 @@
+# 2026-09-26T03:10:28Z single-client reference bench (200 samples) — host load: 7.34 14.26 14.71 9/1497 2650262
+> node scripts/benchmarks/mro-search-latency.mjs
+{"level":"info","module":"mro-search-latency","msg":"benchmark complete","startedAt":"2026-09-26T03:10:32.044Z","baseUrl":"http://localhost:3003","samples":200,"errors":0,"distinctQueries":52,"p50":68.6,"p95":304.4,"p99":648.9,"max":954.3,"totalMs":21377,"gateP95Ms":300,"passed":false}
+# 2026-09-26T03:10:53Z single-client ask bench — host load: 7.41 13.72 14.52 3/1491 2650931
+> node scripts/benchmarks/mro-ask-latency.mjs
+{"level":"info","module":"mro-ask-latency","msg":"benchmark complete","startedAt":"2026-09-26T03:10:56.929Z","baseUrl":"http://localhost:3003","samples":100,"errors":0,"refusals":15,"distinctQuestions":52,"p50":194.1,"p95":716.5,"p99":1017,"max":1341.9,"totalMs":27830,"gateP95Ms":2500,"passed":true}

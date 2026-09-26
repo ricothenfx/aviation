@@ -18,6 +18,7 @@
     "eval:mro": "node scripts/eval-mro/retrieval.mjs",
     "bench:mro-search": "node scripts/benchmarks/mro-search-latency.mjs",
     "loadtest": "node scripts/loadtest/run-loadtest.mjs",
+    "loadtest:mro": "node scripts/loadtest/run-mro-loadtest.mjs",
     "seed": "pnpm --filter turnaround-iq seed",
     "seed:mro": "pnpm --filter mro-copilot seed",
     "db:generate": "pnpm --filter @aviation/db generate",

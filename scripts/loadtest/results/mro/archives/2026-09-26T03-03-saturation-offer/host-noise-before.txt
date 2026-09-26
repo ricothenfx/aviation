@@ -1,0 +1,15 @@
+# 2026-09-26T02:57:42.900Z (before)
+loadavg: 5.36 9.31 10.49 9/1512 2625297
+
+aviation-mro-ai-service-1 0.88% 141.8MiB / 7.755GiB
+aviation-mro-web-1 0.05% 292.2MiB / 7.755GiB
+aviation-postgres-1 4.31% 183.6MiB / 7.755GiB
+turnaround-prod-realtime-gateway-1 1.30% 129.5MiB / 7.755GiB
+turnaround-prod-replan-engine-1 0.94% 121.2MiB / 7.755GiB
+turnaround-prod-simulator-1 0.27% 134.6MiB / 7.755GiB
+turnaround-prod-web-1 0.00% 202.8MiB / 7.755GiB
+turnaround-prod-caddy-1 0.00% 25.23MiB / 7.755GiB
+turnaround-prod-postgres-1 17.10% 93.4MiB / 7.755GiB
+turnaround-prod-redis-1 1.71% 7.941MiB / 7.755GiB
+aviation-simulator-1 35.88% 145.6MiB / 7.755GiB
+aviation-redis-1 7.15% 4.699MiB / 7.755GiB
