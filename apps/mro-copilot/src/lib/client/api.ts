@@ -142,3 +142,38 @@ export async function apiResolveAlert(alertId: string, note: string): Promise<En
     engineAlertSchema.parse,
   );
 }
+
+// --- Admin / Ingest (api-contracts.md §1 Admin/Ingest, PRD US-10) ------------
+
+import { ingestReportSchema, type IngestReport } from "@/lib/ai/contract";
+import { ingestRunsResponseSchema, type IngestRunsResponse } from "@/lib/api/schemas";
+
+export function apiIngestRuns(signal?: AbortSignal): Promise<IngestRunsResponse> {
+  return apiGet("/api/v1/admin/ingest/runs", ingestRunsResponseSchema.parse, signal);
+}
+
+export async function apiTriggerIngest(): Promise<IngestReport> {
+  // FR-2: mutating endpoints accept Idempotency-Key and are safe on retry.
+  const idempotencyKey = crypto.randomUUID();
+  let res: Response;
+  try {
+    res = await fetch("/api/v1/admin/ingest", {
+      method: "POST",
+      headers: { "Idempotency-Key": idempotencyKey },
+      cache: "no-store",
+    });
+  } catch {
+    throw new ApiClientError("NETWORK_ERROR", "network request failed", 0);
+  }
+  const parsed: unknown = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const error = (parsed as ApiErrorBody).error;
+    throw new ApiClientError(
+      error?.code ?? "INTERNAL",
+      error?.message ?? `request failed (${res.status})`,
+      res.status,
+      error?.requestId,
+    );
+  }
+  return ingestReportSchema.parse(parsed);
+}

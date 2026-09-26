@@ -5,12 +5,12 @@ from __future__ import annotations
 from typing import Any
 
 import anyio
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
 
 from mro_ai.config import Config
 from mro_ai.gateway import Gateway, ProviderUnavailableError
 from mro_ai.gateway.mock import EMBED_MODEL_ID
-from mro_ai.ingest import IngestInProgressError, default_corpus_dir, run_ingest
+from mro_ai.ingest import default_corpus_dir, run_ingest
 from mro_ai.internal.auth import require_service_token
 from mro_ai.internal.schemas import (
     EmbedRequest,
@@ -128,10 +128,9 @@ async def trigger_ingest(request: Request) -> IngestReportResponse:
         raise ProviderUnavailableError(
             "no embedding provider configured; ingest refuses to run (architecture.md §6)"
         )
-    try:
-        report = await run_ingest(config.database_url, default_corpus_dir(), gateway)
-    except IngestInProgressError as err:
-        raise HTTPException(status_code=409, detail=str(err)) from err
+    # IngestInProgressError propagates to the 409 INGEST_IN_PROGRESS problem
+    # handler in main.py (api-contracts.md §1/§2 error envelope, not bare {"detail"}).
+    report = await run_ingest(config.database_url, default_corpus_dir(), gateway)
     for outcome, count in (
         ("new", report.chunks_new),
         ("changed", report.chunks_changed),

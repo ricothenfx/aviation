@@ -17,6 +17,7 @@ from pydantic import ValidationError
 from mro_ai.config import Config, load_config
 from mro_ai.db import check_pgvector, check_postgres
 from mro_ai.gateway import Gateway, ProviderUnavailableError
+from mro_ai.ingest import IngestInProgressError
 from mro_ai.internal import schemas
 from mro_ai.internal.routes import router as internal_router
 from mro_ai.retrieval import RetrievalService
@@ -147,6 +148,13 @@ def create_app(config: Config | None = None, gateway: Gateway | None = None) -> 
     ) -> JSONResponse:
         """422 INSUFFICIENT_HISTORY — the app renders latestRul: null ("—")."""
         return problem(request, 422, "INSUFFICIENT_HISTORY", str(exc))
+
+    @app.exception_handler(IngestInProgressError)
+    async def ingest_in_progress_handler(
+        request: Request, exc: IngestInProgressError
+    ) -> JSONResponse:
+        """409 INGEST_IN_PROGRESS (api-contracts.md §1 Admin/Ingest)."""
+        return problem(request, 409, "INGEST_IN_PROGRESS", str(exc))
 
     return app
 

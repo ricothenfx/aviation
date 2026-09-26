@@ -3,6 +3,7 @@ import {
   aiServiceReadySchema,
   embedRequestSchema,
   embedResponseSchema,
+  ingestReportSchema,
   modelInfoSchema,
   retrievalSearchResponseSchema,
   rulBackfillResponseSchema,
@@ -13,6 +14,7 @@ import {
   type AiServiceReady,
   type EmbedRequest,
   type EmbedResponse,
+  type IngestReport,
   type ModelInfo,
   type RetrievalSearchResponse,
   type RulPrediction,
@@ -110,6 +112,12 @@ async function problemToError(
   }
   if (body.code === "INSUFFICIENT_HISTORY") {
     return new AiInsufficientHistoryError(body.detail ?? "insufficient history");
+  }
+  if (body.code === "INGEST_IN_PROGRESS") {
+    return new MroApiError(
+      "INGEST_IN_PROGRESS",
+      body.detail ?? "another ingest run is in progress",
+    );
   }
   return new MroApiError("AI_SERVICE_UNAVAILABLE", `ai-service ${path} responded ${res.status}`);
 }
@@ -242,4 +250,18 @@ export async function rulModelInfo(requestId?: string): Promise<ModelInfo> {
   } finally {
     clearTimeout(timeout);
   }
+}
+
+// --- Ingest (api-contracts.md §1 Admin/Ingest, US-10) ------------------------
+
+/**
+ * Trigger a full corpus re-ingest inside the ai-service (same code path as the
+ * CLI). Idempotent: an unchanged corpus yields a no-op report. A concurrent
+ * run surfaces as 409 INGEST_IN_PROGRESS. Ingest embeds the whole corpus on
+ * first run — the timeout is intentionally roomy (FR-5/US-10); retries stay
+ * safe behind the ai-service advisory lock.
+ */
+export async function triggerIngest(requestId?: string): Promise<IngestReport> {
+  const raw = await postJson("/internal/v1/ingest", {}, requestId, 120_000);
+  return ingestReportSchema.parse(raw);
 }

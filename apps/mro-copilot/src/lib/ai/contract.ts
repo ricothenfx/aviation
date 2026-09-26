@@ -148,5 +148,28 @@ export type ModelInfo = z.infer<typeof modelInfoSchema>;
 export const AI_PROBLEM_CODES = [
   "MODEL_NOT_LOADED",
   "INSUFFICIENT_HISTORY",
+  "INGEST_IN_PROGRESS",
   "PROVIDER_UNAVAILABLE",
 ] as const;
+
+// --- Ingest (api-contracts.md §1 Admin/Ingest + §3 /internal/v1/ingest) ------
+// The pydantic twin is IngestReportResponse in mro_ai/internal/schemas.py;
+// US-10: reviewer-triggered re-ingestion, idempotent by corpus content.
+
+export const ingestCountsSchema = z.object({
+  new: z.number().int().nonnegative(),
+  changed: z.number().int().nonnegative(),
+  unchanged: z.number().int().nonnegative(),
+  removed: z.number().int().nonnegative(),
+});
+export type IngestCounts = z.infer<typeof ingestCountsSchema>;
+
+export const ingestReportSchema = z.object({
+  corpusDigest: z.string().length(64),
+  embeddingModel: z.string().min(1),
+  manualsTouched: z.number().int().nonnegative(),
+  chunks: ingestCountsSchema,
+  durationMs: z.number().int().nonnegative(),
+  status: z.string().min(1),
+});
+export type IngestReport = z.infer<typeof ingestReportSchema>;

@@ -398,3 +398,26 @@ export type ScoreFleetResponse = z.infer<typeof scoreFleetResponseSchema>;
 export const resolveAlertRequestSchema = z.object({
   note: z.string().trim().min(3).max(2_000),
 });
+
+// --- Admin / Ingest (api-contracts.md §1 Admin/Ingest, PRD US-10) ------------
+
+export const ingestRunSummarySchema = z.object({
+  runId: z.string().uuid(),
+  corpusDigest: z.string().length(64),
+  embeddingModel: z.string(),
+  manualsTouched: z.number().int().nonnegative(),
+  chunksNew: z.number().int().nonnegative(),
+  chunksChanged: z.number().int().nonnegative(),
+  chunksUnchanged: z.number().int().nonnegative(),
+  chunksRemoved: z.number().int().nonnegative(),
+  durationMs: z.number().int().nonnegative(),
+  status: z.string(),
+  createdAt: z.string(),
+});
+export type IngestRunSummary = z.infer<typeof ingestRunSummarySchema>;
+
+export const ingestRunsResponseSchema = z.object({
+  runs: z.array(ingestRunSummarySchema),
+  nextCursor: z.string().nullable(),
+});
+export type IngestRunsResponse = z.infer<typeof ingestRunsResponseSchema>;
