@@ -76,6 +76,24 @@ async function ensureDisrupted(flightNo: string, scenario: "cancellation" | "lon
   expect([201, 400]).toContain(res.status);
 }
 
+/**
+ * Poll the passenger summary until the disruption view is visible. The inject
+ * route appends `flight.disrupted` and returns immediately; the orchestrator
+ * event tail flips the flight row asynchronously, so a single-shot GET races
+ * that flip (lost on slower CI runners).
+ */
+async function pollDisruption(timeoutMs: number): Promise<PaxSummaryView> {
+  const started = Date.now();
+  for (;;) {
+    const res = await get("/api/v1/pax/summary", "pax");
+    const summary = paxSummaryViewSchema.safeParse(res.body);
+    if (summary.success && summary.data.disruption !== null) return summary.data;
+    if (Date.now() - started > timeoutMs)
+      throw new Error(`disruption view not visible within ${timeoutMs} ms`);
+    await new Promise((resolve) => setTimeout(resolve, 400));
+  }
+}
+
 /** Poll the passenger summary until a full pipeline offer set is visible. */
 async function pollOffers(timeoutMs: number): Promise<{ elapsedMs: number; offer: OfferSetView }> {
   const started = Date.now();
@@ -167,9 +185,8 @@ describe("scenario injection (api-contracts.md §1, architecture.md §3.1)", () 
   });
 
   it("surfaces the disruption, vouchers and inbox in the passenger summary", async () => {
-    const res = await get("/api/v1/pax/summary", "pax");
-    expect(res.status).toBe(200);
-    const summary = paxSummaryViewSchema.parse(res.body) as PaxSummaryView;
+    await ensureDisrupted("NX 288", "cancellation");
+    const summary = await pollDisruption(10_000);
     expect(summary.disruption).toMatchObject({ flightNo: "NX 288", kind: "cancellation" });
     expect(summary.vouchers.length).toBeGreaterThan(0);
     // Explainability (PRD F-3): criteria carry rule, met flag and evaluated detail.
