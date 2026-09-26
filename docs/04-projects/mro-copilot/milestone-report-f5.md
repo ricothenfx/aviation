@@ -66,6 +66,13 @@ committed harness on a quiet host is a one-command affair.
 | Search p95 < 300 ms @ 100 VU | **NOT VERIFIED on this host** — environmental ceiling quantified; single-client reference (F2/F4 methodology) passes at 205–267 ms ⚠️ documented |
 | pytest / vitest unit / integration / e2e / lint / typecheck | all green (81 pytest incl. 8+4 new; 75 integration incl. 8 new; CI workflows on the pushed commits green) |
 
+CI history note (honesty): one e2e lane run on `0ad97a8` (turnaround-iq board e2e —
+a path-turnaround-iq owns, untouched by that commit) failed with an alert-visibility
+timeout, the same flake seen once in the F4 series (`6f421ee`); the identical lane is
+green on every commit before and after, and a re-run of that commit's lane passed
+(7m26s). Head `219a356` is fully green across all applicable workflows (`mro.yml` is
+path-filtered and last ran green on `4d4c857`, the latest mro-surface change).
+
 ## 5. Human steps flagged (not faked)
 
 - Live deploy: DNS record `mro-copilot.aviation…`, server secrets, and the
