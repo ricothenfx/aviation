@@ -1,0 +1,5 @@
+{
+  "extends": "@aviation/config/tsconfig/node.json",
+  "include": ["src", "vitest.config.ts"],
+  "exclude": ["node_modules"]
+}

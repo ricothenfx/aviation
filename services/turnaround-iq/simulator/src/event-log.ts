@@ -2,7 +2,7 @@ import { and, eq, gt, sql } from "drizzle-orm";
 
 import type { Db } from "@aviation/db/client";
 import { events } from "@aviation/db/schema";
-import type { DomainEvent } from "@aviation/contracts";
+import type { DomainEvent, TurnaroundAggregateType } from "@aviation/contracts";
 
 /**
  * Event-log access for the simulator (ADR-0001): append-only writes with the
@@ -24,7 +24,9 @@ export async function appendEvents(db: Db, batch: readonly DomainEvent[]): Promi
       batch.map((event) => ({
         id: event.id,
         aggregateId: event.aggregateId,
-        aggregateType: event.aggregateType,
+        // Turnaround aggregate enum — rebook-ai's additive aggregates never
+        // enter this event log (D-11/D-14); its own log arrives with rebook F2.
+        aggregateType: event.aggregateType as TurnaroundAggregateType,
         type: event.type,
         sequence: event.sequence,
         occurredAt: new Date(event.occurredAt),

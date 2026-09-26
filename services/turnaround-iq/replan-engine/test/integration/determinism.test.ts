@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { events as eventsTable } from "@aviation/db/schema";
+import type { AggregateType } from "@aviation/db/schema";
 import type { DomainEvent } from "@aviation/contracts";
 import {
   buildEventsUpTo,
@@ -68,7 +69,9 @@ describe("replan determinism (same seed + log ⇒ identical plan hash)", () => {
         .values({
           id: event.id,
           aggregateId: event.aggregateId,
-          aggregateType: event.aggregateType,
+          // Turnaround aggregate enum (rebook-ai's additive aggregates never
+          // enter this event log, D-11/D-14).
+          aggregateType: event.aggregateType as AggregateType,
           type: event.type,
           sequence: event.sequence,
           occurredAt: new Date(event.occurredAt),

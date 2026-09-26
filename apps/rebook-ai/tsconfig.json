@@ -1,0 +1,10 @@
+{
+  "extends": "@aviation/config/tsconfig/nextjs.json",
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["*.ts", ".next/types/**/*.ts", "next-env.d.ts", "seed", "src"],
+  "exclude": ["node_modules"]
+}

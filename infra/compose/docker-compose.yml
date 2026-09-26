@@ -1,16 +1,18 @@
 # Local development topology (monorepo-architecture.md §3).
 # Profiles: "infra" = postgres + redis only; "turnaround" = full project stack
 # (postgres + redis + web); "mro" = mro-copilot stack (postgres + web + ai-service,
-# no Redis — architecture.md §1 for mro-copilot); "evidence" = ephemeral
-# Prometheus + Grafana for load runs only (ADR-0007 — never part of the demo
-# stack). Run from the repo root:
+# no Redis — architecture.md §1 for mro-copilot); "rebook" = rebook-ai stack
+# (postgres + redis + web :3004 + orchestrator :4104 — rebook-ai architecture.md
+# §1, ADR-0014); "evidence" = ephemeral Prometheus + Grafana for load runs only
+# (ADR-0007 — never part of the demo stack). Run from the repo root:
 #   docker compose --profile turnaround up -d
 #   docker compose --profile mro up -d
+#   docker compose --profile rebook up -d
 #   docker compose --profile evidence up -d   # load-test evidence only
 services:
   postgres:
     image: timescale/timescaledb:latest-pg16
-    profiles: ["turnaround", "infra", "mro"]
+    profiles: ["turnaround", "infra", "mro", "rebook"]
     environment:
       POSTGRES_USER: turnaround
       POSTGRES_PASSWORD: turnaround
@@ -29,7 +31,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    profiles: ["turnaround", "infra"]
+    profiles: ["turnaround", "infra", "rebook"]
     ports:
       - "127.0.0.1:6379:6379"
     healthcheck:
@@ -314,6 +316,98 @@ services:
       # at boot — allow a longer warm-up.
       start_period: 420s
 
+  # rebook-ai web (F1): Next.js app on http://localhost:3004. Serves a
+  # PRODUCTION build (product shape, mro-web precedent). Self-installing
+  # workspace + seeded users, so a clean clone only needs
+  # `docker compose --profile rebook up -d`. AUTH_SECRET is a dev-only
+  # throwaway value for local simulated data.
+  rebook-web:
+    image: node:22-bookworm-slim
+    profiles: ["rebook"]
+    working_dir: /repo
+    command: >-
+      sh -c "corepack enable &&
+             pnpm install --frozen-lockfile &&
+             pnpm --filter rebook-ai build &&
+             pnpm --filter rebook-ai seed &&
+             pnpm --filter rebook-ai start"
+    environment:
+      REBOOK_DATABASE_URL: postgresql://turnaround:turnaround@postgres:5432/rebook_ai
+      AUTH_SECRET: dev-only-insecure-secret-0123456789abcdef
+      REBOOK_AUTH_COOKIE_NAME: rbo_session
+      # LLM gateway provider (ADR-0003). Host .env can override ("off" exercises
+      # the degrade-to-rules path; the UI badges stay honest either way).
+      LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      NEXT_TELEMETRY_DISABLED: "1"
+    ports:
+      - "127.0.0.1:3004:3004"
+    volumes:
+      - ../..:/repo
+      - rebook_web_node_modules:/repo/node_modules
+      - rebook_web_app_node_modules:/repo/apps/rebook-ai/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3004/healthz').then((r)=>{if(!r.ok)throw new Error('unhealthy')}).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 24
+      start_period: 240s
+
+  # rebook-ai orchestrator (ADR-0014): TS worker owning scenario clock, offer
+  # ranking, the propose-only agent loop, the fulfillment saga and SNS-shaped
+  # notifications. Loopback-only; the browser never talks to it — commands flow
+  # via PostgreSQL + the Redis control channel. F1 ships the skeleton with
+  # /healthz /readyz /metrics + provider wiring.
+  rebook-orchestrator:
+    image: node:22-bookworm-slim
+    profiles: ["rebook"]
+    working_dir: /repo
+    command: >-
+      sh -c "corepack enable &&
+             pnpm install --frozen-lockfile &&
+             pnpm --filter @aviation/rb-orchestrator dev"
+    environment:
+      REBOOK_DATABASE_URL: postgresql://turnaround:turnaround@postgres:5432/rebook_ai
+      REDIS_URL: redis://redis:6379
+      LOG_LEVEL: info
+      ORCHESTRATOR_PORT: "4104"
+      LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+    ports:
+      - "127.0.0.1:4104:4104"
+    volumes:
+      - ../..:/repo
+      - rebook_orchestrator_node_modules:/repo/node_modules
+      - rebook_orchestrator_pkg_node_modules:/repo/services/rebook-ai/orchestrator/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rebook-web:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4104/healthz').then((r)=>{if(!r.ok)throw new Error('unhealthy')}).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 24
+      start_period: 240s
+
   # Load-run evidence stack (ADR-0007): k6 remote-writes metrics here during
   # `scripts/loadtest/run-loadtest.mjs --prom`; Grafana renders the committed
   # dashboard. Loopback-only, ephemeral — torn down after evidence collection.
@@ -351,6 +445,10 @@ volumes:
   mro_web_node_modules:
   mro_web_app_node_modules:
   mro_ai_pip_cache:
+  rebook_web_node_modules:
+  rebook_web_app_node_modules:
+  rebook_orchestrator_node_modules:
+  rebook_orchestrator_pkg_node_modules:
   simulator_node_modules:
   simulator_pkg_node_modules:
   simulator_domain_node_modules:

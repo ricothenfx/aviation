@@ -1,0 +1,92 @@
+# rebook-ai CI (monorepo-architecture.md §4: path-filtered; engineering-
+# standards.md §7). Runs only when rebook-ai surfaces, shared packages or the
+# compose topology change. Sibling workflows stay untouched.
+name: rebook
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/rebook-ai/**"
+      - "services/rebook-ai/**"
+      - "packages/**"
+      - "infra/compose/**"
+      - ".github/workflows/rebook.yml"
+      - "pnpm-lock.yaml"
+      - ".env.example"
+  pull_request:
+    paths:
+      - "apps/rebook-ai/**"
+      - "services/rebook-ai/**"
+      - "packages/**"
+      - "infra/compose/**"
+      - ".github/workflows/rebook.yml"
+      - "pnpm-lock.yaml"
+      - ".env.example"
+
+jobs:
+  compose-smoke-rebook:
+    name: compose stack smoke + integration (F1 DoD)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Boot the rebook stack (postgres + redis + web :3004 + orchestrator :4104)
+        run: docker compose --profile rebook up -d --wait --wait-timeout 900
+
+      - name: Health + seeded login smoke (passenger / agent / supervisor)
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:3004/healthz > /dev/null; then break; fi
+            sleep 5
+          done
+          curl -sf http://localhost:3004/healthz
+          echo "web healthz OK"
+          curl -sf http://localhost:4104/healthz
+          echo "orchestrator healthz OK"
+          curl -sf http://localhost:3004/readyz | grep -o '"status":"ready"'
+          echo "web readyz OK (db, provider)"
+          curl -sf http://localhost:4104/readyz
+          echo "orchestrator readyz OK (db, redis, provider)"
+          curl -sf -X POST http://localhost:3004/api/v1/auth/login \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"nadia.cho@pax-sim.example","password":"passenger-nx-01"}' \
+            | grep -o '"role":"passenger"'
+          curl -sf -X POST http://localhost:3004/api/v1/auth/login \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"amir.hassan@nx-sim.example","password":"agent-nx-01"}' \
+            | grep -o '"role":"agent"'
+          curl -sf -X POST http://localhost:3004/api/v1/auth/login \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"grace.tan@nx-sim.example","password":"supervisor-nx-01"}' \
+            | grep -o '"role":"supervisor"'
+          echo "seeded logins OK for all three roles"
+          curl -sf -X POST http://localhost:3004/api/v1/auth/login \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"amir.hassan@nx-sim.example","password":"agent-nx-01"}' \
+            -c /tmp/rb-agent.jar > /dev/null
+          curl -sf http://localhost:3004/api/v1/queue -b /tmp/rb-agent.jar \
+            | grep -o '"containmentPct":null'
+          echo "agent queue contract OK (F1 empty snapshot)"
+
+      - name: Integration tests (migration · RBAC matrix · auth)
+        env:
+          REBOOK_DATABASE_URL: postgresql://turnaround:turnaround@localhost:5433/rebook_ai
+          REBOOK_BASE_URL: http://localhost:3004
+        run: pnpm --filter rebook-ai test:integration && pnpm --filter @aviation/rb-orchestrator test:integration
+
+      - name: Teardown
+        if: always()
+        run: docker compose --profile rebook down -v --remove-orphans

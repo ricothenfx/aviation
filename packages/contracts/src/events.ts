@@ -123,6 +123,115 @@ export const scenarioTickPayloadSchema = z.object({
 });
 export type ScenarioTickPayload = z.infer<typeof scenarioTickPayloadSchema>;
 
+// --- rebook-ai event payloads (rebook-ai api-contracts.md §2, additive) ------
+
+export const disruptionKindSchema = z.enum(["cancellation", "long_delay"]);
+export type DisruptionKind = z.infer<typeof disruptionKindSchema>;
+
+export const sagaStepSchema = z.enum(["seat_reserve", "payment", "ticket_issue"]);
+export type SagaStep = z.infer<typeof sagaStepSchema>;
+
+export const rebookRoleSchema = z.enum(["passenger", "agent", "supervisor"]);
+export type RebookRole = z.infer<typeof rebookRoleSchema>;
+
+export const flightDisruptedPayloadSchema = z.object({
+  flightNo: z.string().min(1),
+  disruptionKind: disruptionKindSchema,
+  delayMinutes: z.number().int().nonnegative(),
+  reasonCode: z.string().min(1),
+  affectedPnrs: z.number().int().nonnegative(),
+});
+export type FlightDisruptedPayload = z.infer<typeof flightDisruptedPayloadSchema>;
+
+export const offerCreatedPayloadSchema = z.object({
+  pnrId: uuid,
+  offerId: uuid,
+  optionCount: z.number().int().positive(),
+  voucherIssued: z.boolean(),
+});
+export type OfferCreatedPayload = z.infer<typeof offerCreatedPayloadSchema>;
+
+export const offerExpiredPayloadSchema = z.object({
+  offerId: uuid,
+  reason: z.string().min(1),
+});
+export type OfferExpiredPayload = z.infer<typeof offerExpiredPayloadSchema>;
+
+export const offerConfirmedPayloadSchema = z.object({
+  offerId: uuid,
+  optionId: uuid,
+  byRole: rebookRoleSchema,
+  /** Null while the saga has not been opened yet (agent-approved path). */
+  sagaId: uuid.nullable(),
+});
+export type OfferConfirmedPayload = z.infer<typeof offerConfirmedPayloadSchema>;
+
+export const sagaStepCompletedPayloadSchema = z.object({
+  sagaId: uuid,
+  step: sagaStepSchema,
+  latencyMs: z.number().int().nonnegative(),
+});
+export type SagaStepCompletedPayload = z.infer<typeof sagaStepCompletedPayloadSchema>;
+
+export const sagaFailedPayloadSchema = z.object({
+  sagaId: uuid,
+  step: sagaStepSchema,
+  errorCode: z.string().min(1),
+});
+export type SagaFailedPayload = z.infer<typeof sagaFailedPayloadSchema>;
+
+export const sagaCompensatedPayloadSchema = z.object({
+  sagaId: uuid,
+  compensatedSteps: z.array(sagaStepSchema).min(1),
+});
+export type SagaCompensatedPayload = z.infer<typeof sagaCompensatedPayloadSchema>;
+
+export const bookingIssuedPayloadSchema = z.object({
+  sagaId: uuid,
+  pnrId: uuid,
+  newFlightNo: z.string().min(1),
+  boardingPassRef: z.string().min(1),
+});
+export type BookingIssuedPayload = z.infer<typeof bookingIssuedPayloadSchema>;
+
+/** Criteria + evaluated values travel with the voucher — explainability (PRD F-3). */
+export const voucherIssuedPayloadSchema = z.object({
+  voucherId: uuid,
+  pnrId: uuid,
+  criteria: z.record(z.string(), z.unknown()),
+});
+export type VoucherIssuedPayload = z.infer<typeof voucherIssuedPayloadSchema>;
+
+export const notificationSentPayloadSchema = z.object({
+  notificationId: uuid,
+  pnrId: uuid,
+  channel: z.literal("inbox"),
+});
+export type NotificationSentPayload = z.infer<typeof notificationSentPayloadSchema>;
+
+export const proposalCreatedPayloadSchema = z.object({
+  proposalId: uuid,
+  pnrId: uuid,
+  /** Honesty badge pair (D-10): llm+provider vs the rules fallback. */
+  source: z.enum(["llm", "rules"]),
+  provider: z.string().min(1),
+});
+export type ProposalCreatedPayload = z.infer<typeof proposalCreatedPayloadSchema>;
+
+export const proposalApprovedPayloadSchema = z.object({
+  proposalId: uuid,
+  approverId: uuid,
+  note: z.string().max(500).optional(),
+});
+export type ProposalApprovedPayload = z.infer<typeof proposalApprovedPayloadSchema>;
+
+export const proposalRejectedPayloadSchema = z.object({
+  proposalId: uuid,
+  approverId: uuid,
+  note: z.string().min(1).max(500),
+});
+export type ProposalRejectedPayload = z.infer<typeof proposalRejectedPayloadSchema>;
+
 export type EventPayloadMap = {
   "turn.started": TurnStartedPayload;
   "task.state_changed": TaskStateChangedPayload;
@@ -136,6 +245,19 @@ export type EventPayloadMap = {
   "replan.rejected": ReplanRejectedPayload;
   "kpi.updated": KpiUpdatedPayload;
   "scenario.tick": ScenarioTickPayload;
+  "flight.disrupted": FlightDisruptedPayload;
+  "offer.created": OfferCreatedPayload;
+  "offer.expired": OfferExpiredPayload;
+  "offer.confirmed": OfferConfirmedPayload;
+  "saga.step.completed": SagaStepCompletedPayload;
+  "saga.failed": SagaFailedPayload;
+  "saga.compensated": SagaCompensatedPayload;
+  "booking.issued": BookingIssuedPayload;
+  "voucher.issued": VoucherIssuedPayload;
+  "notification.sent": NotificationSentPayload;
+  "proposal.created": ProposalCreatedPayload;
+  "proposal.approved": ProposalApprovedPayload;
+  "proposal.rejected": ProposalRejectedPayload;
 };
 
 export const eventPayloadSchemas: { [K in EventType]: z.ZodType<EventPayloadMap[K]> } = {
@@ -151,4 +273,17 @@ export const eventPayloadSchemas: { [K in EventType]: z.ZodType<EventPayloadMap[
   "replan.rejected": replanRejectedPayloadSchema,
   "kpi.updated": kpiUpdatedPayloadSchema,
   "scenario.tick": scenarioTickPayloadSchema,
+  "flight.disrupted": flightDisruptedPayloadSchema,
+  "offer.created": offerCreatedPayloadSchema,
+  "offer.expired": offerExpiredPayloadSchema,
+  "offer.confirmed": offerConfirmedPayloadSchema,
+  "saga.step.completed": sagaStepCompletedPayloadSchema,
+  "saga.failed": sagaFailedPayloadSchema,
+  "saga.compensated": sagaCompensatedPayloadSchema,
+  "booking.issued": bookingIssuedPayloadSchema,
+  "voucher.issued": voucherIssuedPayloadSchema,
+  "notification.sent": notificationSentPayloadSchema,
+  "proposal.created": proposalCreatedPayloadSchema,
+  "proposal.approved": proposalApprovedPayloadSchema,
+  "proposal.rejected": proposalRejectedPayloadSchema,
 };

@@ -3,16 +3,29 @@ import { z } from "zod";
 import { domainEventSchema, type DomainEvent, type EventType } from "./envelope";
 import {
   alertLifecyclePayloadSchema,
+  bookingIssuedPayloadSchema,
   eventPayloadSchemas,
   flightDelayRiskPayloadSchema,
+  flightDisruptedPayloadSchema,
   kpiUpdatedPayloadSchema,
+  notificationSentPayloadSchema,
+  offerConfirmedPayloadSchema,
+  offerCreatedPayloadSchema,
+  offerExpiredPayloadSchema,
+  proposalApprovedPayloadSchema,
+  proposalCreatedPayloadSchema,
+  proposalRejectedPayloadSchema,
   replanApprovedPayloadSchema,
   replanProposedPayloadSchema,
   replanRejectedPayloadSchema,
+  sagaCompensatedPayloadSchema,
+  sagaFailedPayloadSchema,
+  sagaStepCompletedPayloadSchema,
   scenarioTickPayloadSchema,
   taskRescheduledPayloadSchema,
   taskStateChangedPayloadSchema,
   turnStartedPayloadSchema,
+  voucherIssuedPayloadSchema,
   type EventPayloadMap,
 } from "./events";
 
@@ -49,6 +62,20 @@ export const typedDomainEventSchemas: { [K in EventType]: TypedDomainEvent<K> } 
   "replan.rejected": typedEvent("replan.rejected", replanRejectedPayloadSchema),
   "kpi.updated": typedEvent("kpi.updated", kpiUpdatedPayloadSchema),
   "scenario.tick": typedEvent("scenario.tick", scenarioTickPayloadSchema),
+  // rebook-ai (rebook-ai api-contracts.md §2 — additive, D-11/D-14 precedent)
+  "flight.disrupted": typedEvent("flight.disrupted", flightDisruptedPayloadSchema),
+  "offer.created": typedEvent("offer.created", offerCreatedPayloadSchema),
+  "offer.expired": typedEvent("offer.expired", offerExpiredPayloadSchema),
+  "offer.confirmed": typedEvent("offer.confirmed", offerConfirmedPayloadSchema),
+  "saga.step.completed": typedEvent("saga.step.completed", sagaStepCompletedPayloadSchema),
+  "saga.failed": typedEvent("saga.failed", sagaFailedPayloadSchema),
+  "saga.compensated": typedEvent("saga.compensated", sagaCompensatedPayloadSchema),
+  "booking.issued": typedEvent("booking.issued", bookingIssuedPayloadSchema),
+  "voucher.issued": typedEvent("voucher.issued", voucherIssuedPayloadSchema),
+  "notification.sent": typedEvent("notification.sent", notificationSentPayloadSchema),
+  "proposal.created": typedEvent("proposal.created", proposalCreatedPayloadSchema),
+  "proposal.approved": typedEvent("proposal.approved", proposalApprovedPayloadSchema),
+  "proposal.rejected": typedEvent("proposal.rejected", proposalRejectedPayloadSchema),
 };
 
 export function parseTypedEvent<K extends EventType>(

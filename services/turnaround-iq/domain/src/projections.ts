@@ -1,5 +1,6 @@
 import {
   eventPayloadSchemas,
+  isRebookEventType,
   type AlertLifecyclePayload,
   type DomainEvent,
   type EventPayloadMap,
@@ -7,6 +8,7 @@ import {
   type FlightDelayRiskPayload,
   type FlightStatus,
   type KpiUpdatedPayload,
+  type RebookEventType,
   type ReplanApprovedPayload,
   type ReplanProposedPayload,
   type ReplanRejectedPayload,
@@ -164,11 +166,19 @@ function refreshProjectedDeparture(flight: FlightProjection): void {
 }
 
 /**
+ * turnaround's own vocabulary: the shared union minus rebook-ai's additive
+ * subset (D-11/D-14 precedent — rebook events never enter the turnaround event
+ * log). Keeping the generic bound here preserves the exhaustiveness guard in
+ * the switch below for every future turnaround type.
+ */
+type TurnaroundEventType = Exclude<EventType, RebookEventType>;
+
+/**
  * Apply one typed event to the state (mutating the in-memory structures it owns —
  * callers thread a single state instance; replay order is strictly by seq).
  * Returns the state for chaining. Unknown payloads throw (contract violation).
  */
-export function applyEvent<K extends EventType>(
+export function applyEvent<K extends TurnaroundEventType>(
   state: BoardProjectionState,
   event: DomainEvent & { type: K; payload: EventPayloadMap[K] },
 ): BoardProjectionState {
@@ -286,12 +296,18 @@ export function applyRawEvent(
   state: BoardProjectionState,
   event: DomainEvent,
 ): BoardProjectionState {
+  // rebook-ai shares the envelope vocabulary additively (D-11/D-14) — its
+  // events never enter the turnaround event log; skip them defensively.
+  if (isRebookEventType(event.type)) return state;
   const payloadSchema = eventPayloadSchemas[event.type];
   const payload = payloadSchema.parse(event.payload);
   return applyEvent(state, {
     ...event,
     payload,
-  } as DomainEvent & { type: EventType; payload: EventPayloadMap[EventType] });
+  } as DomainEvent & {
+    type: Exclude<EventType, RebookEventType>;
+    payload: EventPayloadMap[Exclude<EventType, RebookEventType>];
+  });
 }
 
 /**

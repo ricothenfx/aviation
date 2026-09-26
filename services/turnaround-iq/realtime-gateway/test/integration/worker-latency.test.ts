@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { createRedis } from "@aviation/db/redis";
 import { events as eventsTable } from "@aviation/db/schema";
+import type { AggregateType } from "@aviation/db/schema";
 import type { DomainEvent } from "@aviation/contracts";
 import {
   buildEventsUpTo,
@@ -36,7 +37,7 @@ async function insertAndPublish(stack: Stack, event: DomainEvent): Promise<boole
     .values({
       id: event.id,
       aggregateId: event.aggregateId,
-      aggregateType: event.aggregateType,
+      aggregateType: event.aggregateType as AggregateType,
       type: event.type,
       sequence: event.sequence,
       occurredAt: new Date(event.occurredAt),

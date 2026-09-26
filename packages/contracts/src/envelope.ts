@@ -11,6 +11,12 @@ import { z } from "zod";
  * - `replan.approved` / `replan.rejected` — the human-in-the-loop decision trail
  *   (architecture.md §3, data-model.md §2 replan lifecycle proposed|approved|rejected).
  */
+/**
+ * rebook-ai joins the vocabulary ADDITIVELY (rebook-ai api-contracts.md §2, D-11/D-14
+ * precedent): disruption → offers, saga fulfillment, vouchers, notifications and the
+ * propose-only agent proposal lifecycle. Envelope shape is unchanged for existing
+ * consumers; new types only.
+ */
 export const EVENT_TYPES = [
   "turn.started",
   "task.state_changed",
@@ -24,12 +30,85 @@ export const EVENT_TYPES = [
   "replan.rejected",
   "kpi.updated",
   "scenario.tick",
+  "flight.disrupted",
+  "offer.created",
+  "offer.expired",
+  "offer.confirmed",
+  "saga.step.completed",
+  "saga.failed",
+  "saga.compensated",
+  "booking.issued",
+  "voucher.issued",
+  "notification.sent",
+  "proposal.created",
+  "proposal.approved",
+  "proposal.rejected",
 ] as const;
 
 export const eventTypeSchema = z.enum(EVENT_TYPES);
 export type EventType = (typeof EVENT_TYPES)[number];
 
-export const AGGREGATE_TYPES = ["flight", "task", "alert", "replan", "scenario"] as const;
+/**
+ * rebook-ai vocabulary subset (rebook-ai api-contracts.md §2). Consumers
+ * outside the rebook domain (e.g. turnaround-iq projections switch over the
+ * full union) skip these defensively — they never enter foreign event logs,
+ * and the skip keeps their exhaustiveness guards strict for their own types.
+ */
+export const REBOOK_EVENT_TYPES = [
+  "flight.disrupted",
+  "offer.created",
+  "offer.expired",
+  "offer.confirmed",
+  "saga.step.completed",
+  "saga.failed",
+  "saga.compensated",
+  "booking.issued",
+  "voucher.issued",
+  "notification.sent",
+  "proposal.created",
+  "proposal.approved",
+  "proposal.rejected",
+] as const satisfies readonly EventType[];
+
+export type RebookEventType = (typeof REBOOK_EVENT_TYPES)[number];
+
+export function isRebookEventType(type: EventType): type is RebookEventType {
+  return (REBOOK_EVENT_TYPES as readonly string[]).includes(type);
+}
+
+/** turnaround-iq's own vocabulary: the shared unions minus rebook-ai's subset. */
+export type TurnaroundEventType = Exclude<EventType, RebookEventType>;
+
+export const REBOOK_AGGREGATE_TYPES = [
+  "pnr",
+  "offer",
+  "saga",
+  "voucher",
+  "proposal",
+  "notification",
+] as const satisfies readonly AggregateType[];
+
+export type RebookAggregateType = (typeof REBOOK_AGGREGATE_TYPES)[number];
+
+export function isRebookAggregateType(type: AggregateType): type is RebookAggregateType {
+  return (REBOOK_AGGREGATE_TYPES as readonly string[]).includes(type);
+}
+
+export type TurnaroundAggregateType = Exclude<AggregateType, RebookAggregateType>;
+
+export const AGGREGATE_TYPES = [
+  "flight",
+  "task",
+  "alert",
+  "replan",
+  "scenario",
+  "pnr",
+  "offer",
+  "saga",
+  "voucher",
+  "proposal",
+  "notification",
+] as const;
 export const aggregateTypeSchema = z.enum(AGGREGATE_TYPES);
 export type AggregateType = (typeof AGGREGATE_TYPES)[number];
 

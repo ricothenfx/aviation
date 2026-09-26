@@ -21,10 +21,13 @@
     "loadtest:mro": "node scripts/loadtest/run-mro-loadtest.mjs",
     "seed": "pnpm --filter turnaround-iq seed",
     "seed:mro": "pnpm --filter mro-copilot seed",
+    "seed:rebook": "pnpm --filter rebook-ai seed",
     "db:generate": "pnpm --filter @aviation/db generate",
     "db:generate:mro": "pnpm --filter mro-copilot db:generate",
+    "db:generate:rebook": "pnpm --filter rebook-ai db:generate",
     "db:migrate": "pnpm --filter @aviation/db migrate",
     "db:migrate:mro": "pnpm --filter mro-copilot db:migrate",
+    "db:migrate:rebook": "pnpm --filter rebook-ai db:migrate",
     "eval:mro:full": "node scripts/eval-mro/full.mjs",
     "bench:mro-ask": "node scripts/benchmarks/mro-ask-latency.mjs",
     "test:e2e:mro": "pnpm --filter mro-copilot test:e2e"

@@ -2,6 +2,7 @@ import { desc, eq, ne, sql } from "drizzle-orm";
 
 import type { Db } from "@aviation/db/client";
 import { alerts, events, type AlertRow } from "@aviation/db/schema";
+import type { AggregateType } from "@aviation/db/schema";
 import type { AlertProjection, DomainEvent } from "@aviation/contracts";
 import { ApiError } from "@aviation/contracts";
 import { CHAN_EVENTS, KEY_SCENARIO_STATE } from "@aviation/tiq-domain";
@@ -104,7 +105,7 @@ export async function appendAlertLifecycle(args: {
     .values({
       id: event.id,
       aggregateId: event.aggregateId,
-      aggregateType: event.aggregateType,
+      aggregateType: event.aggregateType as AggregateType,
       type: event.type,
       sequence: event.sequence,
       occurredAt: new Date(event.occurredAt),

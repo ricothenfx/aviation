@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { events as eventsTable } from "@aviation/db/schema";
+import type { AggregateType } from "@aviation/db/schema";
 import { buildEventsUpTo, buildReferenceDay } from "@aviation/tiq-domain";
 import type { DomainEvent } from "@aviation/contracts";
 
@@ -32,7 +33,7 @@ async function insertEvent(db: Stack["db"], event: DomainEvent, idSuffix = ""): 
     .values({
       id: `${event.id}${idSuffix}`,
       aggregateId: event.aggregateId,
-      aggregateType: event.aggregateType,
+      aggregateType: event.aggregateType as AggregateType,
       type: event.type,
       sequence: event.sequence,
       occurredAt: new Date(event.occurredAt),

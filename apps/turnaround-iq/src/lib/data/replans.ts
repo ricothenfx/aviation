@@ -1,7 +1,12 @@
 import { eq, sql } from "drizzle-orm";
 
 import type { Db } from "@aviation/db/client";
-import { events, replanScenarios, type ReplanScenarioRow } from "@aviation/db/schema";
+import {
+  events,
+  replanScenarios,
+  type AggregateType,
+  type ReplanScenarioRow,
+} from "@aviation/db/schema";
 import { ApiError, type Replan } from "@aviation/contracts";
 import {
   CHAN_EVENTS,
@@ -117,7 +122,7 @@ async function appendDecisionEvent(args: {
     .values({
       id: event.id,
       aggregateId: event.aggregateId,
-      aggregateType: event.aggregateType,
+      aggregateType: event.aggregateType as AggregateType,
       type: event.type,
       sequence: event.sequence,
       occurredAt: new Date(event.occurredAt),

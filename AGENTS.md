@@ -94,6 +94,12 @@ pnpm db:generate        # drizzle-kit generate migration SQL from packages/db sc
 pnpm db:generate:mro    # drizzle-kit generate from apps/mro-copilot schema (mro_copilot DB)
 pnpm db:migrate         # apply pending migrations (turnaround-iq)
 pnpm db:migrate:mro     # apply pending mro-copilot migrations (pgvector + chunks)
+pnpm seed:rebook        # rebook-ai: ensure rebook_ai DB + migrations + seeded users (passenger/agent/supervisor)
+pnpm db:generate:rebook # drizzle-kit generate from apps/rebook-ai schema (rebook_ai DB)
+pnpm db:migrate:rebook  # apply pending rebook-ai migrations
+
+# rebook-ai stack (web :3004, orchestrator :4104 loopback, shared postgres + redis, DB rebook_ai — ADR-0014):
+docker compose --profile rebook up -d
 
 # mro-copilot stack (web :3003, ai-service :4103 loopback, shared postgres, DB mro_copilot — ADR-0012):
 docker compose --profile mro up -d

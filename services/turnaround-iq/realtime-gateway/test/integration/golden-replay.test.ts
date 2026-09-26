@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { sql } from "drizzle-orm";
 
 import { createDb, type Db } from "@aviation/db/client";
+import type { AggregateType } from "@aviation/db/schema";
 import { upsertReferenceDay } from "@aviation/db/baseline";
 import {
   applyRawEvent,
@@ -79,7 +80,7 @@ describe("golden replay (ADR-0001 compliance, milestones §F2)", () => {
           events.slice(i, i + 200).map((event) => ({
             id: event.id,
             aggregateId: event.aggregateId,
-            aggregateType: event.aggregateType,
+            aggregateType: event.aggregateType as AggregateType,
             type: event.type,
             sequence: event.sequence,
             occurredAt: new Date(event.occurredAt),

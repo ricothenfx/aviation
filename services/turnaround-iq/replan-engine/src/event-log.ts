@@ -2,8 +2,13 @@ import { and, asc, eq, gt, inArray, sql } from "drizzle-orm";
 
 import type { Db } from "@aviation/db/client";
 import { events } from "@aviation/db/schema";
-import type { DomainEvent, EventPayloadMap, EventType } from "@aviation/contracts";
-import type { AggregateType, EventProducer } from "@aviation/db/schema";
+import type {
+  DomainEvent,
+  EventPayloadMap,
+  TurnaroundAggregateType,
+  TurnaroundEventType,
+} from "@aviation/contracts";
+import type { EventProducer } from "@aviation/db/schema";
 
 /**
  * Engine-side event-log access (ADR-0001): append-only writes with per-aggregate
@@ -71,13 +76,14 @@ async function nextSequence(db: Db, aggregateId: string): Promise<number> {
 /**
  * Append one engine/user event with retry: a concurrent simulator append for the
  * same task aggregate can claim the sequence between read and insert; the unique
- * index rejects, we re-read and retry (bounded).
+ * index rejects, we re-read and retry (bounded). Bound to turnaround's own
+ * vocabulary (rebook-ai events never enter this event log, D-11/D-14).
  */
-export async function appendEvent<K extends EventType>(args: {
+export async function appendEvent<K extends TurnaroundEventType>(args: {
   db: Db;
   type: K;
   aggregateId: string;
-  aggregateType: AggregateType;
+  aggregateType: TurnaroundAggregateType;
   occurredAt: string;
   payload: EventPayloadMap[K];
   producer: EventProducer;
@@ -97,12 +103,14 @@ export async function appendEvent<K extends EventType>(args: {
       .insert(events)
       .values({
         id: event.id,
-        aggregateId: event.aggregateId,
-        aggregateType: event.aggregateType,
-        type: event.type,
-        sequence: event.sequence,
-        occurredAt: new Date(event.occurredAt),
-        payload: event.payload,
+        aggregateId: args.aggregateId,
+        // From args (turnaround-narrowed), not the cast DomainEvent whose
+        // aggregateType union includes rebook-ai's additive aggregates.
+        aggregateType: args.aggregateType,
+        type: args.type,
+        sequence,
+        occurredAt: new Date(args.occurredAt),
+        payload: args.payload,
         producer: args.producer,
       })
       .onConflictDoNothing()

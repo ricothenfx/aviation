@@ -1,0 +1,20 @@
+[
+  {
+    "email": "nadia.cho@pax-sim.example",
+    "displayName": "Nadia Cho",
+    "role": "passenger",
+    "password": "passenger-nx-01"
+  },
+  {
+    "email": "amir.hassan@nx-sim.example",
+    "displayName": "Amir Hassan",
+    "role": "agent",
+    "password": "agent-nx-01"
+  },
+  {
+    "email": "grace.tan@nx-sim.example",
+    "displayName": "Grace Tan",
+    "role": "supervisor",
+    "password": "supervisor-nx-01"
+  }
+]

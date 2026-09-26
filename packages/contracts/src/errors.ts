@@ -2,6 +2,7 @@ import { z } from "zod";
 
 /**
  * Standard API error envelope (api-contracts.md §2). Every REST error response uses this shape.
+ * rebook-ai joins the codes ADDITIVELY (rebook-ai api-contracts.md §1).
  */
 export const ERROR_CODES = [
   "VALIDATION_ERROR",
@@ -12,6 +13,9 @@ export const ERROR_CODES = [
   "REPLAN_INFEASIBLE",
   "RATE_LIMITED",
   "INTERNAL",
+  "OFFER_EXPIRED",
+  "SAGA_CONFLICT",
+  "PROPOSAL_NOT_PENDING",
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];
@@ -26,6 +30,9 @@ export const ERROR_STATUS: { [K in ErrorCode]: number } = {
   REPLAN_INFEASIBLE: 422,
   RATE_LIMITED: 429,
   INTERNAL: 500,
+  OFFER_EXPIRED: 409,
+  SAGA_CONFLICT: 409,
+  PROPOSAL_NOT_PENDING: 409,
 };
 
 export const errorEnvelopeSchema = z.object({
