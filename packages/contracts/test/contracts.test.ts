@@ -15,8 +15,12 @@ import {
   paxSummaryViewSchema,
   parseTypedEvent,
   poisonEventViewSchema,
+  proposalRequestResponseSchema,
+  proposalToolCallSchema,
+  proposalViewSchema,
   queueSnapshotViewSchema,
   rebookLiveFrameSchema,
+  sagaCompensateResponseSchema,
   scenarioInjectRequestSchema,
   scenarioInjectResponseSchema,
   taskStateSchema,
@@ -520,6 +524,7 @@ describe("rebook-ai REST read-models + live frames (rebook-ai api-contracts.md Â
         ],
         waiting: 1,
         containmentPct: null,
+        openProposals: 2,
         generatedAt: ts,
       }).success,
     ).toBe(true);
@@ -529,6 +534,7 @@ describe("rebook-ai REST read-models + live frames (rebook-ai api-contracts.md Â
         items: [],
         waiting: 0,
         containmentPct: 0,
+        openProposals: 0,
         generatedAt: ts,
       }).success,
     ).toBe(true);
@@ -594,5 +600,87 @@ describe("rebook-ai REST read-models + live frames (rebook-ai api-contracts.md Â
         payload: {},
       }).success,
     ).toBe(false);
+  });
+});
+
+describe("rebook-ai agent-loop proposals + saga views (F3, additive)", () => {
+  const ts = "2026-10-15T09:00:00+08:00";
+  const uuidA = "11111111-1111-4111-8111-111111111111";
+
+  it("validates a traced tool call (inputs/outputs/duration, optional tokens)", () => {
+    expect(
+      proposalToolCallSchema.safeParse({
+        tool: "search_routings",
+        input: { origin: "SIN", dest: "AMS", includePartners: true },
+        output: { matched: 5, partnersIncluded: true },
+        durationMs: 3,
+      }).success,
+    ).toBe(true);
+    expect(
+      proposalToolCallSchema.safeParse({
+        tool: "draft_proposal",
+        input: { mode: "llm" },
+        output: { text: "Recommended SV 1102." },
+        durationMs: 8,
+        tokens: { input: 140, output: 21 },
+      }).success,
+    ).toBe(true);
+    // tools outside the vocabulary are rejected
+    expect(
+      proposalToolCallSchema.safeParse({
+        tool: "book_flight",
+        input: {},
+        output: {},
+        durationMs: 1,
+      }).success,
+    ).toBe(false);
+  });
+
+  it("validates the proposal view incl. honesty badges and supervisor gate", () => {
+    const view = {
+      id: uuidA,
+      pnrId: uuidA,
+      offerId: uuidA,
+      state: "proposed",
+      source: "llm",
+      provider: "mock",
+      recommendedOptionId: uuidA,
+      rationale: "Recommended SV 1102 â€” earliest arrival 01:00.",
+      requiresSupervisor: { required: true, reasons: ["interline partner booking"] },
+      trace: [
+        {
+          tool: "check_policy",
+          input: { optionId: uuidA },
+          output: {
+            compliant: false,
+            gateReasons: ["interline partner requires supervisor approval"],
+          },
+          durationMs: 2,
+        },
+      ],
+      tokensIn: 140,
+      tokensOut: 21,
+      note: null,
+      approver: null,
+      createdAt: ts,
+      decidedAt: null,
+      sagaId: null,
+    };
+    expect(proposalViewSchema.safeParse(view).success).toBe(true);
+    // source "rules" is the honest degrade label (D-10)
+    expect(
+      proposalViewSchema.safeParse({ ...view, source: "rules", provider: "rules-engine" }).success,
+    ).toBe(true);
+    expect(proposalViewSchema.safeParse({ ...view, source: "gpt" }).success).toBe(false);
+  });
+
+  it("validates the proposal request/compensate responses and saga boarding pass", () => {
+    expect(proposalRequestResponseSchema.safeParse({ proposalId: uuidA }).success).toBe(true);
+    expect(
+      sagaCompensateResponseSchema.safeParse({ sagaId: uuidA, state: "compensated" }).success,
+    ).toBe(true);
+    expect(
+      sagaCompensateResponseSchema.safeParse({ sagaId: uuidA, state: "running" }).success,
+    ).toBe(true);
   });
 });

@@ -1,9 +1,18 @@
-import { and, desc, eq, inArray, ne } from "drizzle-orm";
+import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import type { RedisClientType } from "@aviation/db/redis";
 
 import { REBOOK_CONTROL_CHANNEL, type QueueSnapshotView } from "@aviation/contracts";
 
-import { confirmations, eventLog, flights, offers, pnr, pnrSegments } from "@/db/schema";
+import {
+  confirmations,
+  eventLog,
+  flights,
+  offers,
+  pnr,
+  pnrSegments,
+  proposals,
+  sagas,
+} from "@/db/schema";
 import { getSingletonDb } from "@/lib/db-singleton";
 import { getSingletonRedis } from "@/lib/redis-singleton";
 
@@ -104,15 +113,37 @@ export async function readQueueSnapshot(redis: RedisClientType): Promise<QueueSn
   }
 
   const pnrIds = rows.map((r) => r.pnrId);
-  const confirmed =
+  // Served = the PNR's latest saga is active (running | completed) — mirrors
+  // the orchestrator projection exactly (architecture §4: PG is the truth,
+  // Redis only the live projection). A compensated saga re-queues the PNR.
+  const sagaRows =
+    pnrIds.length > 0
+      ? await db
+          .select({ pnrId: sagas.pnrId, state: sagas.state })
+          .from(sagas)
+          .where(inArray(sagas.pnrId, pnrIds))
+          .orderBy(desc(sagas.createdAt))
+      : [];
+  const servedPnrs = new Set<string>();
+  for (const saga of sagaRows) {
+    if (servedPnrs.has(saga.pnrId)) continue; // latest saga wins
+    if (saga.state === "running" || saga.state === "completed") servedPnrs.add(saga.pnrId);
+  }
+  // Self-serve containment: resolved AND the latest confirmation was the
+  // passenger's own action (compensated sagas never count — honest metric).
+  const confirmRows =
     pnrIds.length > 0
       ? await db
           .select({ pnrId: confirmations.pnrId, byRole: confirmations.byRole })
           .from(confirmations)
           .where(inArray(confirmations.pnrId, pnrIds))
+          .orderBy(desc(confirmations.createdAt))
       : [];
-  const confirmedPnrs = new Set(confirmed.map((c) => c.pnrId));
-  const selfServed = new Set(confirmed.filter((c) => c.byRole === "passenger").map((c) => c.pnrId));
+  const selfServedPnrs = new Set<string>();
+  for (const row of confirmRows) {
+    if (selfServedPnrs.has(row.pnrId)) continue;
+    if (row.byRole === "passenger" && servedPnrs.has(row.pnrId)) selfServedPnrs.add(row.pnrId);
+  }
 
   const latestOffers =
     pnrIds.length > 0
@@ -130,7 +161,7 @@ export async function readQueueSnapshot(redis: RedisClientType): Promise<QueueSn
   const now = Date.now();
   const items = rows
     .filter((row) => {
-      if (confirmedPnrs.has(row.pnrId)) return false; // served → left the queue
+      if (servedPnrs.has(row.pnrId)) return false; // served → left the queue
       const flightId = flightIdByNo.get(row.flightNo);
       return (
         flightId !== undefined && disruptionByFlightId.has(flightId) && priorityByPnr.has(row.pnrId)
@@ -159,12 +190,19 @@ export async function readQueueSnapshot(redis: RedisClientType): Promise<QueueSn
   // Containment (PRD §5): share of disrupted PNRs resolved via self-serve —
   // counted from PG, not the projection.
   const containmentPct =
-    rows.length === 0 ? null : Math.round((selfServed.size / rows.length) * 100);
+    rows.length === 0 ? null : Math.round((selfServedPnrs.size / rows.length) * 100);
+
+  // F3 console tile: proposals awaiting a decision (PG source of truth).
+  const openProposals = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(proposals)
+    .where(eq(proposals.state, "proposed"));
 
   return {
     items,
     waiting: items.length,
     containmentPct,
+    openProposals: openProposals[0]?.count ?? 0,
     generatedAt: new Date().toISOString(),
   };
 }

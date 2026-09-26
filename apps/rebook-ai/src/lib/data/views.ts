@@ -25,6 +25,7 @@ import {
   vouchers,
 } from "@/db/schema";
 import { getSingletonDb } from "@/lib/db-singleton";
+import { getBoardingPass, listProposalViews } from "@/lib/data/proposals";
 
 /**
  * Read-model builders for the passenger + agent surfaces (rebook-ai
@@ -127,7 +128,7 @@ export async function getDisruptionForPnr(pnrId: string): Promise<DisruptionView
   };
 }
 
-/** The saga opened for an offer (stub steps at F2 — executor lands in F3). */
+/** The saga opened for an offer (executor-driven since F3, architecture §3.2). */
 async function getSagaByOffer(offerId: string): Promise<SagaView | null> {
   const db = getSingletonDb();
   const [saga] = await db
@@ -142,11 +143,14 @@ async function getSagaByOffer(offerId: string): Promise<SagaView | null> {
     .from(sagaSteps)
     .where(eq(sagaSteps.sagaId, saga.id))
     .orderBy(sagaSteps.id);
+  // Boarding pass (demo beat): issued by the ticket_issue step on completion.
+  const issued = saga.state === "completed" ? await getBoardingPass(saga.id) : null;
   return {
     id: saga.id,
     state: saga.state,
     currentStep: saga.currentStep,
     steps: steps.map((s) => ({ step: s.step, state: s.state })),
+    boardingPass: issued,
   };
 }
 
@@ -322,6 +326,7 @@ export async function buildPnrDetail(context: PnrContext): Promise<PnrDetailView
     segments: segments.map((s) => ({ ...s, flightDate: s.flightDate.toISOString() })),
     disruption: await getDisruptionForPnr(context.pnrId),
     offers: await getLatestOfferViews(context.pnrId, 3),
+    proposals: await listProposalViews(context.pnrId, 5),
   };
 }
 

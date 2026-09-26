@@ -40,10 +40,11 @@ event_log (append-only envelope: id, type, occurred_at, aggregate_type, aggregat
 | `saga_steps` | One row per step (`seat_reserve | payment | ticket_issue`): `state (pending | running | done | failed | compensated)`, idempotency key unique, request/response JSONB stubs (simulated PSP/inventory). |
 | `vouchers` | Auto meal voucher (PRD F-3): criteria JSONB (rule inputs + evaluated values — explainable), amount, `state (issued | used)`. |
 | `notifications` | In-app inbox (SNS-shaped publisher, simulated delivery): `channel (inbox)`, `state (queued | delivered | failed)`, payload JSONB. |
-| `proposals` | Agent-loop output (PRD F-5): recommended option, `source (llm | rules)`, `provider`, tool-call trace JSONB, token usage, `state (proposed | approved | rejected)`, approver, note. |
+| `proposals` | Agent-loop output (PRD F-5): recommended option, `source (llm | rules)`, `provider`, tool-call trace JSONB, token usage, `state (proposed | approved | rejected)`, approver, note. F3 adds `decided_at` (approve/reject timestamp — decision-latency evidence); the trace JSONB holds `{ rationale, toolCalls[] }` with per-call inputs/outputs/duration/tokens. |
 | `event_log` | Append-only envelope (engineering-standards.md §4); unique (aggregate_id, sequence); `processed` flag for poison-event surfacing (architecture §6). |
 | `audit_events` | Append-only decision trail (who offered/confirmed/approved what, when) — INSERT only; UPDATE/DELETE blocked by trigger (mro-copilot precedent). |
 | `idempotency_keys` | Replay store for mutating REST (engineering-standards.md §4): key, method, path, status, response body. |
+| `inventory_seats` | F3-additive simulated fulfillment inventory (F2 handoff note): seats-left counter per rebookable flight, seeded from `inventory.json`. The fixture stays the ranking/candidate input (pure, F2 determinism); the saga's `seat_reserve` step decrements this counter transactionally and compensation restores it — countable exactly-once effects (ADR-0014 §4). |
 
 ## 3. Redis Key Design
 

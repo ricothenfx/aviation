@@ -37,8 +37,7 @@ for (const record of pnrs.pnrs) {
 const flightDests = new Map(schedule.flights.map((f) => [f.flightNo, f.dest]));
 const candidates = [...pnrPerFlight.entries()]
   .filter(
-    ([flightNo]) =>
-      scheduled.has(flightNo) && inventoryDests.has(flightDests.get(flightNo) ?? ""),
+    ([flightNo]) => scheduled.has(flightNo) && inventoryDests.has(flightDests.get(flightNo) ?? ""),
   )
   .sort((a, b) => b[1] - a[1])
   .map(([flightNo]) => flightNo);

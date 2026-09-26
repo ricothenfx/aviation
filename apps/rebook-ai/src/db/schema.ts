@@ -280,6 +280,25 @@ export const sagaSteps = pgTable(
 export type SagaStepRow = typeof sagaSteps.$inferSelect;
 export type NewSagaStepRow = typeof sagaSteps.$inferInsert;
 
+// --- simulated inventory accounting (data-model.md §2 note, F3 additive) ------
+
+/**
+ * DB-backed seats-left counter per rebookable inventory flight (F2 handoff:
+ * "seats-left accounting arrives with the F3 saga's seat_reserve step"). The
+ * committed inventory fixture stays the *candidate discovery* input (pure
+ * ranking, F2 DoD determinism); this table is the *fulfillment* ledger the
+ * saga's seat_reserve step decrements transactionally and its compensation
+ * restores — exactly-once per saga via the seat_reserve step's unique key.
+ */
+export const inventorySeats = pgTable("inventory_seats", {
+  flightNo: text("flight_no").primaryKey(),
+  seatsLeft: integer("seats_left").notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type InventorySeatsRow = typeof inventorySeats.$inferSelect;
+export type NewInventorySeatsRow = typeof inventorySeats.$inferInsert;
+
 // --- vouchers + notifications (data-model.md §2) -----------------------------
 
 export const voucherStateEnum = pgEnum("voucher_state", ["issued", "used"]);
@@ -360,6 +379,8 @@ export const proposals = pgTable(
     state: proposalStateEnum("state").notNull().default("proposed"),
     approverId: uuid("approver_id").references(() => users.id),
     note: text("note"),
+    /** Set on approve/reject — decision latency evidence (PRD F-5). */
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [

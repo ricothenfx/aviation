@@ -399,7 +399,18 @@ function OfferCard({
         <div className="border-t border-border px-4 py-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-fg">Fulfillment saga</span>
-            <StatusBadge tone="info">{offer.confirmation.saga.state}</StatusBadge>
+            <StatusBadge
+              tone={
+                offer.confirmation.saga.state === "completed"
+                  ? "ok"
+                  : offer.confirmation.saga.state === "compensated" ||
+                      offer.confirmation.saga.state === "failed"
+                    ? "danger"
+                    : "info"
+              }
+            >
+              {offer.confirmation.saga.state}
+            </StatusBadge>
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             {offer.confirmation.saga.steps.map((step) => (
@@ -412,8 +423,39 @@ function OfferCard({
               </span>
             ))}
           </div>
+
+          {offer.confirmation.saga.state === "compensated" && (
+            <p
+              className="mt-2 text-[11px] text-danger"
+              data-testid="saga-compensated-note"
+              role="alert"
+            >
+              This rebooking was reversed during fulfillment and you are back in the assistance
+              queue — pick an option again or wait for an agent.
+            </p>
+          )}
+
+          {offer.confirmation.saga.boardingPass && (
+            <div
+              className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-raised/40 px-3 py-2"
+              data-testid="boarding-pass"
+            >
+              <div>
+                <div className="text-[10px] uppercase tracking-wide text-muted">
+                  Boarding pass — simulated
+                </div>
+                <div className="mt-0.5 font-mono text-sm text-fg">
+                  {offer.confirmation.saga.boardingPass.newFlightNo} ·{" "}
+                  {offer.confirmation.saga.boardingPass.ref}
+                </div>
+              </div>
+              <StatusBadge tone="ok">issued</StatusBadge>
+            </div>
+          )}
+
           <p className="mt-2 text-[10px] text-muted">
-            Simulated fulfillment — steps advance automatically once issued (demo: F3 executor).
+            Simulated fulfillment — steps advance automatically (seat reserved, simulated PSP
+            charge, ticket issued).
           </p>
         </div>
       )}

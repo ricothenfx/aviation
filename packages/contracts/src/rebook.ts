@@ -94,6 +94,8 @@ export const sagaViewSchema = z.object({
   state: sagaStateSchema,
   currentStep: z.string().nullable(),
   steps: z.array(sagaStepViewSchema),
+  /** Issued at saga completion (booking.issued); null until then (F3, additive). */
+  boardingPass: z.object({ ref: z.string().min(1), newFlightNo: z.string().min(1) }).nullable(),
 });
 export type SagaView = z.infer<typeof sagaViewSchema>;
 
@@ -187,10 +189,86 @@ export const queueSnapshotViewSchema = z.object({
   waiting: z.number().int().nonnegative(),
   /** null = honest "not measurable" when no disruption is active (D-15). */
   containmentPct: z.number().min(0).max(100).nullable(),
+  /** Proposals awaiting a decision — F3 agent-loop workload tile (additive). */
+  openProposals: z.number().int().nonnegative(),
   generatedAt: isoTs,
 });
 export type QueueSnapshotView = z.infer<typeof queueSnapshotViewSchema>;
 
+// --- agent loop proposals (api-contracts.md §1, F3 additive) ------------------
+
+export const proposalSourceSchema = z.enum(["llm", "rules"]);
+export type ProposalSource = z.infer<typeof proposalSourceSchema>;
+
+export const proposalToolSchema = z.enum([
+  "search_routings",
+  "price_itinerary",
+  "check_policy",
+  "draft_proposal",
+]);
+export type ProposalTool = z.infer<typeof proposalToolSchema>;
+
+/** One traced tool call (PRD F-5: every call persists inputs/outputs + tokens). */
+export const proposalToolCallSchema = z.object({
+  tool: proposalToolSchema,
+  input: z.record(z.string(), z.unknown()),
+  output: z.record(z.string(), z.unknown()),
+  durationMs: z.number().int().nonnegative(),
+  tokens: z
+    .object({ input: z.number().int().nonnegative(), output: z.number().int().nonnegative() })
+    .optional(),
+});
+export type ProposalToolCall = z.infer<typeof proposalToolCallSchema>;
+
+export const proposalStateSchema = z.enum(["proposed", "approved", "rejected"]);
+export type ProposalState = z.infer<typeof proposalStateSchema>;
+
+export const proposalViewSchema = z.object({
+  id: uuid,
+  pnrId: uuid,
+  /** Null when the recommended option (and its offer) no longer exists. */
+  offerId: uuid.nullable(),
+  state: proposalStateSchema,
+  /** Honesty badge pair (D-10): llm+provider vs the rules fallback. */
+  source: proposalSourceSchema,
+  provider: z.string().min(1),
+  recommendedOptionId: uuid.nullable(),
+  rationale: z.string().min(1),
+  /** Supervisor elevation gate (architecture.md §3.3: interline / over-cap). */
+  requiresSupervisor: z.object({
+    required: z.boolean(),
+    reasons: z.array(z.string().min(1)),
+  }),
+  /** Full tool trace — tool calls + inputs/outputs + per-call tokens. */
+  trace: z.array(proposalToolCallSchema),
+  tokensIn: z.number().int().nonnegative(),
+  tokensOut: z.number().int().nonnegative(),
+  note: z.string().nullable(),
+  approver: z.string().nullable(),
+  createdAt: isoTs,
+  decidedAt: isoTs.nullable(),
+  /** Set once approval opened the fulfillment saga. */
+  sagaId: uuid.nullable(),
+});
+export type ProposalView = z.infer<typeof proposalViewSchema>;
+
+export const proposalRequestResponseSchema = z.object({
+  proposalId: uuid,
+});
+export type ProposalRequestResponse = z.infer<typeof proposalRequestResponseSchema>;
+
+export const proposalApproveResponseSchema = z.object({
+  proposalId: uuid,
+  state: proposalStateSchema,
+  sagaId: uuid.nullable(),
+});
+export type ProposalApproveResponse = z.infer<typeof proposalApproveResponseSchema>;
+
+export const sagaCompensateResponseSchema = z.object({
+  sagaId: uuid,
+  state: sagaStateSchema,
+});
+export type SagaCompensateResponse = z.infer<typeof sagaCompensateResponseSchema>;
 export const pnrDetailViewSchema = z.object({
   locator: z.string().min(6).max(6),
   passengerName: z.string().min(1),
@@ -211,6 +289,8 @@ export const pnrDetailViewSchema = z.object({
   ),
   disruption: disruptionViewSchema.nullable(),
   offers: z.array(offerSetViewSchema),
+  /** Agent-loop proposals for this booking (F3, additive; newest first). */
+  proposals: z.array(proposalViewSchema),
 });
 export type PnrDetailView = z.infer<typeof pnrDetailViewSchema>;
 
@@ -249,7 +329,7 @@ export type PoisonEventView = z.infer<typeof poisonEventViewSchema>;
 export const queueDeltaPayloadSchema = z.object({
   waiting: z.number().int().nonnegative(),
   containmentPct: z.number().min(0).max(100).nullable(),
-  reason: z.enum(["disruption", "confirm", "expiry", "rebuild"]),
+  reason: z.enum(["disruption", "confirm", "expiry", "rebuild", "compensation"]),
 });
 export type QueueDeltaPayload = z.infer<typeof queueDeltaPayloadSchema>;
 

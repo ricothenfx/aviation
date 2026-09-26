@@ -4,17 +4,21 @@ import { LlmGateway } from "@aviation/llm-gateway";
 import { createRedis } from "@aviation/db/redis";
 
 /**
- * Service entrypoint (rebook-ai architecture.md §1–2, ADR-0014). F2 wires the
+ * Service entrypoint (rebook-ai architecture.md §1–2, ADR-0014). F2 wired the
  * domain engine: event-log tail (offers/notifications/vouchers/queue), the
  * offer expiry sweep, the SNS-shaped inbox publisher and the control channel
  * for the web app (queue rebuild). F3 adds the propose-only agent loop and
- * the fulfillment saga executor. The browser never talks to this service.
+ * the fulfillment saga executor (confirm-driven, with startup recovery +
+ * periodic sweep for crash-safe resume). The browser never talks to this
+ * service.
  */
 import { createLogger } from "./logger";
 import { createOrchestratorDb } from "./db";
 import { createInboxNotificationPublisher } from "./domain/notifications";
 import { createQueueProjector } from "./domain/queue";
 import { expireOffers } from "./domain/handlers";
+import { recoverUnfinishedSagas } from "./domain/saga";
+import type { WorkerDeps } from "./domain/proposal-request";
 import { startControlListener } from "./engine/control";
 import { startEventTail } from "./engine/tail";
 import type { EngineMetrics } from "./domain/handlers";
@@ -25,14 +29,15 @@ const logger = createLogger("rb-orchestrator");
 const ORCHESTRATOR_PORT = Number(process.env.ORCHESTRATOR_PORT ?? 4104);
 const POLL_MS = Number(process.env.RB_POLL_MS ?? 150);
 const OFFER_SWEEP_MS = Number(process.env.RB_OFFER_SWEEP_MS ?? 20_000);
+const SAGA_SWEEP_MS = Number(process.env.RB_SAGA_SWEEP_MS ?? 30_000);
 
 async function main(): Promise<void> {
   const { db, close: closeDb } = createOrchestratorDb();
   const redis = await createRedis();
 
   // Provider wiring (ADR-0003): "mock" is the mandatory offline default;
-  // "off" is a supported mode — the F3 agent loop will degrade to rules and
-  // label proposals `source: "rules"` (D-10). Readiness reflects it honestly.
+  // "off" is a supported mode — the F3 agent loop degrades to rules and
+  // labels proposals `source: "rules"` (D-10). Readiness reflects it honestly.
   let gateway: LlmGateway | null = null;
   let providerMode = "off (degrade)";
   if ((process.env.LLM_PROVIDER ?? "mock") !== "off") {
@@ -48,10 +53,34 @@ async function main(): Promise<void> {
       rb_orchestrator_vouchers_issued_total: 0,
       rb_orchestrator_notifications_sent_total: 0,
       rb_orchestrator_offers_expired_total: 0,
+      rb_orchestrator_proposals_created_total: 0,
+      rb_orchestrator_proposals_llm_total: 0,
+      rb_orchestrator_proposals_rules_total: 0,
+      rb_orchestrator_saga_steps_completed_total: 0,
+      rb_orchestrator_saga_steps_failed_total: 0,
+      rb_orchestrator_saga_steps_compensated_total: 0,
+      rb_orchestrator_sagas_completed_total: 0,
+      rb_orchestrator_sagas_compensated_total: 0,
     },
   };
   const publisher = createInboxNotificationPublisher(db);
   const projector = createQueueProjector(db, redis.redis);
+
+  // Shared worker deps for the saga executor + proposal loop (F3).
+  const workerDeps: WorkerDeps = {
+    db,
+    redis: redis.redis,
+    metrics,
+    gateway,
+    onLog: (msg, fields) => logger.info({ msg, ...fields }),
+  };
+
+  // Crash-safe resume (architecture.md §6): re-drive running/failed sagas
+  // from persisted step state on boot — a kill mid-saga never leaves zombies.
+  const recovered = await recoverUnfinishedSagas(workerDeps);
+  if (recovered > 0) {
+    logger.info({ msg: "sagas_recovered_on_boot", count: recovered });
+  }
 
   const tail = startEventTail({
     db,
@@ -64,6 +93,8 @@ async function main(): Promise<void> {
   const control = startControlListener({
     redis: redis.redis,
     projector,
+    sagaDeps: workerDeps,
+    gateway,
     onLog: (msg, fields) => logger.info({ msg, ...fields }),
   });
 
@@ -84,6 +115,22 @@ async function main(): Promise<void> {
       }
     });
   }, OFFER_SWEEP_MS);
+
+  // Saga sweep (architecture.md §6): the periodic complement to boot recovery
+  // — a saga stuck `running`/`failed` (e.g. the confirm event was consumed
+  // right before a crash) is re-driven from its persisted step state.
+  const sagaSweep = setInterval(() => {
+    void recoverUnfinishedSagas(workerDeps)
+      .then((count) => {
+        if (count > 0) logger.info({ msg: "sagas_recovered_by_sweep", count });
+      })
+      .catch((err: unknown) => {
+        logger.warn({
+          msg: "saga_sweep_failed",
+          err: err instanceof Error ? err.message : String(err),
+        });
+      });
+  }, SAGA_SWEEP_MS);
 
   const health = createOrchestratorServer({
     port: ORCHESTRATOR_PORT,
@@ -126,6 +173,7 @@ async function main(): Promise<void> {
     health.close();
     void (async () => {
       clearInterval(sweep);
+      clearInterval(sagaSweep);
       await tail.stop();
       await control.stop();
       await redis.close();

@@ -1,12 +1,12 @@
 import type { NextRequest } from "next/server";
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 
 import { offerConfirmRequestSchema, offerConfirmResponseSchema } from "@aviation/contracts";
 
-import { confirmations, offers, offerOptions, pnr, sagaSteps, sagas } from "@/db/schema";
+import { confirmations, offers, offerOptions, pnr, sagas } from "@/db/schema";
 import { withIdempotency } from "@/lib/api/idempotency";
 import { handleRouteError, jsonResponse, requireSession, ApiError } from "@/lib/api/respond";
-import { appendAuditEvent, appendEvent } from "@/lib/data/events";
+import { applyConfirmation } from "@/lib/data/fulfillment";
 import { getSingletonDb } from "@/lib/db-singleton";
 
 export const dynamic = "force-dynamic";
@@ -16,11 +16,12 @@ export const dynamic = "force-dynamic";
  * — one-tap confirm with a REQUIRED Idempotency-Key:
  * - same key ⇒ stored response replayed (PG replay store, crash-safe)
  * - already-confirmed offer with a different key ⇒ 409 IDEMPOTENCY_CONFLICT
+ *   (unless the saga was compensated — then a fresh confirm may open a new
+ *   saga, architecture.md §3.2 "returns to the queue with an honest state")
  * - expired offer ⇒ 409 OFFER_EXPIRED (no saga opens)
  * - interline option for a passenger ⇒ 403 FORBIDDEN (agent/supervisor path)
- * Confirm opens the fulfillment saga (ADR-0014) with its three stub steps —
- * the executor advancing them lands in F3 — appends `offer.confirmed` in the
- * same transaction as the state change, and writes the audit row (PRD F-7).
+ * Confirm opens the fulfillment saga via the ONE shared saga path
+ * (lib/data/fulfillment.ts) — the orchestrator executor advances the steps.
  */
 export async function POST(
   request: NextRequest,
@@ -82,19 +83,31 @@ export async function POST(
         .from(confirmations)
         .where(eq(confirmations.offerId, offerId))
         .limit(1);
-      if (existingConfirmation) {
-        if (existingConfirmation.idempotencyKey !== idempotencyKey) {
+      if (existingConfirmation && existingConfirmation.idempotencyKey !== idempotencyKey) {
+        // F3: after a compensated saga the passenger may rebook with a NEW
+        // key (fresh confirmation + fresh saga); anything else conflicts.
+        const [lastSaga] = await db
+          .select({ state: sagas.state })
+          .from(sagas)
+          .where(eq(sagas.offerId, offerId))
+          .orderBy(desc(sagas.createdAt))
+          .limit(1);
+        if (lastSaga?.state !== "compensated") {
           throw new ApiError(
             "IDEMPOTENCY_CONFLICT",
             "offer already confirmed with a different Idempotency-Key",
           );
         }
+      }
+
+      if (existingConfirmation && existingConfirmation.idempotencyKey === idempotencyKey) {
         // Same key racing the replay store: resolve the existing saga and
         // return the identical response (exactly-one-effect, §5).
         const [sagaRow] = await db
           .select({ id: sagas.id, state: sagas.state })
           .from(sagas)
           .where(eq(sagas.offerId, offerId))
+          .orderBy(desc(sagas.createdAt))
           .limit(1);
         return jsonResponse(
           offerConfirmResponseSchema.parse({
@@ -106,71 +119,24 @@ export async function POST(
         );
       }
 
-      const result = await db.transaction(async (tx) => {
-        await tx.insert(confirmations).values({
-          offerId,
-          offerOptionId: body.optionId,
-          pnrId: row.pnrId,
-          byUserId: session.sub,
-          byRole: session.role,
-          idempotencyKey,
-        });
-        await tx.update(offers).set({ state: "confirmed" }).where(eq(offers.id, offerId));
-
-        const [saga] = await tx
-          .insert(sagas)
-          .values({
-            pnrId: row.pnrId,
+      const result = await db.transaction((tx) =>
+        applyConfirmation(
+          {
             offerId,
-            state: "running",
-            currentStep: "seat_reserve",
-          })
-          .returning({ id: sagas.id });
-        if (!saga) throw new Error("saga insert returned no row");
-
-        await tx.insert(sagaSteps).values(
-          (["seat_reserve", "payment", "ticket_issue"] as const).map((step) => ({
-            sagaId: saga.id,
-            step,
-            state: "pending" as const,
-            idempotencyKey: `${saga.id}:${step}`,
-            request: { simulated: true, note: "F2 stub — executor lands in F3 (ADR-0014)" },
-          })),
-        );
-
-        await appendEvent(
-          {
-            type: "offer.confirmed",
-            aggregateType: "offer",
-            aggregateId: offerId,
-            payload: {
-              offerId,
-              optionId: body.optionId,
-              byRole: session.role,
-              sagaId: saga.id,
-            },
+            optionId: body.optionId,
+            byUserId: session.sub,
+            byRole: session.role,
+            idempotencyKey,
           },
           tx,
-        );
-        await appendAuditEvent(
-          {
-            actorId: session.sub,
-            actorRole: session.role,
-            action: "offer.confirmed",
-            targetType: "offer",
-            targetId: offerId,
-            details: { optionId: body.optionId, sagaId: saga.id, pnrId: row.pnrId },
-          },
-          tx,
-        );
-        return saga;
-      });
+        ),
+      );
 
       return jsonResponse(
         offerConfirmResponseSchema.parse({
           offerId,
           optionId: body.optionId,
-          sagaId: result.id,
+          sagaId: result.sagaId,
           sagaState: "running",
         }),
         201,

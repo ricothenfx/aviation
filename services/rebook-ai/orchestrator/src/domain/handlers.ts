@@ -11,6 +11,7 @@ import { offersUpdateFrame, publishFrame, queueDeltaFrame, sagaUpdateFrame } fro
 import { buildDisruptionPublishInput, type NotificationPublisher } from "./notifications";
 import { createQueueProjector } from "./queue";
 import { rankOffers, type DisruptionContext, type RankingPnr } from "./ranking";
+import { advanceSaga } from "./saga";
 import { evaluateVoucher } from "./vouchers";
 
 /**
@@ -272,6 +273,10 @@ export async function handleOfferConfirmed(deps: HandlerDeps, payloadRaw: unknow
           payload.offerId,
         ),
       );
+      // F3: drive the fulfillment saga from the persisted step state
+      // (architecture.md §3.2). advanceSaga is idempotent, so duplicate
+      // confirm deliveries and crash re-drives are exactly-once.
+      await advanceSaga(deps, saga.id);
     }
   }
 }

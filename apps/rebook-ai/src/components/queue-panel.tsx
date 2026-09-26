@@ -11,6 +11,7 @@ import {
   Skeleton,
   StatusBadge,
 } from "@aviation/ui";
+import { ProposalPanel } from "@/components/proposal-panel";
 import type { PnrDetailView, QueueSnapshotView } from "@aviation/contracts";
 
 /**
@@ -28,6 +29,7 @@ export function QueuePanel() {
   const [state, setState] = useState<LoadState>({ phase: "loading" });
   const [expanded, setExpanded] = useState<string | null>(null);
   const [detail, setDetail] = useState<Record<string, PnrDetailView | "loading" | null>>({});
+  const [reloadKey, setReloadKey] = useState(0);
   const [now, setNow] = useState(() => Date.now());
 
   const load = useCallback(async () => {
@@ -50,12 +52,25 @@ export function QueuePanel() {
     }
   }, []);
 
+  const refreshExpanded = useCallback(async (locator: string) => {
+    try {
+      const res = await fetch(`/api/v1/pnr/${locator}`);
+      const body = res.ok ? ((await res.json()) as PnrDetailView) : null;
+      setDetail((prev) => ({ ...prev, [locator]: body }));
+    } catch {
+      setDetail((prev) => ({ ...prev, [locator]: null }));
+    }
+  }, []);
+
   useEffect(() => {
     void load();
     const poll = setInterval(() => void load(), 15_000);
     const tick = setInterval(() => setNow(Date.now()), 1000);
     const source = new EventSource("/api/v1/live");
-    source.onmessage = () => void load();
+    source.onmessage = () => {
+      void load();
+      setReloadKey((key) => key + 1); // saga/proposal frames: refresh expanded rows
+    };
     source.onerror = () => source.close();
     return () => {
       clearInterval(poll);
@@ -136,8 +151,10 @@ export function QueuePanel() {
         </Panel>
         <Panel className="px-4 py-3">
           <div className="text-[11px] uppercase tracking-wide text-muted">Open proposals</div>
-          <div className="mt-1 font-mono text-xl text-fg">0</div>
-          <div className="mt-0.5 text-[10px] text-muted">agentic proposals land in F3</div>
+          <div className="mt-1 font-mono text-xl text-fg" data-testid="queue-open-proposals">
+            {data.openProposals}
+          </div>
+          <div className="mt-0.5 text-[10px] text-muted">awaiting agent decision</div>
         </Panel>
       </div>
 
@@ -199,7 +216,15 @@ export function QueuePanel() {
                       <p className="text-xs text-danger">Booking context unavailable right now.</p>
                     )}
                     {detail[item.locator] && detail[item.locator] !== "loading" && (
-                      <PnrSummary detail={detail[item.locator] as PnrDetailView} />
+                      <div className="grid gap-3">
+                        <PnrSummary detail={detail[item.locator] as PnrDetailView} />
+                        <ProposalPanel
+                          key={`${item.locator}-${reloadKey}`}
+                          locator={item.locator}
+                          proposals={(detail[item.locator] as PnrDetailView).proposals}
+                          onChanged={() => void refreshExpanded(item.locator)}
+                        />
+                      </div>
                     )}
                   </div>
                 )}

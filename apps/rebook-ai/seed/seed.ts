@@ -9,7 +9,7 @@ import {
   loadPolicy,
   loadReferenceDay,
 } from "../src/lib/seed/fixture-schema";
-import { flights, pnr, pnrSegments, users } from "../src/db/schema";
+import { flights, inventorySeats, pnr, pnrSegments, users } from "../src/db/schema";
 import seedUsers from "./users.json";
 
 /**
@@ -124,6 +124,16 @@ async function main(): Promise<void> {
     // §2/§4 — no tables); validated here so a malformed fixture fails the seed.
     const inventory = loadInventory();
     const policy = loadPolicy();
+
+    // 5. Simulated fulfillment inventory (F3): seats-left counters the saga's
+    // seat_reserve step decrements (compensation restores them). Upsert keeps
+    // re-seeds conflict-safe without resurrecting decremented counters.
+    for (const candidate of inventory.candidates) {
+      await db
+        .insert(inventorySeats)
+        .values({ flightNo: candidate.flightNo, seatsLeft: candidate.seatsLeft })
+        .onConflictDoNothing();
+    }
 
     console.info(
       JSON.stringify({

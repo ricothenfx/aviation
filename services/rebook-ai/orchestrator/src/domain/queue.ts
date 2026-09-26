@@ -4,7 +4,16 @@ import type { RedisClientType } from "@aviation/db/redis";
 import type { QueueDeltaPayload, QueueItemView, QueueSnapshotView } from "@aviation/contracts";
 
 import type { OrchestratorDb } from "../db";
-import { confirmations, eventLog, flights, offers, pnr, pnrSegments } from "../db";
+import {
+  confirmations,
+  eventLog,
+  flights,
+  offers,
+  pnr,
+  pnrSegments,
+  proposals as proposalsTable,
+  sagas,
+} from "../db";
 
 /**
  * Live agent-queue projection (PRD F-4, data-model.md §3): the ZSET
@@ -72,10 +81,13 @@ export interface DisruptedPnrRow {
 
 /**
  * Disrupted PNRs straight from PostgreSQL: flights broken (status ≠
- * scheduled) × confirmed segments, excluding PNRs that already confirmed an
- * offer (self-served or agent-served — they left the queue, PRD F-4). The
- * disruption timestamp comes from the latest flight.disrupted event per
- * flight, so the projection is fully rebuildable by replay (data-model.md §3).
+ * scheduled) × confirmed segments, excluding PNRs already being served —
+ * i.e. whose LATEST saga is running or completed (self-served or
+ * agent-served, PRD F-4). A compensated saga therefore puts the passenger
+ * back in the queue honestly (F3: architecture §3.2 "returns to the queue
+ * with an honest state"). The disruption timestamp comes from the latest
+ * flight.disrupted event per flight, so the projection is fully rebuildable
+ * by replay (data-model.md §3).
  */
 export async function loadDisruptedPnrs(db: OrchestratorDb): Promise<DisruptedPnrRow[]> {
   const brokenFlights = await db
@@ -104,16 +116,24 @@ export async function loadDisruptedPnrs(db: OrchestratorDb): Promise<DisruptedPn
     .innerJoin(pnr, eq(pnrSegments.pnrId, pnr.id))
     .where(inArray(pnrSegments.flightNo, flightNos));
 
-  const confirmRows = await db
-    .select({ pnrId: confirmations.pnrId })
-    .from(confirmations)
-    .where(
-      inArray(
-        confirmations.pnrId,
-        rows.map((r) => r.pnrId),
-      ),
-    );
-  const confirmedPnrs = new Set(confirmRows.map((r) => r.pnrId));
+  // Served = the PNR's latest saga is active (running | completed). Sagas are
+  // per (pnr, offer); order by creation and keep each PNR's newest.
+  const pnrIds = rows.map((r) => r.pnrId);
+  const sagaRows =
+    pnrIds.length > 0
+      ? await db
+          .select({ pnrId: sagas.pnrId, state: sagas.state, createdAt: sagas.createdAt })
+          .from(sagas)
+          .where(inArray(sagas.pnrId, pnrIds))
+          .orderBy(desc(sagas.createdAt))
+      : [];
+  const servedPnrs = new Set<string>();
+  for (const saga of sagaRows) {
+    if (servedPnrs.has(saga.pnrId)) continue; // latest wins (desc order)
+    if (saga.state === "running" || saga.state === "completed") {
+      servedPnrs.add(saga.pnrId);
+    }
+  }
 
   const disruptionEvents = await db
     .select({
@@ -137,7 +157,7 @@ export async function loadDisruptedPnrs(db: OrchestratorDb): Promise<DisruptedPn
 
   const result: DisruptedPnrRow[] = [];
   for (const row of rows) {
-    if (confirmedPnrs.has(row.pnrId)) continue;
+    if (servedPnrs.has(row.pnrId)) continue;
     const disruption = disruptedAtByFlight.get(row.flightNo);
     if (!disruption) continue;
     const [latestOffer] = await db
@@ -162,7 +182,7 @@ export async function loadDisruptedPnrs(db: OrchestratorDb): Promise<DisruptedPn
   return result;
 }
 
-/** Containment (PRD §5): share of disrupted PNRs resolved via self-serve. */
+/** Containment (PRD §5): share of disrupted PNRs resolved (self-serve). */
 export async function containment(db: OrchestratorDb): Promise<number | null> {
   const brokenFlights = await db
     .select({ id: flights.id, flightNo: flights.flightNo })
@@ -176,17 +196,45 @@ export async function containment(db: OrchestratorDb): Promise<number | null> {
     .innerJoin(pnr, eq(pnrSegments.pnrId, pnr.id))
     .where(inArray(pnrSegments.flightNo, flightNos));
   if (disrupted.length === 0) return null;
-  const served = await db
-    .select({ pnrId: confirmations.pnrId, byRole: confirmations.byRole })
+
+  // Resolved = latest saga active; self-served = resolved AND the latest
+  // confirmation was made by the passenger (a compensated saga therefore
+  // never counts as containment — honest metric, D-15 precedent).
+  const pnrIds = disrupted.map((d) => d.pnrId);
+  const sagaRows = await db
+    .select({ pnrId: sagas.pnrId, state: sagas.state })
+    .from(sagas)
+    .where(inArray(sagas.pnrId, pnrIds))
+    .orderBy(desc(sagas.createdAt));
+  const resolved = new Set<string>();
+  for (const saga of sagaRows) {
+    if (resolved.has(saga.pnrId)) continue;
+    if (saga.state === "running" || saga.state === "completed") resolved.add(saga.pnrId);
+  }
+  const confirmRows = await db
+    .select({
+      pnrId: confirmations.pnrId,
+      byRole: confirmations.byRole,
+      createdAt: confirmations.createdAt,
+    })
     .from(confirmations)
-    .where(
-      inArray(
-        confirmations.pnrId,
-        disrupted.map((d) => d.pnrId),
-      ),
-    );
-  const selfServed = served.filter((s) => s.byRole === "passenger").length;
-  return Math.round((selfServed / disrupted.length) * 100);
+    .where(inArray(confirmations.pnrId, pnrIds))
+    .orderBy(desc(confirmations.createdAt));
+  const selfServedPnrs = new Set<string>();
+  for (const row of confirmRows) {
+    if (selfServedPnrs.has(row.pnrId)) continue;
+    if (row.byRole === "passenger" && resolved.has(row.pnrId)) selfServedPnrs.add(row.pnrId);
+  }
+  return Math.round((selfServedPnrs.size / disrupted.length) * 100);
+}
+
+/** Proposals awaiting a decision (F3 console tile; PG is the source of truth). */
+export async function openProposalCount(db: OrchestratorDb): Promise<number> {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(proposalsTable)
+    .where(eq(proposalsTable.state, "proposed"));
+  return row?.count ?? 0;
 }
 
 export function createQueueProjector(db: OrchestratorDb, redis: RedisClientType): QueueProjector {
@@ -241,7 +289,8 @@ export function createQueueProjector(db: OrchestratorDb, redis: RedisClientType)
     }
     const waiting = items.length;
     const containmentPct = await containment(db);
-    return { items, waiting, containmentPct, generatedAt: new Date().toISOString() };
+    const openProposals = await openProposalCount(db);
+    return { items, waiting, containmentPct, openProposals, generatedAt: new Date().toISOString() };
   }
 
   return { rebuild, snapshot };
