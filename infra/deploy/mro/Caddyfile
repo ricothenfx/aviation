@@ -1,0 +1,15 @@
+# Caddy entrypoint for mro-copilot (F5, ADR-0006 URL scheme): automatic
+# Let's Encrypt TLS. Single hostname, single upstream — the Next.js app
+# (pages + /api/v1 REST). The ai-service is internal-only (ADR-0012) and is
+# never routed publicly.
+
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	# Everything: Next.js web (pages + /api/v1 REST).
+	reverse_proxy mro-web:3003
+
+	encode gzip
+}

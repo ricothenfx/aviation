@@ -1,0 +1,112 @@
+# Production topology for mro-copilot (F5, mirroring ADR-0006 for turnaround-iq):
+# the CI-validated `--profile mro` services (postgres + mro-web + mro-ai-service)
+# behind Caddy with automatic TLS. Data services are compose-network-internal;
+# Caddy (80/443) is the only public surface. `mro-ai-service` is NOT published —
+# it is loopback/service-network only (ADR-0012).
+#
+#   cp env.example .env   # set DOMAIN, ACME_EMAIL, AUTH_SECRET, POSTGRES_PASSWORD, AI_SERVICE_TOKEN
+#   docker compose -f compose.prod.yml up -d --build
+#
+# Secrets live in the server-side .env only — never in the repository.
+
+name: mro-prod
+
+services:
+  caddy:
+    image: caddy:2.10.0
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      mro-web:
+        condition: service_healthy
+
+  postgres:
+    # Same image as CI-validated dev runs (topological identity, ADR-0006):
+    # timescale/timescaledb ships pgvector 0.8.1 (ADR-0010) AND TimescaleDB
+    # (sensor_readings hypertable, data-model.md §8).
+    image: timescale/timescaledb:latest-pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: turnaround
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: turnaround_iq
+    volumes:
+      - mro_pgdata_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U turnaround -d turnaround_iq"]
+      interval: 5s
+      retries: 12
+
+  mro-web:
+    build:
+      context: ../..
+      dockerfile: apps/mro-copilot/Dockerfile
+    image: mro-web:prod
+    restart: unless-stopped
+    command: >-
+      sh -c "pnpm --filter mro-copilot run db:migrate &&
+             pnpm --filter mro-copilot seed &&
+             pnpm --filter mro-copilot start"
+    environment:
+      MRO_DATABASE_URL: postgresql://turnaround:${POSTGRES_PASSWORD}@postgres:5432/mro_copilot
+      AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env}
+      MRO_AUTH_COOKIE_NAME: mro_session
+      MRO_AI_SERVICE_URL: http://mro-ai-service:4103
+      AI_SERVICE_TOKEN: ${AI_SERVICE_TOKEN:?set AI_SERVICE_TOKEN in .env}
+      LLM_PROVIDER: mock
+      NEXT_TELEMETRY_DISABLED: "1"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3003/healthz').then((r)=>{if(!r.ok)throw new Error('unhealthy')}).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 24
+      start_period: 240s
+
+  mro-ai-service:
+    build:
+      context: ../..
+      dockerfile: services/mro-copilot/ai-service/Dockerfile
+    image: mro-ai-service:prod
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://turnaround:${POSTGRES_PASSWORD}@postgres:5432/mro_copilot
+      AI_SERVICE_TOKEN: ${AI_SERVICE_TOKEN:?set AI_SERVICE_TOKEN in .env}
+      LLM_PROVIDER: mock
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mro-web:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'python -c "import os,urllib.request;req=urllib.request.Request(''http://localhost:4103/healthz'');urllib.request.urlopen(req)" || exit 1',
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 180s
+
+volumes:
+  mro_pgdata_prod:
+  caddy_data:
+  caddy_config:
