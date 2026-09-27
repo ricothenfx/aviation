@@ -95,6 +95,12 @@ export function TurnaroundGantt({
         new DataSet(buildItems(flights)),
         groups,
         {
+          // start/end pin the initial viewport to the reference day — without
+          // them vis-timeline opens on a now-based window and the first
+          // auto-fit races whatever reads the board first (caught by the
+          // ADR-0018 visual baseline on the CI runner).
+          start: windowStart,
+          end: windowEnd,
           min: windowStart,
           max: windowEnd,
           zoomMin: 1000 * 60 * 60,
