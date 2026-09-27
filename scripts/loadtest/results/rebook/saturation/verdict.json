@@ -1,0 +1,28 @@
+{
+  "ranAt": "2026-09-27T04:23:43.919Z",
+  "phase": "offers",
+  "scale": {
+    "banks": 10,
+    "replicaFlights": 50
+  },
+  "offerGate": {
+    "gate": 10000,
+    "offer": "×10 scale · 1 console poller[s] · saturation burst",
+    "k6P95": 19646.55,
+    "injectOk": 1,
+    "visible": 1,
+    "pass": false
+  },
+  "phaseB": {
+    "counts": null,
+    "effects": {
+      "pass": false,
+      "invariants": {},
+      "testedOffers": 0
+    }
+  },
+  "gates": {
+    "offerGate": false
+  },
+  "passed": false
+}

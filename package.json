@@ -19,6 +19,7 @@
     "bench:mro-search": "node scripts/benchmarks/mro-search-latency.mjs",
     "loadtest": "node scripts/loadtest/run-loadtest.mjs",
     "loadtest:mro": "node scripts/loadtest/run-mro-loadtest.mjs",
+    "loadtest:rebook": "node scripts/loadtest/run-rebook-loadtest.mjs",
     "seed": "pnpm --filter turnaround-iq seed",
     "seed:mro": "pnpm --filter mro-copilot seed",
     "seed:rebook": "pnpm --filter rebook-ai seed",

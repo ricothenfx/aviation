@@ -1,0 +1,14 @@
+# 2026-09-27T04:11:27.934Z (after)
+loadavg: 6.69 6.29 5.95 5/1317 2443721
+
+aviation-rebook-orchestrator-1 8.60% 252MiB / 7.755GiB
+aviation-rebook-web-1 0.00% 408.1MiB / 7.755GiB
+aviation-postgres-1 1.51% 140.9MiB / 7.755GiB
+aviation-redis-1 1.47% 3.961MiB / 7.755GiB
+turnaround-prod-realtime-gateway-1 13.20% 117.7MiB / 7.755GiB
+turnaround-prod-replan-engine-1 1.94% 101.6MiB / 7.755GiB
+turnaround-prod-simulator-1 0.00% 100.6MiB / 7.755GiB
+turnaround-prod-web-1 0.00% 170.8MiB / 7.755GiB
+turnaround-prod-caddy-1 0.00% 19.14MiB / 7.755GiB
+turnaround-prod-postgres-1 6.25% 98.21MiB / 7.755GiB
+turnaround-prod-redis-1 15.45% 5.535MiB / 7.755GiB

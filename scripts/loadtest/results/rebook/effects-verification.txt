@@ -1,0 +1,11 @@
+exactly-one-effect verification
+test_offers|12
+confirmations_gt1|0
+sagas_gt1|0
+payment_landed_ne1|0
+booking_issued_ne1|0
+payment_landed_zero|0
+sagas_not_completed|0
+audit_confirm_ne1|0
+offer ids under test (count + sample)
+12|2026-09-27 04:29:02.268507+00|2026-09-27 04:29:03.782846+00

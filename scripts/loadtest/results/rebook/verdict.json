@@ -1,0 +1,55 @@
+{
+  "ranAt": "2026-09-27T04:29:13.428Z",
+  "phase": "all",
+  "scale": {
+    "banks": 10,
+    "replicaFlights": 50
+  },
+  "offerGate": {
+    "gate": 10000,
+    "offer": "×10 scale · 1 console poller[s] · paced 200 ms/flight",
+    "k6P95": 9736.74999999999,
+    "injectOk": 1,
+    "visible": 1,
+    "pass": true
+  },
+  "phaseB": {
+    "counts": {
+      "racers": 8,
+      "sameOffers": 6,
+      "distinctOffers": 6,
+      "created": 54,
+      "conflict": 42,
+      "replayed": 42,
+      "serverErrors": 0,
+      "other": 0
+    },
+    "effects": {
+      "pass": true,
+      "checks": {
+        "noEffectViolations": true,
+        "testedOffers": 12,
+        "everyEffectLandedOnce": true,
+        "noServerErrors": true,
+        "sameKeyReplayAll2xx": true,
+        "distinctKeySingleWinner": true
+      },
+      "invariants": {
+        "test_offers": 12,
+        "confirmations_gt1": 0,
+        "sagas_gt1": 0,
+        "payment_landed_ne1": 0,
+        "booking_issued_ne1": 0,
+        "payment_landed_zero": 0,
+        "sagas_not_completed": 0,
+        "audit_confirm_ne1": 0
+      },
+      "testedOffers": 12
+    }
+  },
+  "gates": {
+    "offerGate": true,
+    "exactlyOneEffect": true
+  },
+  "passed": true
+}
