@@ -5,7 +5,7 @@ export type StatusTone = "ok" | "warn" | "danger" | "info" | "muted";
 const TONE_CLASSES: Record<StatusTone, string> = {
   ok: "text-ok border-ok/40",
   warn: "text-warn border-warn/40",
-  danger: "text-danger border-danger/40",
+  danger: "text-danger-fg border-danger/40",
   info: "text-accent border-accent/40",
   muted: "text-muted border-border",
 };

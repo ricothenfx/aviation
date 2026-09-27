@@ -8,7 +8,7 @@ type ButtonSize = "sm" | "md";
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary: "bg-accent text-[#06121f] hover:brightness-110",
   ghost: "border border-border bg-transparent text-fg hover:bg-raised",
-  danger: "border border-danger/60 bg-transparent text-danger hover:bg-danger/10",
+  danger: "border border-danger/60 bg-transparent text-danger-fg hover:bg-danger/10",
 };
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {

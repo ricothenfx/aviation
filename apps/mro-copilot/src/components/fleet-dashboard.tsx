@@ -314,7 +314,7 @@ export function FleetDashboard({ role }: { role: "viewer" | "engineer" | "review
                       className="px-4 py-2 font-mono tabular-nums"
                       data-testid={`rul-${unit.unitId}`}
                     >
-                      <span className={risk ? "text-danger" : "text-fg"}>
+                      <span className={risk ? "text-danger-fg" : "text-fg"}>
                         {formatRul(unit.latestRul)}
                       </span>
                       {unit.latestRul === null ? (
@@ -547,7 +547,7 @@ function AlertsPanel({
         </ul>
       )}
       {actionError ? (
-        <p role="alert" className="px-4 pb-3 text-xs text-danger">
+        <p role="alert" className="px-4 pb-3 text-xs text-danger-fg">
           {actionError}
         </p>
       ) : null}

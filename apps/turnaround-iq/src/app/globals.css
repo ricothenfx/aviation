@@ -111,6 +111,9 @@
 .tiq-item-scheduled {
   background-color: color-mix(in oklab, var(--color-muted) 55%, var(--color-surface));
   border-color: var(--color-muted);
+  /* Dark bar — the shared near-black bar text fails contrast on it (axe-core
+   * serious, ADR-0018); scheduled/inblock carry light text instead. */
+  color: var(--color-fg);
 }
 
 /* In block: arrival handled, dimmer cyan. */
@@ -118,6 +121,7 @@
 .tiq-item-inblock {
   background-color: color-mix(in oklab, var(--color-accent) 45%, var(--color-surface));
   border-color: color-mix(in oklab, var(--color-accent) 60%, var(--color-border));
+  color: var(--color-fg);
 }
 
 /* Turnaround in progress: brighter cyan with a subtle vertical depth gradient. */

@@ -119,7 +119,7 @@ function LoginForm() {
           </div>
 
           {error ? (
-            <p role="alert" className="mt-3 text-xs text-danger">
+            <p role="alert" className="mt-3 text-xs text-danger-fg">
               {error}
             </p>
           ) : null}

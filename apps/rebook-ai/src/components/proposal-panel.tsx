@@ -147,7 +147,7 @@ export function ProposalPanel({ locator, proposals, onChanged }: ProposalPanelPr
         </p>
       )}
       {error && (
-        <p className="text-[11px] text-danger" role="alert">
+        <p className="text-[11px] text-danger-fg" role="alert">
           {error}
         </p>
       )}

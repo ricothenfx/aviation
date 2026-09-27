@@ -28,7 +28,7 @@ export function ErrorState({
       data-testid="error-state"
       role="alert"
     >
-      <div className="text-sm font-medium text-danger">{title}</div>
+      <div className="text-sm font-medium text-danger-fg">{title}</div>
       <p className="max-w-sm text-xs leading-5 text-muted">{message}</p>
       {requestId ? (
         <div className="font-mono text-[10px] text-muted/80">request {requestId}</div>

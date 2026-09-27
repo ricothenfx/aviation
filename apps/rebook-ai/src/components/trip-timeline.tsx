@@ -25,7 +25,7 @@ const TONE_TEXT: Record<StageTone, string> = {
   done: "text-ok",
   active: "text-accent",
   pending: "text-muted",
-  failed: "text-danger",
+  failed: "text-danger-fg",
 };
 
 const TONE_GLYPH: Record<StageTone, string> = {

@@ -533,7 +533,7 @@ function OfferCard({
 
           {offer.confirmation.saga.state === "compensated" && (
             <p
-              className="mt-2 text-[11px] text-danger"
+              className="mt-2 text-[11px] text-danger-fg"
               data-testid="saga-compensated-note"
               role="alert"
             >

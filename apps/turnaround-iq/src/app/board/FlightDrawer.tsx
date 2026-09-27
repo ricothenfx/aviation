@@ -199,7 +199,7 @@ export function FlightDrawer({
                     <span className="truncate font-mono text-xs text-fg">{task.type}</span>
                   </div>
                   <span
-                    className={`font-mono text-xs tabular-nums ${breached ? "text-danger" : "text-muted"}`}
+                    className={`font-mono text-xs tabular-nums ${breached ? "text-danger-fg" : "text-muted"}`}
                     title={`SLA ${task.slaMinutes} min · window ${fmtTime(task.plannedStart)}–${fmtTime(task.plannedEnd)}Z`}
                   >
                     {task.state === "done"
@@ -388,7 +388,7 @@ function ReplanPanel({ flightId, onApplied }: { flightId: string; onApplied: () 
       {error ? (
         <p
           role="alert"
-          className="rounded-md border border-danger/40 bg-surface px-2.5 py-2 text-xs text-danger"
+          className="rounded-md border border-danger/40 bg-surface px-2.5 py-2 text-xs text-danger-fg"
         >
           {error}
         </p>
@@ -494,7 +494,7 @@ function CopilotExplanation({
         </div>
       ) : state === "error" ? (
         <div className="mt-1.5 space-y-1.5">
-          <p role="alert" className="text-xs text-danger">
+          <p role="alert" className="text-xs text-danger-fg">
             The explanation request failed — the plan itself is unaffected.
           </p>
           <Button variant="ghost" size="sm" onClick={onRetry}>

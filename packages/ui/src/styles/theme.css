@@ -13,6 +13,10 @@
   --color-accent: #38bdf8;
   --color-warn: #f5a524;
   --color-danger: #f31260;
+  /* Lighter danger for TEXT on dark surfaces — #f31260 reads 4.0:1 on
+   * --color-surface (fails WCAG AA at 12–14px); this reads 5.8:1. Fills and
+   * borders keep --color-danger (axe-core serious, ADR-0018 first scan). */
+  --color-danger-fg: #ff6b95;
   --color-ok: #30a46c;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;

@@ -116,7 +116,7 @@ export function ScenarioPanel({ onChanged }: { onChanged: () => void }) {
   if (error) {
     return (
       <div aria-label="Scenario control" className="space-y-2 text-xs">
-        <p role="alert" className="text-danger">
+        <p role="alert" className="text-danger-fg">
           Scenario control unavailable: {error}
         </p>
         <Button variant="ghost" size="sm" onClick={() => void load()}>
@@ -208,7 +208,7 @@ export function ScenarioPanel({ onChanged }: { onChanged: () => void }) {
             ))}
           </div>
           {injectError ? (
-            <p role="alert" className="text-danger">
+            <p role="alert" className="text-danger-fg">
               {injectError}
             </p>
           ) : null}

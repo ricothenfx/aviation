@@ -269,7 +269,7 @@ export function QueuePanel() {
                     >
                       {detail[item.locator] === "loading" && <Skeleton className="h-12 w-full" />}
                       {detail[item.locator] === null && (
-                        <p className="text-xs text-danger">
+                        <p className="text-xs text-danger-fg">
                           Booking context unavailable right now.
                         </p>
                       )}

@@ -176,7 +176,7 @@ export function PoisonPanel() {
                 <span className="font-mono text-xs text-fg">{event.type}</span>
                 <span className="font-mono text-[10px] text-muted">attempts: {event.attempts}</span>
               </div>
-              <p className="mt-0.5 text-[11px] text-danger">{event.processError}</p>
+              <p className="mt-0.5 text-[11px] text-danger-fg">{event.processError}</p>
             </div>
           ))}
         </div>

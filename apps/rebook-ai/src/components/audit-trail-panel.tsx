@@ -158,7 +158,9 @@ export function AuditTrailPanel() {
                     {entry.targetType}:{entry.targetId.slice(0, 8)}…
                   </td>
                   <td className="max-w-[16rem] px-4 py-2 font-mono text-[10px] text-muted">
-                    <span className="line-clamp-2 break-all opacity-80">
+                    {/* No opacity dimming: muted-on-surface is exactly AA at
+                        10px; opacity-80 dropped it below (axe-core, ADR-0018). */}
+                    <span className="line-clamp-2 break-all">
                       {entry.details ? JSON.stringify(entry.details) : "—"}
                     </span>
                   </td>

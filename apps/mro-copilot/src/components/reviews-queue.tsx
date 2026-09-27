@@ -121,7 +121,7 @@ function Queue() {
       {error ? (
         <p
           role="alert"
-          className="rounded-md border border-danger/40 bg-danger/5 px-3 py-2 text-xs text-danger"
+          className="rounded-md border border-danger/40 bg-danger/5 px-3 py-2 text-xs text-danger-fg"
         >
           {error.message} {error.requestId ? `(${error.requestId})` : ""}
         </p>
@@ -249,7 +249,7 @@ function QueueItem({
               placeholder="e.g. cites a superseded revision — re-ask against Rev 38"
             />
             {noteError ? (
-              <p role="alert" className="text-xs text-danger">
+              <p role="alert" className="text-xs text-danger-fg">
                 {noteError}
               </p>
             ) : null}
