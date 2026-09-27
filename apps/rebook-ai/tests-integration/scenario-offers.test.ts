@@ -77,17 +77,28 @@ async function ensureDisrupted(flightNo: string, scenario: "cancellation" | "lon
 }
 
 /**
- * Poll the passenger summary until the disruption view is visible. The inject
- * route appends `flight.disrupted` and returns immediately; the orchestrator
- * event tail flips the flight row asynchronously, so a single-shot GET races
- * that flip (lost on slower CI runners).
+ * Poll the passenger summary until the FULL proactive pipeline beat is
+ * visible: disruption + voucher + inbox notification. The inject route
+ * appends `flight.disrupted` and returns immediately; the orchestrator event
+ * tail writes the flight flip, vouchers, offers and notifications in that
+ * order — a single-shot GET (or a poll keyed on the disruption alone) races
+ * the mid-handler window and can see a disruption with an empty voucher list
+ * (the F5 CI flake). The F2 gate's own wording is "notification + ranked
+ * offers visible", so the poll waits for the whole beat.
  */
 async function pollDisruption(timeoutMs: number): Promise<PaxSummaryView> {
   const started = Date.now();
   for (;;) {
     const res = await get("/api/v1/pax/summary", "pax");
     const summary = paxSummaryViewSchema.safeParse(res.body);
-    if (summary.success && summary.data.disruption !== null) return summary.data;
+    if (
+      summary.success &&
+      summary.data.disruption !== null &&
+      summary.data.vouchers.length > 0 &&
+      summary.data.notifications.length > 0
+    ) {
+      return summary.data;
+    }
     if (Date.now() - started > timeoutMs)
       throw new Error(`disruption view not visible within ${timeoutMs} ms`);
     await new Promise((resolve) => setTimeout(resolve, 400));
