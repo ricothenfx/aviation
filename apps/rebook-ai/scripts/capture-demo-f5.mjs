@@ -96,7 +96,9 @@ try {
   await supPage.getByLabel(/flight \(reference day\)/i).selectOption(FLIGHT);
   await supPage.getByRole("button", { name: /inject cancellation/i }).click();
   await supPage.getByText(/Injected cancellation/i).waitFor({ timeout: 15_000 });
-  log.push(`[${elapsed()}] beat 0–8 s: cancellation injected on ${FLIGHT} (proactive pipeline notified)`);
+  log.push(
+    `[${elapsed()}] beat 0–8 s: cancellation injected on ${FLIGHT} (proactive pipeline notified)`,
+  );
 
   // --- Beat 8–20 s: passenger sees notification + ranked offers + voucher ---
   const pax = await newContext(browser, PASSENGER);
@@ -111,7 +113,9 @@ try {
     "f5-02-passenger-offers.png",
     "Passenger trip — timeline, disruption banner, 3 ranked offers with reasons",
   );
-  log.push(`[${elapsed()}] beat 8–20 s: notification + 3 ranked offers + voucher visible for ${LOCATOR}`);
+  log.push(
+    `[${elapsed()}] beat 8–20 s: notification + 3 ranked offers + voucher visible for ${LOCATOR}`,
+  );
 
   // --- Beat 20–30 s: PASSENGER self-serves the same-carrier cheap option ---
   const cheap = paxPage.getByTestId("option-cheap").first();
@@ -125,14 +129,18 @@ try {
   );
   await confirmBtn.click();
   await paxPage.getByTestId(`saga-step-seat_reserve`).waitFor({ timeout: 20_000 });
-  log.push(`[${elapsed()}] beat 20–30 s: passenger confirmed the cheap option — saga opened (self-serve)`);
+  log.push(
+    `[${elapsed()}] beat 20–30 s: passenger confirmed the cheap option — saga opened (self-serve)`,
+  );
   await paxPage.getByTestId("boarding-pass").first().waitFor({ timeout: 30_000 });
   await shoot(
     paxPage,
     "f5-04-boarding-pass-self-serve.png",
     "Saga completed live — new itinerary + boarding pass, labeled simulated",
   );
-  log.push(`[${elapsed()}] beat 30–50 s: saga landed seat_reserve → payment (simulated PSP) → ticket_issue; boarding pass issued to the PASSENGER (containment beat)`);
+  log.push(
+    `[${elapsed()}] beat 30–50 s: saga landed seat_reserve → payment (simulated PSP) → ticket_issue; boarding pass issued to the PASSENGER (containment beat)`,
+  );
 
   // --- Beat 30–50 s: agent loop proposes for a second PNR (propose-only) ---
   const agent = await newContext(browser, AGENT);
@@ -164,7 +172,9 @@ try {
     "f5-06-proposal-trace.png",
     "Traced, badged proposal (source: llm / provider: mock) — propose-only until approved",
   );
-  log.push(`[${elapsed()}] beat 30–50 s: agent loop produced a traced proposal for ${second.locator} (propose-only)`);
+  log.push(
+    `[${elapsed()}] beat 30–50 s: agent loop produced a traced proposal for ${second.locator} (propose-only)`,
+  );
 
   // --- Beat 50–70 s: supervisor approval → saga for the second PNR ---
   const sup2 = await newContext(browser, SUPERVISOR);
@@ -187,7 +197,9 @@ try {
   await supCard.getByTestId("proposal-approve").click();
   const status = (await approve).status();
   if (status !== 201) throw new Error(`approve returned HTTP ${status}`);
-  log.push(`[${elapsed()}] beat 50–70 s: supervisor approval applied through the ONE saga path (no side door)`);
+  log.push(
+    `[${elapsed()}] beat 50–70 s: supervisor approval applied through the ONE saga path (no side door)`,
+  );
 
   // --- Beat 70–80 s: honesty beat — compensation returns a passenger to the queue ---
   const queueRes2 = await fetch(`${BASE}/api/v1/queue`, { headers: { cookie: sup2.cookieHeader } });
@@ -230,7 +242,9 @@ try {
     console.warn(`compensate raced completion for ${candidate.locator} — trying the next PNR`);
   }
   if (!compensated) throw new Error("compensation beat: no saga was still running to compensate");
-  log.push(`[${elapsed()}] beat 70–80 s: saga ${compensated.sagaId.slice(0, 8)}… compensated (${compensated.state}) — ${compensated.locator} honestly back in the queue`);
+  log.push(
+    `[${elapsed()}] beat 70–80 s: saga ${compensated.sagaId.slice(0, 8)}… compensated (${compensated.state}) — ${compensated.locator} honestly back in the queue`,
+  );
 
   // --- Beat 80–90 s: audit trail + self-serve containment (> 0%) ---
   await supPage2.goto(`${BASE}/supervisor`);
@@ -247,14 +261,18 @@ try {
   await agentPage.waitForTimeout(700); // let the count-up settle (§6)
   const waiting = (await agentPage.getByTestId("queue-waiting").textContent()).trim();
   const containment = (await agentPage.getByTestId("queue-containment").textContent()).trim();
-  log.push(`[${elapsed()}] beat 80–90 s: queue waiting=${waiting}, containment=${containment} (self-serve NXQ4ZK confirmed → > 0%)`);
+  log.push(
+    `[${elapsed()}] beat 80–90 s: queue waiting=${waiting}, containment=${containment} (self-serve NXQ4ZK confirmed → > 0%)`,
+  );
   await shoot(
     agentPage,
     "f5-08-containment.png",
     "Containment tile above 0% thanks to the passenger self-serve confirm + re-queued compensation passenger",
   );
   if (/^0%$/.test(containment)) {
-    throw new Error(`containment stayed 0% — the self-serve beat did not register (${waiting} waiting)`);
+    throw new Error(
+      `containment stayed 0% — the self-serve beat did not register (${waiting} waiting)`,
+    );
   }
 
   // --- Keyboard navigation + responsive parity with the F4 evidence ---
