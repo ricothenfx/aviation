@@ -61,6 +61,8 @@ artifact) → caddy solves the ACME challenge and serves TLS.
    the caddy service can be dropped with `--scale caddy=0` when reusing the
    host's existing front. Decide per ADR-0006 §Execution record.
 2. **DNS**: add `mro-copilot.aviation` A/AAAA → the VPS (zone `ricothen.com`).
+   DNS: done 2026-09-27 (`mro-copilot.aviation.ricothen.com`; also set in
+   `env.example` as `DOMAIN`). Live deploy itself remains open — see step 1/4.
 3. **Secrets**: generate `AUTH_SECRET`, `POSTGRES_PASSWORD`, `AI_SERVICE_TOKEN`
    (`openssl rand -hex 32`), set `ACME_EMAIL`.
 4. **TLS evidence**: after first boot, record Caddy's

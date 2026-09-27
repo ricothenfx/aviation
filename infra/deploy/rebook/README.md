@@ -82,6 +82,8 @@ saga executor) → caddy solves the ACME challenge and serves TLS.
    compose. Decide per ADR-0006 §Execution record (same decision the mro deploy
    records in `../mro/README.md` §Manual steps).
 2. **DNS**: add `rebook-ai.aviation` A/AAAA → the VPS (zone `ricothen.com`).
+   DNS: done 2026-09-27 (`rebook-ai.aviation.ricothen.com`; also set in
+   `env.example` as `DOMAIN`). Live deploy itself remains open — see step 1/4.
 3. **Secrets**: generate `AUTH_SECRET` + `POSTGRES_PASSWORD` (`openssl rand -hex 32`
    / `-hex 16`), set `ACME_EMAIL`.
 4. **TLS evidence**: after first boot, record Caddy's
