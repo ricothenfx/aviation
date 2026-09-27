@@ -86,6 +86,8 @@ pnpm eval:mro:full      # mro-copilot full eval (recall@5 · refusal 100% · cit
 pnpm bench:mro-search   # mro-copilot search latency benchmark (gates p95 < 300 ms; needs mro stack)
 pnpm bench:mro-ask      # mro-copilot ask latency benchmark (gates p95 < 2.5 s, mock provider; needs mro stack)
 pnpm test:e2e:mro       # mro-copilot Playwright e2e (login → ask → citation → approve → verified library; needs mro stack)
+pnpm dev:landing        # portfolio landing page dev server on :3005 (static export, ADR-0019)
+pnpm build:landing      # build the landing static export into apps/portfolio-landing/out
 pnpm loadtest           # ×10 load gate: k6 (200 ws consumers) + independent latency probe (F5; needs compose stack; --prom feeds Grafana evidence profile)
 pnpm seed               # apply migrations + reference day + upsert seeded demo users (turnaround-iq)
 pnpm seed:mro           # mro-copilot: ensure mro_copilot DB + migrations + seeded users (viewer/engineer/reviewer)

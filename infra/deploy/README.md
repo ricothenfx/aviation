@@ -4,15 +4,17 @@ Status: **deployed and live** — `https://turnaround-iq.aviation.ricothen.com`
 (since 2026-09-24). Per tech-stack.md §2 (locked): F5 validates the deployment
 *structure*, not a live AWS deployment. The AWS service mapping (tech-stack.md
 §2) remains the interview narrative; this directory is the IaC-ready equivalent
-for a single VPS.
+for a single VPS. The portfolio landing page at `aviation.ricothen.com`
+(ADR-0019) is served by the same Caddy as a static site — see
+[landing/README.md](landing/README.md).
 
 ## Live host (as executed, 2026-09-24)
 
 - **Host**: single VPS (`194.233.67.201`), Ubuntu, Docker + Compose v2.
 - **DNS** (zone `ricothen.com`, both → `194.233.67.201`):
   - `turnaround-iq.aviation` — the live demo (this deploy).
-  - `aviation` — reserved for the future portfolio landing page (not yet
-    configured in the Caddyfile; dormant record).
+  - `aviation` — the portfolio landing page (ADR-0019; static site behind this
+    Caddy, runbook in `landing/README.md`).
 - **URL scheme**: one hostname per project (`turnaround-iq.aviation.ricothen.com`,
   later `mro-copilot.…`, `rebook-ai.…`), landing page at
   `aviation.ricothen.com` — recorded in ADR-0006 §Execution record. `DOMAIN`
@@ -37,6 +39,7 @@ for a single VPS.
 | `compose.prod.yml` | Production topology: same six services as CI-validated local runs + Caddy (auto-TLS). Data services are network-internal; Caddy 80/443 is the only public surface. |
 | `Caddyfile` | TLS + path routing: `/api/ws*` → realtime-gateway:4001, everything else → web:3000. |
 | `env.example` | The only secrets the deployment needs (server-side `.env`, never committed). |
+| `landing/` | Portfolio landing page deploy target (static export; ADR-0019) — runbook in `landing/README.md`. |
 | `../apps/turnaround-iq/Dockerfile`, `../services/turnaround-iq/Dockerfile` | Multi-stage production images (web: `next build`/`next start`; services: pnpm workspace + tsx). |
 
 ## IaC-ready mapping (traceability-matrix row 9)

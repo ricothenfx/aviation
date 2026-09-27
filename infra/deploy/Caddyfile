@@ -1,6 +1,9 @@
 # Caddy entrypoint (ADR-0006): automatic Let's Encrypt TLS for the demo domain.
 # Web (REST + pages) and the realtime WebSocket share one hostname — path-based
 # routing keeps cookies and CORS trivial.
+#
+# The portfolio landing page (ADR-0019) is a static site served by the same
+# front: build apps/portfolio-landing, copy out/ into ./landing on the host.
 
 {
 	email {$ACME_EMAIL}
@@ -18,4 +21,17 @@
 	}
 
 	encode gzip
+}
+
+# Portfolio landing page — prebuilt static export, no upstream (ADR-0019).
+{$LANDING_DOMAIN:aviation.ricothen.com} {
+	root * {$LANDING_ROOT:/srv/landing}
+	# Landing pages are single-route: any unknown path falls back to index.
+	try_files {path} /index.html
+	file_server
+	encode gzip
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+	}
 }

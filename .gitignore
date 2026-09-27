@@ -9,6 +9,11 @@ dist/
 out/
 *.tsbuildinfo
 
+# Landing page host-only deploy content (ADR-0019) — built out/ is copied
+# here by the runbook; the runbook itself stays tracked.
+infra/deploy/landing/*
+!infra/deploy/landing/README.md
+
 # env & secrets
 .env
 .env.local

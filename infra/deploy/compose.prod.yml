@@ -21,8 +21,13 @@ services:
     environment:
       DOMAIN: ${DOMAIN:?set DOMAIN in .env}
       ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL in .env}
+      LANDING_DOMAIN: ${LANDING_DOMAIN:-aviation.ricothen.com}
+      LANDING_ROOT: /srv/landing
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Portfolio landing page static export (ADR-0019); populated from
+      # apps/portfolio-landing/out — see landing/README.md.
+      - ./landing:/srv/landing:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:

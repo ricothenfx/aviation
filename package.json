@@ -7,6 +7,8 @@
   },
   "scripts": {
     "dev": "docker compose --profile infra up -d && pnpm --filter turnaround-iq dev",
+    "dev:landing": "pnpm --filter portfolio-landing dev",
+    "build:landing": "pnpm --filter portfolio-landing build",
     "build": "pnpm -r --if-present build",
     "lint": "prettier --check . && eslint . --max-warnings 0",
     "format": "prettier --write .",

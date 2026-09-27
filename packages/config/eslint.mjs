@@ -14,6 +14,8 @@ export default [
       "**/.pnpm-store/**",
       "**/dist/**",
       "**/.next/**",
+      // Static export output (apps/portfolio-landing, ADR-0019) — build artifacts.
+      "**/out/**",
       // Secondary build dir used by provider-off web instances (FR-12 test).
       "**/.next-off/**",
       "**/coverage/**",

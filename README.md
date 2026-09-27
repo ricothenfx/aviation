@@ -183,10 +183,16 @@ smoke at two viewports.
 
 ## Deployment
 
+**Portfolio landing page: <https://aviation.ricothen.com>** — the single entry
+point that frames all three systems and routes reviewers to the live demos,
+case studies, and the traceability matrix (ADR-0019; static site, runbook in
+`infra/deploy/landing/README.md`).
+
 **Live demo: <https://turnaround-iq.aviation.ricothen.com>** — deployed 2026-09-24
 on a single VPS; sign in with a seeded account, e.g. coordinator
 `maya.tan@nx-sim.example` / `coordinator-nx-01` (fictional demo accounts; all
-data simulated).
+data simulated). The mro-copilot and rebook-ai demos deploy from the prepared
+runbooks in `infra/deploy/{mro,rebook}/README.md`.
 
 Production structure lives in [`infra/deploy/`](infra/deploy/README.md): production
 images, `compose.prod.yml` (same six services behind Caddy with automatic TLS), and a

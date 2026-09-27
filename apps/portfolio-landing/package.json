@@ -1,0 +1,28 @@
+{
+  "name": "portfolio-landing",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Portfolio landing page at aviation.ricothen.com — static export, no runtime services (ADR-0019).",
+  "scripts": {
+    "dev": "next dev -p 3005",
+    "build": "next build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@aviation/ui": "workspace:*",
+    "next": "^15.3.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@aviation/config": "workspace:*",
+    "@tailwindcss/postcss": "^4.0.6",
+    "@types/node": "^22.10.5",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "tailwindcss": "^4.0.6",
+    "typescript": "^5.6.3",
+    "vitest": "^3.0.5"
+  }
+}
