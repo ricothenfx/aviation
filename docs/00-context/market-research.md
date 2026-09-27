@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Status | Active — snapshot reference for portfolio alignment |
-| Snapshot date | 2026-09-22 (verified via live fetch of career portals) — **re-verified 2026-09-26 (F5): no material change** |
+| Snapshot date | 2026-09-22 (verified via live fetch of career portals) — **re-verified 2026-09-26 and 2026-09-27 (F5): no material change** |
 | Caveat | Job listings change weekly. Re-verify before each application. Links are the source of truth, not the tables below. |
 
 ## 1. Purpose
@@ -26,8 +26,10 @@ This document justifies every product decision in the portfolio; see `traceabili
 | Drones / emerging | Wing (Alphabet), H3 Dynamics, Avetics; note: Jetstar Asia ceased 2025-07, Volocopter insolvent/acquired | Niche | — |
 | Associations / events | AAIS, Singapore Airshow (Experia Events) | Networking channel only | — |
 
-## 3. Verified Openings Snapshot (2026-09-22; re-verified 2026-09-26)
+## 3. Verified Openings Snapshot (2026-09-22; re-verified 2026-09-26 and 2026-09-27)
 
+> Re-verification 2026-09-27 (F5 rebook, live portal fetches): **no material change** — CAG still lists **13** tech-related openings (Req 7075 Senior Software Engineer, 7167 ML Engineer, 7133 Full Stack Developer all still open); SIA still **10** software/IT roles (AOS, AI Ops, eOps, Advanced AI Track, Service Designer all still open); STE **124** software roles in SG (was 127) — the aviation subset is intact (Aero 507 Software Engineer, UAS Software Engineer, Full-stack web application Aero 600 West Camp Road). SATS not re-checked (portal blocks bots — verify manually via MyCareersFuture).
+>
 > Re-verification 2026-09-26 (F5, live portal fetches): **CAG still lists 13
 > tech-related openings** — Senior Software Engineer (Req 7075), Machine Learning
 > Engineer (Req 7167, posted 19 Sept), Full Stack Developer (Req 7133, Commercial),
