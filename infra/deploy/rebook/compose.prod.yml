@@ -1,0 +1,132 @@
+# Production topology for rebook-ai (F5, mirroring ADR-0006/D-12):
+# the CI-validated `--profile rebook` services (postgres + redis + rebook-web +
+# orchestrator) behind Caddy with automatic TLS. Data services and the
+# orchestrator are compose-network-internal; Caddy (80/443) is the only public
+# surface — the browser reaches the orchestrator only through the web app's
+# REST/SSE bridge (ADR-0014).
+#
+#   cp env.example .env   # set DOMAIN, ACME_EMAIL, AUTH_SECRET, POSTGRES_PASSWORD
+#   docker compose -f compose.prod.yml up -d --build
+#
+# Secrets live in the server-side .env only — never in the repository.
+
+name: rebook-prod
+
+services:
+  caddy:
+    image: caddy:2.10.0
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      rebook-web:
+        condition: service_healthy
+
+  postgres:
+    # Same image as CI-validated local runs (topological identity, ADR-0006).
+    image: timescale/timescaledb:latest-pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: turnaround
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: turnaround_iq
+    volumes:
+      - rebook_pgdata_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U turnaround -d turnaround_iq"]
+      interval: 5s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  rebook-web:
+    build:
+      context: ../../..
+      dockerfile: apps/rebook-ai/Dockerfile
+    image: rebook-web:prod
+    restart: unless-stopped
+    command: >-
+      sh -c "pnpm --filter rebook-ai run db:migrate &&
+             pnpm --filter rebook-ai seed &&
+             pnpm --filter rebook-ai start"
+    environment:
+      REBOOK_DATABASE_URL: postgresql://turnaround:${POSTGRES_PASSWORD}@postgres:5432/rebook_ai
+      REDIS_URL: redis://redis:6379
+      REBOOK_SEED_DIR: /repo/apps/rebook-ai/seed
+      AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET in .env}
+      REBOOK_AUTH_COOKIE_NAME: rbo_session
+      LLM_PROVIDER: mock
+      NEXT_TELEMETRY_DISABLED: "1"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3004/healthz').then((r)=>{if(!r.ok)throw new Error('unhealthy')}).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 24
+      start_period: 240s
+
+  rebook-orchestrator:
+    build:
+      context: ../../..
+      dockerfile: services/rebook-ai/orchestrator/Dockerfile
+    image: rebook-orchestrator:prod
+    restart: unless-stopped
+    # Internal only (ADR-0014): no ports published — the browser reaches it
+    # through the web app's REST/SSE bridge; commands flow via the event log
+    # and the Redis control channel.
+    environment:
+      REBOOK_DATABASE_URL: postgresql://turnaround:${POSTGRES_PASSWORD}@postgres:5432/rebook_ai
+      REDIS_URL: redis://redis:6379
+      REBOOK_SEED_DIR: /repo/apps/rebook-ai/seed
+      LOG_LEVEL: info
+      ORCHESTRATOR_PORT: "4104"
+      LLM_PROVIDER: mock
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rebook-web:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4104/healthz').then((r)=>{if(!r.ok)throw new Error('unhealthy')}).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 24
+      start_period: 180s
+
+volumes:
+  rebook_pgdata_prod:
+  caddy_data:
+  caddy_config:

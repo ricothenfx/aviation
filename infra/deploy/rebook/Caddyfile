@@ -1,0 +1,15 @@
+# Caddy entrypoint for rebook-ai (F5, ADR-0006 URL scheme): automatic
+# Let's Encrypt TLS. Single hostname, single upstream — the Next.js app
+# (passenger surface, consoles, /api/v1 REST and the SSE live bridge). The
+# orchestrator is internal-only (ADR-0014) and is never routed publicly.
+
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	# Everything: Next.js web (pages + /api/v1 REST + /api/v1/live SSE).
+	reverse_proxy rebook-web:3004
+
+	encode gzip
+}
