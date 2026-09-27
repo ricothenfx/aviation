@@ -14,6 +14,7 @@ import {
   proposals as proposalsTable,
   sagas,
 } from "../db";
+import { publishFrame, queueDeltaFrame } from "./frames";
 
 /**
  * Live agent-queue projection (PRD F-4, data-model.md §3): the ZSET
@@ -88,6 +89,11 @@ export interface DisruptedPnrRow {
  * with an honest state"). The disruption timestamp comes from the latest
  * flight.disrupted event per flight, so the projection is fully rebuildable
  * by replay (data-model.md §3).
+ *
+ * F5 hardening (ADR-0016, D-22): the latest-offer state is fetched for ALL
+ * disrupted PNRs in ONE `DISTINCT ON (pnr_id)` query — the F4 per-PNR query
+ * made every rebuild and every snapshot poll O(N) round-trips, which alone
+ * failed the ×10 offer-pipeline gate (load-report-f5.md).
  */
 export async function loadDisruptedPnrs(db: OrchestratorDb): Promise<DisruptedPnrRow[]> {
   const brokenFlights = await db
@@ -155,17 +161,26 @@ export async function loadDisruptedPnrs(db: OrchestratorDb): Promise<DisruptedPn
     });
   }
 
+  // Latest offer per PNR in one query (ADR-0016): DISTINCT ON with the same
+  // "newest row wins" order the per-PNR query used.
+  const offerRows =
+    pnrIds.length > 0
+      ? await db
+          .selectDistinctOn([offers.pnrId], {
+            pnrId: offers.pnrId,
+            state: offers.state,
+          })
+          .from(offers)
+          .where(inArray(offers.pnrId, pnrIds))
+          .orderBy(offers.pnrId, desc(offers.createdAt))
+      : [];
+  const offerStateByPnr = new Map(offerRows.map((o) => [o.pnrId, o.state]));
+
   const result: DisruptedPnrRow[] = [];
   for (const row of rows) {
     if (servedPnrs.has(row.pnrId)) continue;
     const disruption = disruptedAtByFlight.get(row.flightNo);
     if (!disruption) continue;
-    const [latestOffer] = await db
-      .select({ state: offers.state })
-      .from(offers)
-      .where(eq(offers.pnrId, row.pnrId))
-      .orderBy(desc(offers.createdAt))
-      .limit(1);
     result.push({
       pnrId: row.pnrId,
       locator: row.locator,
@@ -176,7 +191,7 @@ export async function loadDisruptedPnrs(db: OrchestratorDb): Promise<DisruptedPn
       disruptionKind: disruption.kind,
       disruptedAt: disruption.at,
       ssr: hasSsr(row.document),
-      offerState: latestOffer?.state ?? null,
+      offerState: offerStateByPnr.get(row.pnrId) ?? null,
     });
   }
   return result;
@@ -295,3 +310,95 @@ export function createQueueProjector(db: OrchestratorDb, redis: RedisClientType)
 
   return { rebuild, snapshot };
 }
+
+/**
+ * Coalesced queue refresh (ADR-0016, D-22 + amendment): burst event handling
+ * used to rebuild the whole projection and publish a `queue.delta` per event —
+ * O(events × PNRs) work and one frame per event. The coalescer is a
+ * fixed-interval throttle: the first `schedule()` in a window starts a flush
+ * timer; at fire time ONE rebuild runs and ONE `queue.delta` frame goes out
+ * (reason = last schedule in the window). Scheduling is FIRE-AND-FORGET —
+ * serializing a rebuild into every sequential event cost +0.25–0.4 s/event at
+ * ×10 (measured; the amendment). A failed flush retries on the next window
+ * (bounded), and any subsequent event re-marks the projection dirty, so
+ * eventual consistency is preserved; live clients resync via the REST
+ * snapshot (api-contracts.md §3).
+ */
+export const QUEUE_FLUSH_MS = 250;
+export const QUEUE_FLUSH_MAX_ATTEMPTS = 3;
+
+export type QueueDeltaReason = QueueDeltaPayload["reason"];
+export type QueueFlush = (reason: QueueDeltaReason) => Promise<QueueDeltaPayload>;
+
+export interface QueueCoalescer {
+  /** Mark the projection dirty; the covering window flushes once. */
+  schedule(reason: QueueDeltaReason): void;
+}
+
+export function createQueueCoalescer(
+  flush: QueueFlush,
+  flushMs: number = QUEUE_FLUSH_MS,
+): QueueCoalescer {
+  let timer: NodeJS.Timeout | null = null;
+  let lastReason: QueueDeltaReason = "rebuild";
+  let attempts = 0;
+
+  function runFlush(): void {
+    timer = null;
+    const reason = lastReason;
+    lastReason = "rebuild";
+    void flush(reason).then(
+      () => {
+        attempts = 0;
+      },
+      () => {
+        attempts += 1;
+        // Bounded self-heal (ADR-0016 amendment): a transient rebuild failure
+        // is retried on a later window; the next event's schedule also
+        // re-marks the projection dirty.
+        if (attempts < QUEUE_FLUSH_MAX_ATTEMPTS) {
+          timer = setTimeout(runFlush, flushMs * 2);
+        }
+      },
+    );
+  }
+
+  return {
+    schedule(reason: QueueDeltaReason): void {
+      lastReason = reason;
+      if (!timer) {
+        timer = setTimeout(runFlush, flushMs);
+      }
+    },
+  };
+}
+
+/** Test seam: drop the process-wide coalescer (fresh cadence per test). */
+export function resetQueueCoalescerForTests(): void {
+  coalescer = null;
+}
+
+/**
+ * Process-wide schedule entry point used by the event handlers and the saga
+ * compensation path: marks the projection dirty; the covering window flushes
+ * (one rebuild + one queue.delta) asynchronously.
+ */
+export function scheduleQueueDelta(
+  db: OrchestratorDb,
+  redis: RedisClientType,
+  reason: QueueDeltaReason,
+): void {
+  coalescer ??= createQueueCoalescer((flushReason) => {
+    const projector = createQueueProjector(db, redis);
+    return projector
+      .rebuild()
+      .then((delta) =>
+        publishFrame(redis, queueDeltaFrame({ ...delta, reason: flushReason }, null)).then(
+          () => delta,
+        ),
+      );
+  });
+  coalescer.schedule(reason);
+}
+
+let coalescer: QueueCoalescer | null = null;

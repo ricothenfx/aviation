@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
-import type { RebookRole } from "@aviation/contracts";
+import { ApiError, type RebookRole } from "@aviation/contracts";
 
 import { confirmations, offers, offerOptions, pnr, sagaSteps, sagas } from "@/db/schema";
 import { appendAuditEvent, appendEvent, type DbExecutor } from "@/lib/data/events";
@@ -56,6 +56,20 @@ export async function applyConfirmation(
   if (!option) throw new Error("applyConfirmation: option vanished mid-transaction");
   const itinerary = option.itinerary as StoredItinerary;
 
+  // Exactly-one-effect under concurrency (api-contracts.md §5, F5): the
+  // conditional state transition takes the offer row lock, so N simultaneous
+  // confirms serialize — exactly one transaction sees `proposed` and lands
+  // its effects; every loser rolls back cleanly and the route resolves the
+  // replay/conflict from the committed winner (lib/api/… confirm route).
+  const booked = await exec
+    .update(offers)
+    .set({ state: "confirmed" })
+    .where(and(eq(offers.id, input.offerId), eq(offers.state, "proposed")))
+    .returning({ id: offers.id });
+  if (booked.length === 0) {
+    throw new ApiError("IDEMPOTENCY_CONFLICT", "offer already confirmed");
+  }
+
   await exec.insert(confirmations).values({
     offerId: input.offerId,
     offerOptionId: input.optionId,
@@ -64,7 +78,6 @@ export async function applyConfirmation(
     byRole: input.byRole,
     idempotencyKey: input.idempotencyKey,
   });
-  await exec.update(offers).set({ state: "confirmed" }).where(eq(offers.id, input.offerId));
 
   const [saga] = await exec
     .insert(sagas)

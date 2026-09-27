@@ -52,6 +52,41 @@ export async function appendEvent<T extends EventType>(
   return { id: row.id, sequence: row.sequence };
 }
 
+/**
+ * Batched append (ADR-0016 amendment): ONE multi-row insert for a burst of
+ * events (e.g. one offer.created per PNR of a disrupted flight). Each row's
+ * monotonic sequence is still computed per aggregate by subselect, so the
+ * batch MUST NOT contain two events for the same aggregate — the callers
+ * guarantee that (one event per offer/voucher/notification id, all fresh).
+ * Payloads are validated exactly as in appendEvent.
+ */
+export async function appendEvents<T extends EventType>(
+  db: OrchestratorDb,
+  events: readonly {
+    type: T;
+    aggregateType: AggregateType;
+    aggregateId: string;
+    payload: EventPayloadMap[T];
+  }[],
+): Promise<void> {
+  if (events.length === 0) return;
+  const rows = events.map((event) => {
+    const payload = eventPayloadSchemas[event.type].parse(event.payload);
+    return {
+      type: event.type,
+      occurredAt: new Date(),
+      aggregateType: event.aggregateType,
+      aggregateId: event.aggregateId,
+      sequence: sql`(coalesce((select max(${eventLog.sequence}) from ${eventLog} where ${eventLog.aggregateId} = ${event.aggregateId}), 0) + 1)`,
+      payload,
+    };
+  });
+  const inserted = await db.insert(eventLog).values(rows).returning({ id: eventLog.id });
+  if (inserted.length !== rows.length) {
+    throw new Error(`batched event append lost rows: ${inserted.length}/${rows.length}`);
+  }
+}
+
 /** Unprocessed events with retry budget left, oldest first (tail workset). */
 export async function claimEvents(
   db: OrchestratorDb,

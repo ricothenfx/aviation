@@ -1,6 +1,6 @@
 import type { OrchestratorDb } from "../db";
 import { notifications } from "../db";
-import { appendEvent } from "./event-log";
+import { appendEvents } from "./event-log";
 
 /**
  * SNS-shaped notification publisher (PRD F-1, rebook-ai architecture.md §2,
@@ -27,6 +27,11 @@ export interface SnsPublishResult {
 
 export interface NotificationPublisher {
   publish(input: SnsPublishInput): Promise<SnsPublishResult>;
+  /**
+   * Batched fan-out (ADR-0016 amendment): ONE multi-row inbox insert for a
+   * burst (a disrupted flight's PNRs). SNS-shape is per-message unchanged.
+   */
+  publishAll(inputs: readonly SnsPublishInput[]): Promise<SnsPublishResult[]>;
 }
 
 export interface DisruptionMessage {
@@ -71,40 +76,69 @@ export function buildDisruptionPublishInput(message: DisruptionMessage): SnsPubl
 }
 
 export function createInboxNotificationPublisher(db: OrchestratorDb): NotificationPublisher {
+  function decode(input: SnsPublishInput): {
+    pnrId: string;
+    subject: string;
+    body: string;
+    topicArn: string;
+    payload: Record<string, unknown>;
+  } {
+    const attributes = input.MessageAttributes ?? {};
+    const pnrId = attributes.pnrId?.StringValue;
+    if (!pnrId) {
+      throw new Error("inbox publisher requires the pnrId message attribute");
+    }
+    const payload = JSON.parse(input.Message) as Record<string, unknown>;
+    const subject = input.Subject ?? "Rebook.ai notification";
+    const body = typeof payload.default === "string" ? payload.default : input.Message;
+    return { pnrId, subject, body, topicArn: input.TopicArn, payload };
+  }
+
   return {
     async publish(input: SnsPublishInput): Promise<SnsPublishResult> {
-      const attributes = input.MessageAttributes ?? {};
-      const pnrId = attributes.pnrId?.StringValue;
-      if (!pnrId) {
-        throw new Error("inbox publisher requires the pnrId message attribute");
-      }
-      const payload = JSON.parse(input.Message) as Record<string, unknown>;
-      const subject = input.Subject ?? "Rebook.ai notification";
-      const body = typeof payload.default === "string" ? payload.default : input.Message;
+      const results = await this.publishAll([input]);
+      const [row] = results;
+      if (!row) throw new Error("inbox publisher: batch returned no result");
+      return row;
+    },
 
+    async publishAll(inputs): Promise<SnsPublishResult[]> {
+      if (inputs.length === 0) return [];
+      const decoded = inputs.map(decode);
       // Simulated delivery: queued → delivered in one step, visible in the
       // inbox with a deliveredAt stamp (data-model.md §2 notifications).
-      const [row] = await db
+      const inserted = await db
         .insert(notifications)
-        .values({
-          pnrId,
-          channel: "inbox",
-          state: "delivered",
-          subject,
-          body,
-          payload: { TopicArn: input.TopicArn, Message: payload },
-          deliveredAt: new Date(),
-        })
+        .values(
+          decoded.map(({ pnrId, subject, body, topicArn, payload }) => ({
+            pnrId,
+            channel: "inbox" as const,
+            state: "delivered" as const,
+            subject,
+            body,
+            payload: { TopicArn: topicArn, Message: payload },
+            deliveredAt: new Date(),
+          })),
+        )
         .returning({ id: notifications.id });
-      if (!row) throw new Error("inbox publisher: insert returned no row");
+      if (inserted.length !== decoded.length) {
+        throw new Error(`inbox publisher: insert lost rows (${inserted.length}/${decoded.length})`);
+      }
 
-      await appendEvent(db, {
-        type: "notification.sent",
-        aggregateType: "notification",
-        aggregateId: row.id,
-        payload: { notificationId: row.id, pnrId, channel: "inbox" },
-      });
-      return { MessageId: row.id };
+      await appendEvents(
+        db,
+        inserted.map((row, i) => ({
+          type: "notification.sent" as const,
+          aggregateType: "notification" as const,
+          aggregateId: row.id,
+          payload: {
+            notificationId: row.id,
+            pnrId: decoded[i]!.pnrId,
+            channel: "inbox" as const,
+          },
+        })),
+      );
+      return inserted.map((row) => ({ MessageId: row.id }));
     },
   };
 }

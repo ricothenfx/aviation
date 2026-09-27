@@ -15,8 +15,8 @@ import {
   sagas,
 } from "../db";
 import { appendEvent } from "./event-log";
-import { offersUpdateFrame, publishFrame, queueDeltaFrame, sagaUpdateFrame } from "./frames";
-import { createQueueProjector } from "./queue";
+import { offersUpdateFrame, publishFrame, sagaUpdateFrame } from "./frames";
+import { scheduleQueueDelta } from "./queue";
 
 /**
  * Fulfillment saga executor (PRD F-6, architecture.md §3.2, ADR-0014 §4):
@@ -496,9 +496,10 @@ export async function compensateSaga(
       sagaId,
     ),
   );
-  const projector = createQueueProjector(deps.db, deps.redis);
-  const delta = await projector.rebuild();
-  await publishFrame(deps.redis, queueDeltaFrame({ ...delta, reason: "compensation" }, sagaId));
+  // ADR-0016: coalesced queue refresh — one rebuild + one queue.delta per
+  // 250 ms window; the compensation handler still returns only after its
+  // effects are projected.
+  scheduleQueueDelta(deps.db, deps.redis, "compensation");
   deps.onLog("saga_compensated", { sagaId, reason, steps: compensated });
   return "compensated";
 }

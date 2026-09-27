@@ -54,8 +54,8 @@ describe("SNS-shaped notification publisher (PRD F-1)", () => {
     expect(parsed.default).toContain("240 minutes");
   });
 
-  it("delivers to the inbox and appends notification.sent", async () => {
-    const inserts: { table?: string; values?: Record<string, unknown> }[] = [];
+  it("delivers to the inbox and appends notification.sent (batched write path)", async () => {
+    const inserts: { table?: string; rows: Record<string, unknown>[] }[] = [];
     const ids = ["3f1d2a58-9c0e-4a7a-b1c2-1f6e8f0a9b01", "4f1d2a58-9c0e-4a7a-b1c2-1f6e8f0a9b02"];
     let generated = 0;
     const fakeDb = {
@@ -63,13 +63,19 @@ describe("SNS-shaped notification publisher (PRD F-1)", () => {
         const tableName =
           (table as { getTableName?: () => string } | undefined)?.getTableName?.() ?? "?";
         return {
-          values(values: Record<string, unknown>) {
+          // ADR-0016 amendment: the publisher writes ONE multi-row insert per
+          // table — values() receives an array of rows.
+          values(values: Record<string, unknown> | Record<string, unknown>[]) {
+            const rows = (Array.isArray(values) ? values : [values]) as Record<string, unknown>[];
             return {
               returning: async () => {
-                const id = ids[generated] ?? crypto.randomUUID();
-                generated += 1;
-                inserts.push({ table: tableName, values });
-                return [{ id, sequence: 1 }];
+                const out = rows.map(() => {
+                  const id = ids[generated] ?? crypto.randomUUID();
+                  generated += 1;
+                  return { id, sequence: 1 };
+                });
+                inserts.push({ table: tableName, rows });
+                return out;
               },
             };
           },
@@ -82,18 +88,41 @@ describe("SNS-shaped notification publisher (PRD F-1)", () => {
     const result = await publisher.publish(input);
 
     expect(result.MessageId).toBe(ids[0]);
-    expect(inserts).toHaveLength(2); // inbox row + event_log append
-    const inboxRow = inserts[0]?.values ?? {};
+    expect(inserts).toHaveLength(2); // inbox rows + event_log append (batched)
+    const inboxRow = inserts[0]?.rows[0] ?? {};
     expect(inboxRow["channel"]).toBe("inbox");
     expect(inboxRow["state"]).toBe("delivered");
     expect(inboxRow["deliveredAt"]).toBeInstanceOf(Date);
-    const eventRow = inserts[1]?.values ?? {};
+    const eventRow = inserts[1]?.rows[0] ?? {};
     expect(eventRow["type"]).toBe("notification.sent");
     expect(eventPayloadSchemas["notification.sent"].parse(eventRow["payload"])).toMatchObject({
       notificationId: ids[0],
       pnrId: MESSAGE.pnrId,
       channel: "inbox",
     });
+  });
+
+  it("fans a burst out in one insert per table (ADR-0016 amendment)", async () => {
+    const fakeDb = {
+      insert() {
+        return {
+          values(values: Record<string, unknown>[]) {
+            const rows = Array.isArray(values) ? values : [values];
+            return {
+              returning: async () => rows.map(() => ({ id: crypto.randomUUID(), sequence: 1 })),
+            };
+          },
+        };
+      },
+    } as unknown as OrchestratorDb;
+
+    const publisher = createInboxNotificationPublisher(fakeDb);
+    const results = await publisher.publishAll([
+      buildDisruptionPublishInput(MESSAGE),
+      buildDisruptionPublishInput({ ...MESSAGE, pnrId: "00000000-0000-4000-8000-000000000099" }),
+    ]);
+    expect(results).toHaveLength(2);
+    for (const result of results) expect(result.MessageId).toMatch(/[0-9a-f-]{36}/);
   });
 
   it("rejects publishes without the pnrId attribute (routing requires it)", async () => {

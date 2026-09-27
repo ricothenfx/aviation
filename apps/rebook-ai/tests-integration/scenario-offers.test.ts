@@ -116,6 +116,63 @@ afterAll(async () => {
   /* stack stays up for the sibling suites */
 });
 
+describe("disruption of a flight without affected bookings (F5 regression)", () => {
+  it("processes cleanly: no offers, no poison, queue refresh still fires", async () => {
+    await login("sup");
+    const { Pool } = await import("pg");
+    const pool = new Pool({
+      connectionString:
+        process.env.REBOOK_DATABASE_URL ??
+        "postgresql://turnaround:turnaround@localhost:5433/rebook_ai",
+    });
+    try {
+      // A scheduled flight carrying no bookings (the reference day has many).
+      const target = await pool.query<{ flight_no: string }>(
+        `select f.flight_no from flights f
+         where f.status = 'scheduled'
+           and not exists (select 1 from pnr_segments s where s.flight_no = f.flight_no)
+         order by f.flight_no limit 1`,
+      );
+      const flightNo = target.rows[0]?.flight_no;
+      if (!flightNo) return; // nothing to test on a fully-disrupted stack
+
+      const inject = await post(
+        "/api/v1/scenario/inject",
+        "sup",
+        { scenario: "long-delay", flightNo },
+        `it-nobooking-${flightNo}`,
+      );
+      expect(inject.status).toBe(201);
+
+      // The handler must not crash on the empty batch (regression: an
+      // unguarded .values([]) poisoned the event and skipped the queue
+      // refresh — found by bench:rebook-queue at F5).
+      const flightId = await pool.query<{ id: string }>(
+        "select id from flights where flight_no = $1",
+        [flightNo],
+      );
+      const deadline = Date.now() + 10_000;
+      let processed = false;
+      while (Date.now() < deadline && !processed) {
+        const row = await pool.query<{ processed: boolean }>(
+          "select processed from event_log where type = 'flight.disrupted' and aggregate_id = $1",
+          [flightId.rows[0]!.id],
+        );
+        processed = row.rows[0]?.processed === true;
+        if (!processed) await new Promise((r) => setTimeout(r, 300));
+      }
+      expect(processed).toBe(true);
+      const errors = await pool.query<{ count: string }>(
+        "select count(*) from event_log where aggregate_id = $1 and process_error is not null",
+        [flightId.rows[0]!.id],
+      );
+      expect(Number(errors.rows[0]!.count)).toBe(0);
+    } finally {
+      await pool.end();
+    }
+  });
+});
+
 describe("scenario injection (api-contracts.md §1, architecture.md §3.1)", () => {
   it("enforces the RBAC matrix: anon 401, passenger 403, agent 403, supervisor only", async () => {
     await login("pax");

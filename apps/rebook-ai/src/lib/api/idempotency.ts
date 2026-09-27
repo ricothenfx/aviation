@@ -68,8 +68,16 @@ export async function withIdempotency(
     .insert(idempotencyKeys)
     .values({ key, method, path, status: response.status, responseBody: body })
     .onConflictDoNothing();
+  // A handler may flag its response as a concurrent-duplicate replay of an
+  // already-committed effect (confirm route, §5) — forward the marker so
+  // clients see Idempotency-Replayed even when the replay store itself has no
+  // row yet (the winner stores after this request already read it).
+  const replayed = response.headers.get("Idempotency-Replayed");
   return new NextResponse(body, {
     status: response.status,
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      ...(replayed ? { "Idempotency-Replayed": replayed } : {}),
+    },
   });
 }

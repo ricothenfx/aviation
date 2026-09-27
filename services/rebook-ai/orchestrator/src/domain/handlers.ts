@@ -6,10 +6,10 @@ import { loadInventory, loadPolicy, seedDir } from "rebook-ai/seed-fixtures";
 
 import type { OrchestratorDb } from "../db";
 import { flights, offers, offerOptions, pnr, pnrSegments, sagas, vouchers } from "../db";
-import { appendEvent } from "./event-log";
-import { offersUpdateFrame, publishFrame, queueDeltaFrame, sagaUpdateFrame } from "./frames";
+import { appendEvent, appendEvents } from "./event-log";
+import { offersUpdateFrame, publishFrame, sagaUpdateFrame } from "./frames";
 import { buildDisruptionPublishInput, type NotificationPublisher } from "./notifications";
-import { createQueueProjector } from "./queue";
+import { scheduleQueueDelta } from "./queue";
 import { rankOffers, type DisruptionContext, type RankingPnr } from "./ranking";
 import { advanceSaga } from "./saga";
 import { evaluateVoucher } from "./vouchers";
@@ -25,10 +25,6 @@ import { evaluateVoucher } from "./vouchers";
 
 export interface EngineMetrics {
   counters: Record<string, number>;
-}
-
-function bump(metrics: EngineMetrics, name: string): void {
-  metrics.counters[name] = (metrics.counters[name] ?? 0) + 1;
 }
 
 interface HandlerDeps {
@@ -109,39 +105,31 @@ export async function handleFlightDisrupted(deps: HandlerDeps, payloadRaw: unkno
     reasonCode: payload.reasonCode,
   };
 
+  // Phase 1 (ADR-0016 amendment): pure per-PNR planning — voucher evaluation
+  // and ranking stay per-PNR deterministic (F2 determinism gate untouched);
+  // no writes happen here. Vouchers are planned for ALL affected bookings
+  // meeting the policy criteria (F3 behavior); offers only where rebookable
+  // inventory exists (honest: no inventory → no offer row).
+  interface OfferPlan {
+    booking: (typeof affected)[number];
+    voucherDecision: ReturnType<typeof evaluateVoucher>;
+    rankingHash: string;
+    options: ReturnType<typeof rankOffers>["options"];
+    expiresAt: Date;
+  }
+  interface VoucherPlan {
+    booking: (typeof affected)[number];
+    voucherDecision: ReturnType<typeof evaluateVoucher>;
+  }
+  const offerPlans: OfferPlan[] = [];
+  const voucherPlans: VoucherPlan[] = [];
+  const plannedVoucherFor = new Set<string>();
   for (const booking of affected) {
-    // 1. Voucher (PRD F-3) — explainable criteria persisted verbatim.
     const voucherDecision = evaluateVoucher({ disruption, tier: booking.tier, policy });
-    let voucherAmount: number | null = null;
     if (voucherDecision.issued) {
-      const [voucherRow] = await db
-        .insert(vouchers)
-        .values({
-          pnrId: booking.pnrId,
-          amount: voucherDecision.amount,
-          currency: voucherDecision.currency,
-          state: "issued",
-          criteria: voucherDecision.criteria,
-          reason: voucherDecision.reason,
-        })
-        .returning({ id: vouchers.id });
-      if (voucherRow) {
-        voucherAmount = voucherDecision.amount;
-        bump(metrics, "rb_orchestrator_vouchers_issued_total");
-        await appendEvent(db, {
-          type: "voucher.issued",
-          aggregateType: "voucher",
-          aggregateId: voucherRow.id,
-          payload: {
-            voucherId: voucherRow.id,
-            pnrId: booking.pnrId,
-            criteria: { reason: voucherDecision.reason, criteria: voucherDecision.criteria },
-          },
-        });
-      }
+      voucherPlans.push({ booking, voucherDecision });
+      plannedVoucherFor.add(booking.pnrId);
     }
-
-    // 2. Ranked offers (PRD F-2) — deterministic engine over the inventory.
     const rankingPnr: RankingPnr = {
       id: booking.pnrId,
       locator: booking.locator,
@@ -157,103 +145,167 @@ export async function handleFlightDisrupted(deps: HandlerDeps, payloadRaw: unkno
       policy,
       now,
     });
-    if (options.length === 0) continue; // honest: no inventory → no offer row
+    if (options.length === 0) continue;
 
-    const expiresAt = new Date(now.getTime() + policy.offer.ttlMinutes * 60_000);
-    const [offerRow] = await db
-      .insert(offers)
-      .values({
-        pnrId: booking.pnrId,
-        state: "proposed",
-        context: {
-          flightNo: disruption.flightNo,
-          disruptionKind: disruption.kind,
-          delayMinutes: disruption.delayMinutes,
-          reasonCode: disruption.reasonCode,
-          voucherIssued: voucherDecision.issued,
-          rankingHash,
-        },
-        expiresAt,
-      })
-      .returning({ id: offers.id });
-    if (!offerRow) continue;
-
-    await db.insert(offerOptions).values(
-      options.map((option) => ({
-        offerId: offerRow.id,
-        rank: option.rank,
-        kind: option.kind,
-        reason: option.reason,
-        itinerary: {
-          segments: option.segments,
-          currency: option.currency,
-          refundable: option.refundable,
-          changeable: option.changeable,
-          overCap: option.overCap,
-        },
-        fareDelta: option.fareDelta,
-        interline: option.interline,
-      })),
-    );
-    bump(metrics, "rb_orchestrator_offers_created_total");
-
-    await appendEvent(db, {
-      type: "offer.created",
-      aggregateType: "offer",
-      aggregateId: offerRow.id,
-      payload: {
-        pnrId: booking.pnrId,
-        offerId: offerRow.id,
-        optionCount: options.length,
-        voucherIssued: voucherDecision.issued,
-      },
+    offerPlans.push({
+      booking,
+      voucherDecision,
+      rankingHash,
+      options,
+      expiresAt: new Date(now.getTime() + policy.offer.ttlMinutes * 60_000),
     });
+  }
 
-    // 3. SNS-shaped notification (PRD F-1) — simulated inbox delivery.
-    await publisher.publish(
-      buildDisruptionPublishInput({
-        pnrId: booking.pnrId,
-        locator: booking.locator,
-        passengerName: booking.passengerName,
+  // Phase 2: ONE multi-row insert per table for the whole event (the F4 code
+  // issued ~8 round-trips per PNR — the ×10 wave measured 0.82 s/event).
+  // Every insert is guarded: a flight with no affected bookings (or no
+  // rebookable inventory) legitimately produces empty batches, and an empty
+  // .values() is an error, not a no-op.
+  const voucherIdsByPnr = new Map<string, string>();
+  if (voucherPlans.length > 0) {
+    const inserted = await db
+      .insert(vouchers)
+      .values(
+        voucherPlans.map((p) => ({
+          pnrId: p.booking.pnrId,
+          amount: p.voucherDecision.amount,
+          currency: p.voucherDecision.currency,
+          state: "issued" as const,
+          criteria: p.voucherDecision.criteria,
+          reason: p.voucherDecision.reason,
+        })),
+      )
+      .returning({ id: vouchers.id, pnrId: vouchers.pnrId });
+    for (const row of inserted) voucherIdsByPnr.set(row.pnrId, row.id);
+    metrics.counters["rb_orchestrator_vouchers_issued_total"] =
+      (metrics.counters["rb_orchestrator_vouchers_issued_total"] ?? 0) + inserted.length;
+  }
+
+  let insertedOffers: { id: string; pnrId: string }[] = [];
+  if (offerPlans.length > 0) {
+    insertedOffers = await db
+      .insert(offers)
+      .values(
+        offerPlans.map((p) => ({
+          pnrId: p.booking.pnrId,
+          state: "proposed" as const,
+          context: {
+            flightNo: disruption.flightNo,
+            disruptionKind: disruption.kind,
+            delayMinutes: disruption.delayMinutes,
+            reasonCode: disruption.reasonCode,
+            voucherIssued: plannedVoucherFor.has(p.booking.pnrId),
+            rankingHash: p.rankingHash,
+          },
+          expiresAt: p.expiresAt,
+        })),
+      )
+      .returning({ id: offers.id, pnrId: offers.pnrId });
+    metrics.counters["rb_orchestrator_offers_created_total"] =
+      (metrics.counters["rb_orchestrator_offers_created_total"] ?? 0) + insertedOffers.length;
+  }
+
+  if (insertedOffers.length > 0) {
+    await db.insert(offerOptions).values(
+      insertedOffers.flatMap((row, i) => {
+        const plan = offerPlans[i]!;
+        return plan.options.map((option) => ({
+          offerId: row.id,
+          rank: option.rank,
+          kind: option.kind,
+          reason: option.reason,
+          itinerary: {
+            segments: option.segments,
+            currency: option.currency,
+            refundable: option.refundable,
+            changeable: option.changeable,
+            overCap: option.overCap,
+          },
+          fareDelta: option.fareDelta,
+          interline: option.interline,
+        }));
+      }),
+    );
+  }
+
+  await appendEvents(db, [
+    ...voucherPlans.map((p) => ({
+      type: "voucher.issued" as const,
+      aggregateType: "voucher" as const,
+      aggregateId: voucherIdsByPnr.get(p.booking.pnrId)!,
+      payload: {
+        voucherId: voucherIdsByPnr.get(p.booking.pnrId)!,
+        pnrId: p.booking.pnrId,
+        criteria: {
+          reason: p.voucherDecision.reason,
+          criteria: p.voucherDecision.criteria,
+        },
+      },
+    })),
+    ...insertedOffers.map((row, i) => ({
+      type: "offer.created" as const,
+      aggregateType: "offer" as const,
+      aggregateId: row.id,
+      payload: {
+        pnrId: row.pnrId,
+        offerId: row.id,
+        optionCount: offerPlans[i]!.options.length,
+        voucherIssued: plannedVoucherFor.has(row.pnrId),
+      },
+    })),
+  ]);
+
+  // 3. SNS-shaped notifications (PRD F-1) — one batched fan-out.
+  await publisher.publishAll(
+    insertedOffers.map((row, i) => {
+      const plan = offerPlans[i]!;
+      const voucherAmount = voucherIdsByPnr.has(plan.booking.pnrId)
+        ? plan.voucherDecision.amount
+        : null;
+      return buildDisruptionPublishInput({
+        pnrId: plan.booking.pnrId,
+        locator: plan.booking.locator,
+        passengerName: plan.booking.passengerName,
         flightNo: disruption.flightNo,
         disruptionKind: disruption.kind,
         delayMinutes: disruption.kind === "long_delay" ? disruption.delayMinutes : null,
-        offerId: offerRow.id,
-        optionCount: options.length,
+        offerId: row.id,
+        optionCount: plan.options.length,
         voucherAmount,
-        voucherCurrency: voucherDecision.currency,
-        expiresAt: expiresAt.toISOString(),
-      }),
-    );
-    bump(metrics, "rb_orchestrator_notifications_sent_total");
+        voucherCurrency: plan.voucherDecision.currency,
+        expiresAt: plan.expiresAt.toISOString(),
+      });
+    }),
+  );
+  metrics.counters["rb_orchestrator_notifications_sent_total"] =
+    (metrics.counters["rb_orchestrator_notifications_sent_total"] ?? 0) + insertedOffers.length;
 
+  for (const row of insertedOffers) {
     await publishFrame(
       redis,
       offersUpdateFrame(
         {
-          pnrId: booking.pnrId,
-          offerId: offerRow.id,
+          pnrId: row.pnrId,
+          offerId: row.id,
           state: "proposed",
-          voucherIssued: voucherDecision.issued,
+          voucherIssued: voucherIdsByPnr.has(row.pnrId),
         },
-        offerRow.id,
+        row.id,
       ),
     );
   }
 
   // 4. Queue projection (PRD F-4) — rebuildable from PG, fanned out live.
-  const projector = createQueueProjector(db, redis);
-  const delta = await projector.rebuild();
-  await publishFrame(redis, queueDeltaFrame({ ...delta, reason: "disruption" }, null));
+  // ADR-0016: coalesced + fire-and-forget — one rebuild + one queue.delta per
+  // 250 ms window; the projection never blocks the domain pipeline.
+  scheduleQueueDelta(db, redis, "disruption");
 }
 
 export async function handleOfferConfirmed(deps: HandlerDeps, payloadRaw: unknown): Promise<void> {
   const payload = offerConfirmedPayloadSchema.parse(payloadRaw);
   const { db, redis } = deps;
 
-  const projector = createQueueProjector(db, redis);
-  const delta = await projector.rebuild();
-  await publishFrame(redis, queueDeltaFrame({ ...delta, reason: "confirm" }, payload.offerId));
+  scheduleQueueDelta(db, redis, "confirm");
 
   if (payload.sagaId) {
     const [saga] = await db
@@ -304,9 +356,7 @@ export async function expireOffers(deps: HandlerDeps): Promise<number> {
   }
 
   if (expired.length > 0) {
-    const projector = createQueueProjector(db, redis);
-    const delta = await projector.rebuild();
-    await publishFrame(redis, queueDeltaFrame({ ...delta, reason: "expiry" }, null));
+    scheduleQueueDelta(db, redis, "expiry");
   }
   return expired.length;
 }

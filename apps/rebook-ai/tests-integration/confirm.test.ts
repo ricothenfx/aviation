@@ -52,7 +52,11 @@ async function post(path: string, who: string, data: unknown, key?: string) {
   });
   return {
     status: res.status,
-    body: (await res.json().catch(() => null)) as { error?: { code?: string } },
+    body: (await res.json().catch(() => null)) as {
+      error?: { code?: string };
+      sagaId?: string;
+      optionId?: string;
+    },
     replayed: res.headers.get("idempotency-replayed"),
   };
 }
@@ -100,7 +104,14 @@ const OPTION_ROWS: Array<{ kind: string; interline: boolean; reason: string; del
  * re-runnable and order-independent.
  */
 async function ensureFixtureOffer(
-  scenario: "missingkey" | "interline403" | "agentconfirm" | "replay" | "expired",
+  scenario:
+    | "missingkey"
+    | "interline403"
+    | "agentconfirm"
+    | "replay"
+    | "expired"
+    | "nwaysame"
+    | "nwaydistinct",
 ): Promise<FixtureOffer> {
   const pool = await db();
   const pnrRow = await pool.query<{ id: string }>("select id from pnr where locator = 'NXQ4ZK'");
@@ -328,5 +339,87 @@ describe("confirm idempotency + expiry (api-contracts.md §5, F2 DoD)", () => {
     const pool = await db();
     const saga = await pool.query("select id from sagas where offer_id = $1", [fixture.offerId]);
     expect(saga.rowCount).toBe(0);
+  });
+});
+
+describe("N-way confirm concurrency — exactly-one-effect (api-contracts.md §5, F5 DoD)", () => {
+  const RACERS = 8;
+
+  it("same Idempotency-Key raced N-way ⇒ identical 2xx response, exactly one confirmation + saga", async () => {
+    const fixture = await ensureFixtureOffer("nwaysame");
+    const key = `it-nway-same-${fixture.offerId}`;
+    const results = await Promise.all(
+      Array.from({ length: RACERS }, () =>
+        post(
+          `/api/v1/pax/offers/${fixture.offerId}/confirm`,
+          "agent",
+          { optionId: fixture.cheapOptionId },
+          key,
+        ),
+      ),
+    );
+    for (const res of results) {
+      expect([200, 201]).toContain(res.status); // no 5xx, no conflict for the same key
+      expect(res.body.sagaId).toBe(results[0]!.body.sagaId);
+      expect(res.body.optionId).toBe(fixture.cheapOptionId);
+    }
+
+    const pool = await db();
+    const confirmations = await pool.query<{ count: string }>(
+      "select count(*) from confirmations where offer_id = $1",
+      [fixture.offerId],
+    );
+    expect(Number(confirmations.rows[0]!.count)).toBe(1);
+    const sagas = await pool.query<{ count: string }>(
+      "select count(*) from sagas where offer_id = $1",
+      [fixture.offerId],
+    );
+    expect(Number(sagas.rows[0]!.count)).toBe(1);
+    const steps = await pool.query<{ count: string }>(
+      "select count(*) from saga_steps where saga_id = $1",
+      [results[0]!.body.sagaId],
+    );
+    expect(Number(steps.rows[0]!.count)).toBe(3);
+  });
+
+  it("distinct Idempotency-Keys raced N-way ⇒ exactly one 201, losers 409, exactly one confirmation + saga", async () => {
+    const fixture = await ensureFixtureOffer("nwaydistinct");
+    const results = await Promise.all(
+      Array.from({ length: RACERS }, (_, i) =>
+        post(
+          `/api/v1/pax/offers/${fixture.offerId}/confirm`,
+          "agent",
+          { optionId: fixture.cheapOptionId },
+          `it-nway-distinct-${fixture.offerId}-${i}`,
+        ),
+      ),
+    );
+    const created = results.filter((r) => r.status === 201);
+    const conflicts = results.filter((r) => r.status === 409);
+    expect(created).toHaveLength(1);
+    expect(conflicts).toHaveLength(RACERS - 1);
+    for (const conflict of conflicts) {
+      expect(conflict.body.error?.code).toBe("IDEMPOTENCY_CONFLICT");
+    }
+
+    const pool = await db();
+    const confirmations = await pool.query<{ count: string }>(
+      "select count(*) from confirmations where offer_id = $1",
+      [fixture.offerId],
+    );
+    expect(Number(confirmations.rows[0]!.count)).toBe(1);
+    const sagas = await pool.query<{ count: string }>(
+      "select count(*) from sagas where offer_id = $1",
+      [fixture.offerId],
+    );
+    expect(Number(sagas.rows[0]!.count)).toBe(1);
+    const landedPayments = await pool.query<{ count: string }>(
+      `select count(*) from saga_steps st
+       join sagas s on s.id = st.saga_id
+       where s.offer_id = $1 and st.step = 'payment' and st.state = 'done'`,
+      [fixture.offerId],
+    );
+    // Exactly-one-charge: only the winner's saga may ever complete a payment.
+    expect(Number(landedPayments.rows[0]!.count)).toBeLessThanOrEqual(1);
   });
 });
