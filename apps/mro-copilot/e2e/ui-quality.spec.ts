@@ -91,10 +91,16 @@ test.describe("mro-copilot UI quality (ADR-0018)", () => {
 
     await page.goto("/engines");
     await expect(page.getByTestId("fleet-table")).toBeVisible({ timeout: 30_000 });
+    // Alerts load asynchronously — settle the section (rows or the empty
+    // state) before computing masks, or a late-arriving row carries a
+    // wall-clock timestamp into the shot unmasked.
+    const alertRows = page.getByTestId("alert-item");
+    await expect(alertRows.first().or(page.getByText("No open alerts")).first()).toBeVisible({
+      timeout: 30_000,
+    });
     const mask: Locator[] = [];
     const refreshed = page.getByText(/live · refreshed/);
     if ((await refreshed.count()) > 0) mask.push(refreshed);
-    const alertRows = page.getByTestId("alert-item");
     if ((await alertRows.count()) > 0) mask.push(alertRows);
     await expect(page).toHaveScreenshot("engines-1280x720.png", {
       maxDiffPixelRatio: 0.02,
