@@ -116,10 +116,8 @@ export default function (data) {
       return [f, waveStart + i * PACE_MS];
     }),
   );
-  let polls = 0;
   while (pending.size > 0 && Date.now() - waveStart < TIMEOUT_MS + FLIGHTS.length * PACE_MS) {
     const snap = http.get(`${BASE}/api/v1/queue`, { headers: { cookie: data.agent } });
-    polls += 1;
     // Transport errors and 5xx happen under the burst — they count against
     // visibility latency but must not abort the iteration (a failed poll is
     // a retry, never a crash).
