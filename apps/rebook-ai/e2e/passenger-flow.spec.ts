@@ -1,10 +1,12 @@
 import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
 
 /**
- * F2 DoD E2E (milestones.md): passenger login → disruption → notification →
- * confirm option → saga state visible (stub saga steps). Sofia Rossi (seeded
- * passenger on NX 203, kept separate from the demo-cast login so the 90 s
- * demo state stays pristine) journeys from disruption to confirmed rebooking.
+ * F2 DoD E2E, extended at F4 (milestones.md F4: "Passenger journey e2e:
+ * disruption → inbox + voucher (when criteria met) → confirm → new boarding
+ * pass, all labeled simulated"). Sofia Rossi (seeded passenger on NX 203,
+ * kept separate from the demo-cast login so the 90 s demo state stays
+ * pristine) journeys from disruption to the rebooked boarding pass, through
+ * the journey timeline, voucher wallet and notification inbox.
  * Re-run tolerance: a second injection is a 400; if the newest offer was
  * already confirmed by a previous run, the journey asserts the completed state.
  */
@@ -56,9 +58,16 @@ test.describe("passenger disruption journey (F2 DoD)", () => {
     await expect(fast.getByRole("button", { name: /agent help/i })).toBeDisabled();
   });
 
-  test("disruption → notification → confirm → saga visible", async ({ page, request }) => {
+  test("disruption → inbox + voucher → confirm → new boarding pass (labeled simulated)", async ({
+    page,
+    request,
+  }) => {
     await injectCancellation(request);
     await loginViaUi(page);
+
+    // Journey timeline renders the five F4 stages from the first paint.
+    await expect(page.getByTestId("trip-timeline")).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTestId("timeline-disruption")).toBeVisible();
 
     // Proactive notification + offers visible within seconds (PRD §5 gate).
     const disruptionBanner = page.getByText(FLIGHT, { exact: false }).first();
@@ -72,6 +81,22 @@ test.describe("passenger disruption journey (F2 DoD)", () => {
 
     // Per-rank reasons are rendered (PRD F-2).
     await expect(fast).toContainText(/earliest arrival/i);
+
+    // Inbox carries the disruption notification with its honest simulated
+    // delivery state (PRD F-1; SNS-shaped publisher, in-app channel).
+    const inbox = page.getByText("Notification inbox").first();
+    await expect(inbox).toBeVisible();
+    const firstItem = page.getByTestId("inbox-item").first();
+    await expect(firstItem).toContainText(/cancelled|delayed|rebooking|NX 203/i);
+    await expect(firstItem).toContainText("simulated delivery");
+
+    // Voucher wallet: a cancellation meets the auto-issue criteria (PRD F-3),
+    // and the explainability trail (rule + met flag + evaluated detail) shows.
+    const voucher = page.getByTestId("voucher-card").first();
+    await expect(voucher).toBeVisible({ timeout: 10_000 });
+    await expect(voucher).toContainText(/SGD/);
+    await expect(voucher).toContainText("Simulated voucher");
+    await expect(voucher.getByText("✓").first()).toBeVisible();
 
     // One-tap confirm on the cheap, same-carrier option (idempotent key) —
     // unless a previous run already confirmed this exact offer.
@@ -95,6 +120,21 @@ test.describe("passenger disruption journey (F2 DoD)", () => {
     await expect(page.getByTestId("saga-step-ticket_issue").first()).toContainText(
       /pending|running|done/,
     );
+
+    // New itinerary: the boarding pass renders on the trip (F4 journey end),
+    // labeled simulated like every artifact in the app.
+    const boardingPass = page.getByTestId("boarding-pass").first();
+    await expect(boardingPass).toBeVisible({ timeout: 20_000 });
+    await expect(boardingPass).toContainText("BP-");
+    await expect(boardingPass).toContainText(/simulated/i);
+
+    // Timeline settles: fulfillment done, new itinerary stage reached.
+    await expect(page.getByTestId("timeline-fulfillment")).toHaveAttribute(
+      "data-tone",
+      /done|failed/,
+      { timeout: 20_000 },
+    );
+    await expect(page.getByTestId("timeline-itinerary")).toBeVisible();
 
     // The simulated-data disclaimer stays visible (data-ethics.md §2).
     await expect(page.getByText(/simulated data/i).first()).toBeVisible();

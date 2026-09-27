@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
   Button,
@@ -14,13 +14,17 @@ import {
 } from "@aviation/ui";
 import type { OfferSetView, PaxSummaryView } from "@aviation/contracts";
 
+import { TripTimeline } from "@/components/trip-timeline";
+
 /**
- * Passenger trip surface (PRD F-1/F-2/F-3/F-6 at F2): disruption banner,
- * ranked rebooking offers with per-rank reasons, one-tap idempotent confirm,
- * explainable voucher criteria, notification inbox and the opened saga
- * (stub steps — the executor lands in F3). Live updates arrive via SSE
- * (`/api/v1/live`, passenger-scoped) with a 30 s poll fallback; every state
- * (loading/empty/error) renders from real fetches (ui-design-system §7).
+ * Passenger trip surface (PRD F-1/F-2/F-3/F-6 at F2; F4 experience pass):
+ * journey timeline (disruption → offers → decision → fulfillment → new
+ * itinerary), ranked rebooking offers with per-rank reasons and one-tap
+ * idempotent confirm, voucher wallet with explainable criteria, notification
+ * inbox and the ARIA live region announcing incoming disruption/notification
+ * (ui-design-system §9). Live updates arrive via SSE (`/api/v1/live`,
+ * passenger-scoped) with a 30 s poll fallback; every state (loading/empty/
+ * error/live) renders from real fetches (ui-design-system §7).
  */
 
 type LoadState =
@@ -43,11 +47,18 @@ function countdown(iso: string): string {
   return `${m}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
+/** HH:MM in the scenario clock (timestamps are ISO strings on every view). */
+function hhmm(iso: string): string {
+  return iso.slice(11, 16);
+}
+
 export function TripPanel() {
   const [state, setState] = useState<LoadState>({ phase: "loading" });
   const [confirming, setConfirming] = useState<string | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  const [announcement, setAnnouncement] = useState("");
+  const seenRef = useRef<{ disrupted: boolean; notifications: number } | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -84,6 +95,28 @@ export function TripPanel() {
     };
   }, [load]);
 
+  // ARIA live region (ui-design-system §9): announce incoming disruption /
+  // notification transitions once — diffed against the previous snapshot.
+  useEffect(() => {
+    if (state.phase !== "ready") return;
+    const { data } = state;
+    const seen = seenRef.current;
+    seenRef.current = {
+      disrupted: data.disruption !== null,
+      notifications: data.notifications.length,
+    };
+    if (!seen) return;
+    if (!seen.disrupted && data.disruption) {
+      setAnnouncement(
+        `Disruption on ${data.disruption.flightNo}: ${
+          data.disruption.kind === "cancellation" ? "cancelled" : "delayed"
+        }. Rebooking options are being prepared.`,
+      );
+    } else if (data.notifications.length > seen.notifications) {
+      setAnnouncement(`New notification: ${data.notifications[0]?.subject ?? "inbox update"}`);
+    }
+  }, [state]);
+
   async function confirmOption(offer: OfferSetView, optionId: string): Promise<void> {
     setConfirming(optionId);
     setConfirmError(null);
@@ -113,10 +146,18 @@ export function TripPanel() {
 
   if (state.phase === "loading") {
     return (
-      <div className="grid gap-4 md:grid-cols-3">
-        <Skeleton className="h-24 md:col-span-2" />
-        <Skeleton className="h-24" />
-        <Skeleton className="h-64 md:col-span-3" />
+      <div className="grid gap-4">
+        <Skeleton className="h-16 w-full" />
+        <div className="grid gap-4 md:grid-cols-3">
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
+          <Skeleton className="h-24" />
+        </div>
+        <Skeleton className="h-64 w-full" />
+        <div className="grid gap-4 md:grid-cols-2">
+          <Skeleton className="h-48" />
+          <Skeleton className="h-48" />
+        </div>
       </div>
     );
   }
@@ -146,6 +187,13 @@ export function TripPanel() {
 
   return (
     <div className="grid gap-4">
+      {/* Screen-reader announcements for incoming disruption/notifications. */}
+      <div role="status" aria-live="polite" className="sr-only">
+        {announcement}
+      </div>
+
+      <TripTimeline data={data} />
+
       <div className="grid gap-4 md:grid-cols-3">
         <StatTile
           label="Active disruption"
@@ -164,9 +212,13 @@ export function TripPanel() {
           hint="Ranked fast / cheap / flexible with reasons"
         />
         <StatTile
-          label="Vouchers"
+          label="Voucher wallet"
           value={data.vouchers.length > 0 ? `SGD ${voucherTotal}` : "0"}
-          hint="Issued automatically when policy criteria are met"
+          hint={
+            data.vouchers.length > 0
+              ? `${data.vouchers.length} voucher${data.vouchers.length > 1 ? "s" : ""} issued automatically`
+              : "Issued automatically when policy criteria are met"
+          }
         />
       </div>
 
@@ -181,7 +233,8 @@ export function TripPanel() {
                   : `is delayed ${data.disruption.delayMinutes ?? 0} min`}
               </div>
               <div className="mt-0.5 text-xs text-muted">
-                Rankéd rebooking options are ready below — no queueing required.
+                Scheduled {hhmm(data.disruption.schedDep)} · reason {data.disruption.reasonCode} ·
+                ranked options are ready below — no queueing required.
               </div>
             </div>
             <StatusBadge tone="danger">
@@ -192,8 +245,10 @@ export function TripPanel() {
       )}
 
       {confirmError && (
-        <Panel className="border-l-4 border-l-red-500">
-          <p className="px-4 py-2 text-xs text-fg">{confirmError}</p>
+        <Panel className="border-l-4 border-l-danger">
+          <p className="px-4 py-2 text-xs text-fg" role="alert">
+            {confirmError}
+          </p>
         </Panel>
       )}
 
@@ -225,74 +280,8 @@ export function TripPanel() {
       )}
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Panel className="p-0">
-          <div className="border-b border-border px-4 py-2.5">
-            <span className="text-xs font-medium text-fg">Vouchers</span>
-          </div>
-          {data.vouchers.length === 0 ? (
-            <EmptyState
-              title="No vouchers"
-              body="Meal vouchers are issued automatically when the disruption policy criteria are met."
-            />
-          ) : (
-            <div className="divide-y divide-border">
-              {data.vouchers.map((voucher) => (
-                <div key={voucher.id} className="px-4 py-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-semibold text-fg">
-                      {voucher.currency} {voucher.amount}
-                    </span>
-                    <StatusBadge tone="info">{voucher.state}</StatusBadge>
-                  </div>
-                  <div className="mt-0.5 text-xs text-muted">{voucher.reason}</div>
-                  <ul className="mt-2 space-y-1">
-                    {voucher.criteria.map((criterion) => (
-                      <li key={criterion.rule} className="flex items-start gap-2 text-[11px]">
-                        <span
-                          aria-hidden
-                          className={criterion.met ? "text-emerald-500" : "text-muted"}
-                        >
-                          {criterion.met ? "✓" : "✕"}
-                        </span>
-                        <span className="text-muted">
-                          <span className="font-medium text-fg">{criterion.rule}</span> —{" "}
-                          {criterion.detail}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          )}
-        </Panel>
-
-        <Panel className="p-0">
-          <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-            <span className="text-xs font-medium text-fg">Notifications</span>
-            <LiveDot live label="live" />
-          </div>
-          {data.notifications.length === 0 ? (
-            <EmptyState
-              title="Inbox empty"
-              body="Disruption notifications arrive here the moment your flight breaks."
-            />
-          ) : (
-            <div className="divide-y divide-border">
-              {data.notifications.map((notification) => (
-                <div key={notification.id} className="px-4 py-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-medium text-fg">{notification.subject}</span>
-                    <span className="shrink-0 font-mono text-[10px] text-muted">
-                      {timeAgo(notification.createdAt)}
-                    </span>
-                  </div>
-                  <p className="mt-0.5 text-xs text-muted">{notification.body}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </Panel>
+        <VoucherWallet vouchers={data.vouchers} />
+        <Inbox notifications={data.notifications} />
       </div>
 
       <div className="flex items-center justify-between px-1">
@@ -301,6 +290,124 @@ export function TripPanel() {
         </span>
       </div>
     </div>
+  );
+}
+
+/** Voucher wallet (PRD F-3): amount-first cards with the explainability trail. */
+function VoucherWallet({ vouchers }: { vouchers: PaxSummaryView["vouchers"] }) {
+  return (
+    <Panel className="p-0">
+      <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+        <span className="text-xs font-medium text-fg">Voucher wallet</span>
+        <span className="font-mono text-[11px] text-muted">
+          {vouchers.length > 0
+            ? vouchers
+                .map((v) => v.currency)
+                .filter((c, i, a) => a.indexOf(c) === i)
+                .join("/")
+            : "—"}
+        </span>
+      </div>
+      {vouchers.length === 0 ? (
+        <EmptyState
+          title="No vouchers"
+          body="Meal vouchers are issued automatically when the disruption policy criteria are met — the evaluation trail appears here."
+        />
+      ) : (
+        <div className="grid gap-3 p-4">
+          {vouchers.map((voucher) => (
+            <div
+              key={voucher.id}
+              data-testid="voucher-card"
+              className="rounded-lg border border-border bg-raised/40"
+            >
+              <div className="flex items-center justify-between border-b border-dashed border-border px-4 py-3">
+                <div>
+                  <div className="font-mono text-xl tabular-nums text-fg">
+                    {voucher.currency} {voucher.amount}
+                  </div>
+                  <div className="mt-0.5 text-[11px] text-muted">
+                    issued {hhmm(voucher.issuedAt)} · {voucher.reason}
+                  </div>
+                </div>
+                <StatusBadge tone={voucher.state === "issued" ? "ok" : "muted"}>
+                  {voucher.state}
+                </StatusBadge>
+              </div>
+              <ul className="space-y-1 px-4 py-3">
+                {voucher.criteria.map((criterion) => (
+                  <li key={criterion.rule} className="flex items-start gap-2 text-[11px]">
+                    <span aria-hidden className={criterion.met ? "text-ok" : "text-muted"}>
+                      {criterion.met ? "✓" : "✕"}
+                    </span>
+                    <span className="text-muted">
+                      <span className="font-medium text-fg">{criterion.rule}</span> —{" "}
+                      {criterion.detail}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="border-t border-dashed border-border px-4 py-2 text-[10px] text-muted">
+                Simulated voucher — valid at participating outlets of the fictional carrier only.
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+    </Panel>
+  );
+}
+
+/** Notification inbox (PRD F-1): SNS-shaped, honest simulated delivery states. */
+function Inbox({ notifications }: { notifications: PaxSummaryView["notifications"] }) {
+  return (
+    <Panel className="p-0">
+      <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+        <span className="text-xs font-medium text-fg">Notification inbox</span>
+        <LiveDot live label="live" />
+      </div>
+      {notifications.length === 0 ? (
+        <EmptyState
+          title="Inbox empty"
+          body="Disruption notifications arrive here the moment your flight breaks — before you reach the counter."
+        />
+      ) : (
+        <ul className="divide-y divide-border">
+          {notifications.map((notification, index) => (
+            <li key={notification.id} className="px-4 py-3" data-testid="inbox-item">
+              <div className="flex items-center justify-between gap-2">
+                <span
+                  className={
+                    index === 0 ? "text-sm font-semibold text-fg" : "text-sm font-medium text-fg"
+                  }
+                >
+                  {notification.subject}
+                </span>
+                <span className="shrink-0 font-mono text-[10px] text-muted">
+                  {timeAgo(notification.createdAt)}
+                </span>
+              </div>
+              <p className="mt-0.5 text-xs leading-relaxed text-muted">{notification.body}</p>
+              <div className="mt-1.5 flex items-center gap-2">
+                <StatusBadge tone="muted">{notification.channel}</StatusBadge>
+                <StatusBadge
+                  tone={
+                    notification.state === "delivered"
+                      ? "ok"
+                      : notification.state === "failed"
+                        ? "danger"
+                        : "warn"
+                  }
+                >
+                  {notification.state}
+                </StatusBadge>
+                <span className="text-[10px] text-muted">simulated delivery</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Panel>
   );
 }
 

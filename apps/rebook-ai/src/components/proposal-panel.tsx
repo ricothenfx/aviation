@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { Button, EmptyState, Panel, StatusBadge } from "@aviation/ui";
+import { Button, EmptyState, Label, Panel, StatusBadge } from "@aviation/ui";
 import type { ProposalView } from "@aviation/contracts";
 
 /**
@@ -266,11 +266,18 @@ function ProposalCard({
 
         {proposal.state === "proposed" && (
           <div className="mt-3 grid gap-2">
+            <Label
+              htmlFor={`proposal-note-${proposal.id}`}
+              className="text-[10px] uppercase tracking-wide"
+            >
+              Decision note
+            </Label>
             <input
+              id={`proposal-note-${proposal.id}`}
               type="text"
               value={note}
               onChange={(event) => onNote(event.target.value)}
-              placeholder="Decision note (required on reject)"
+              placeholder="Required on reject — e.g. passenger declined partner routing"
               className="w-full rounded-md border border-border bg-raised/40 px-2 py-1.5 text-xs text-fg focus-visible:outline-2 focus-visible:outline-accent"
               data-testid="proposal-note"
             />

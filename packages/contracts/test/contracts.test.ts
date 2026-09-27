@@ -5,6 +5,7 @@ import {
   ERROR_CODES,
   ERROR_STATUS,
   ApiError,
+  auditTrailViewSchema,
   boardSnapshotSchema,
   cursorPageSchema,
   domainEventSchema,
@@ -682,5 +683,41 @@ describe("rebook-ai agent-loop proposals + saga views (F3, additive)", () => {
     expect(
       sagaCompensateResponseSchema.safeParse({ sagaId: uuidA, state: "running" }).success,
     ).toBe(true);
+  });
+});
+
+describe("rebook-ai audit trail view (F4, additive)", () => {
+  const ts = "2026-10-15T09:00:00+08:00";
+  const uuidA = "11111111-1111-4111-8111-111111111111";
+
+  it("validates audit entries: who, what, for whom (locator), when", () => {
+    const entry = {
+      id: uuidA,
+      action: "proposal.approved",
+      actor: "grace.tan@nx-sim.example",
+      actorRole: "supervisor",
+      targetType: "proposal",
+      targetId: uuidA,
+      locator: "NXQ4ZK",
+      details: { note: "Partner rebooking confirmed with passenger." },
+      createdAt: ts,
+    };
+    expect(auditTrailViewSchema.safeParse({ entries: [entry] }).success).toBe(true);
+    // scenario-level rows carry a null locator; details may be null too
+    expect(
+      auditTrailViewSchema.safeParse({
+        entries: [{ ...entry, action: "scenario.injected", locator: null, details: null }],
+      }).success,
+    ).toBe(true);
+    // bad actor / role / locator are rejected
+    expect(
+      auditTrailViewSchema.safeParse({ entries: [{ ...entry, actor: "not-an-email" }] }).success,
+    ).toBe(false);
+    expect(
+      auditTrailViewSchema.safeParse({ entries: [{ ...entry, actorRole: "admin" }] }).success,
+    ).toBe(false);
+    expect(
+      auditTrailViewSchema.safeParse({ entries: [{ ...entry, locator: "TOOLONG1" }] }).success,
+    ).toBe(false);
   });
 });

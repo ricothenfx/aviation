@@ -1,6 +1,7 @@
 import { and, desc, eq, inArray } from "drizzle-orm";
 
 import type {
+  AuditEntryView,
   DisruptionView,
   NotificationView,
   OfferSetView,
@@ -20,8 +21,10 @@ import {
   offerOptions,
   pnr,
   pnrSegments,
+  proposals,
   sagaSteps,
   sagas,
+  users,
   vouchers,
 } from "@/db/schema";
 import { getSingletonDb } from "@/lib/db-singleton";
@@ -330,19 +333,93 @@ export async function buildPnrDetail(context: PnrContext): Promise<PnrDetailView
   };
 }
 
-/** Recent audit trail rows (append-only, PRD F-7). */
-export async function getRecentAudit(limit = 20) {
+/**
+ * Supervisor audit trail view (PRD F-7: "who decided what for whom, when";
+ * F4 additive GET /api/v1/admin/audit). Actor email joins from users; the PNR
+ * locator is resolved read-side per target type (offer/proposal/saga → PNR)
+ * so the trail answers "for whom" without denormalizing the write path.
+ */
+export async function getAuditTrail(limit = 50): Promise<AuditEntryView[]> {
   const db = getSingletonDb();
-  return db
+  const rows = await db
     .select({
       id: auditEvents.id,
       action: auditEvents.action,
+      actor: users.email,
       actorRole: auditEvents.actorRole,
       targetType: auditEvents.targetType,
       targetId: auditEvents.targetId,
+      details: auditEvents.details,
       createdAt: auditEvents.createdAt,
     })
     .from(auditEvents)
+    .innerJoin(users, eq(auditEvents.actorId, users.id))
     .orderBy(desc(auditEvents.createdAt))
     .limit(limit);
+
+  // Batch-resolve locators: audit rows store opaque target ids per type.
+  const offerIds: string[] = [];
+  const proposalIds: string[] = [];
+  const sagaIds: string[] = [];
+  for (const row of rows) {
+    if (row.targetType === "offer") offerIds.push(row.targetId);
+    else if (row.targetType === "proposal") proposalIds.push(row.targetId);
+    else if (row.targetType === "saga") sagaIds.push(row.targetId);
+  }
+
+  const pnrIdByKey = new Map<string, string>();
+  if (offerIds.length > 0) {
+    const rows = await db
+      .select({ id: offers.id, pnrId: offers.pnrId })
+      .from(offers)
+      .where(inArray(offers.id, offerIds));
+    for (const row of rows) pnrIdByKey.set(`offer:${row.id}`, row.pnrId);
+  }
+  if (proposalIds.length > 0) {
+    const rows = await db
+      .select({ id: proposals.id, pnrId: proposals.pnrId })
+      .from(proposals)
+      .where(inArray(proposals.id, proposalIds));
+    for (const row of rows) pnrIdByKey.set(`proposal:${row.id}`, row.pnrId);
+  }
+  if (sagaIds.length > 0) {
+    const rows = await db
+      .select({ id: sagas.id, pnrId: sagas.pnrId })
+      .from(sagas)
+      .where(inArray(sagas.id, sagaIds));
+    for (const row of rows) pnrIdByKey.set(`saga:${row.id}`, row.pnrId);
+  }
+
+  const locatorKeys = [...new Set([...pnrIdByKey.values()].filter(Boolean))];
+  const locatorById = new Map<string, string>();
+  if (locatorKeys.length > 0) {
+    const rows = await db
+      .select({ id: pnr.id, locator: pnr.locator })
+      .from(pnr)
+      .where(inArray(pnr.id, locatorKeys));
+    for (const row of rows) locatorById.set(row.id, row.locator);
+  }
+
+  return rows.map((row) => {
+    const key =
+      row.targetType === "offer"
+        ? `offer:${row.targetId}`
+        : row.targetType === "proposal"
+          ? `proposal:${row.targetId}`
+          : row.targetType === "saga"
+            ? `saga:${row.targetId}`
+            : null;
+    const pnrId = key ? (pnrIdByKey.get(key) ?? "") : "";
+    return {
+      id: row.id,
+      action: row.action,
+      actor: row.actor,
+      actorRole: row.actorRole,
+      targetType: row.targetType,
+      targetId: row.targetId,
+      locator: pnrId ? (locatorById.get(pnrId) ?? null) : null,
+      details: (row.details as Record<string, unknown> | null) ?? null,
+      createdAt: row.createdAt.toISOString(),
+    };
+  });
 }

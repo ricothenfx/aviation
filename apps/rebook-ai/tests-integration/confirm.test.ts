@@ -131,7 +131,16 @@ async function ensureFixtureOffer(
     [offerId],
   );
   await pool.query("delete from sagas where offer_id = $1", [offerId]);
-  await pool.query("update offers set state = 'proposed' where id = $1", [offerId]);
+  // Reset state AND the TTL: expires_at was set only at creation time, so a
+  // re-run more than 30 minutes later confirmed nothing (409 OFFER_EXPIRED).
+  // Refresh on every provisioning; the "expired" scenario stays honestly in
+  // the past.
+  await pool.query(
+    `update offers set state = 'proposed', expires_at = ${
+      scenario === "expired" ? "now() - interval '1 minute'" : "now() + interval '30 minutes'"
+    } where id = $1`,
+    [offerId],
+  );
   // The replay store keys globally — purge the suite's keyspace ('it-')
   // regardless of which fixture-offer path a previous run stored them under.
   await pool.query("delete from idempotency_keys where key like 'it-%'");

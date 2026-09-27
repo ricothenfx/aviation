@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { rebookRoleSchema } from "./events";
+
 /**
  * rebook-ai REST read-models, request payloads and live-frame schemas
  * (rebook-ai api-contracts.md §1/§3/§5, additive at F2 per the D-11/D-14
@@ -323,6 +325,31 @@ export const poisonEventViewSchema = z.object({
   processError: z.string().min(1),
 });
 export type PoisonEventView = z.infer<typeof poisonEventViewSchema>;
+
+// --- supervisor: audit trail (PRD F-7, additive F4) ---------------------------
+
+/**
+ * One append-only decision row (data-model.md §2 audit_events): who decided
+ * what for whom, when. `locator` is resolved read-side (offer/proposal/saga →
+ * PNR) and stays null when the target predates resolution or was scenario-level.
+ */
+export const auditEntryViewSchema = z.object({
+  id: uuid,
+  action: z.string().min(1),
+  actor: z.string().email(),
+  actorRole: rebookRoleSchema,
+  targetType: z.string().min(1),
+  targetId: z.string().min(1),
+  locator: z.string().min(6).max(6).nullable(),
+  details: z.record(z.string(), z.unknown()).nullable(),
+  createdAt: isoTs,
+});
+export type AuditEntryView = z.infer<typeof auditEntryViewSchema>;
+
+export const auditTrailViewSchema = z.object({
+  entries: z.array(auditEntryViewSchema),
+});
+export type AuditTrailView = z.infer<typeof auditTrailViewSchema>;
 
 // --- live frames on chan:rb:live (api-contracts.md §3) ------------------------
 

@@ -26,6 +26,7 @@
 | `POST /api/v1/scenario/inject` | supervisor | Body `{scenario: "cancellation" | "long-delay", flightNo}` → appends `flight.disrupted` (demo console, F2+). |
 | `GET /api/v1/live` | passenger+ (F2, additive) | SSE bridge from `chan:rb:live` (architecture §4): validated frames; passenger streams scoped to own PNRs (offers/saga only), agent+ also get `queue.delta`. |
 | `GET /api/v1/admin/events?processed=false` | supervisor (F2, additive) | Poison-event view: `processed=false` rows with attempts + error note (architecture §6 — never silently dropped). |
+| `GET /api/v1/admin/audit?limit=50` | supervisor (F4, additive) | Append-only decision trail (PRD F-7): `audit_events` enriched with actor email + read-side PNR locator; `limit` clamped 1–200. Answers "who decided what for whom, when" (demo-script beat 80–90 s). |
 | `GET /healthz`, `GET /readyz` | public | Liveness / dependency readiness (db, provider) — engineering-standards.md §5. |
 
 Error envelope (`packages/contracts`, api error schema): `{error: {code, message, details?, requestId}}`.
