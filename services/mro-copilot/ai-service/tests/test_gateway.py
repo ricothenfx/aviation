@@ -31,6 +31,12 @@ def test_from_env_unknown_provider_raises() -> None:
         Gateway.from_env({"LLM_PROVIDER": "skynet"})
 
 
+def test_from_env_openai_compatible_names_the_vector_space_lock() -> None:
+    """ADR-0017: the refusal is explicit and points at the embeddings migration path."""
+    with pytest.raises(ProviderUnavailableError, match="mock-hashed-ngram-384"):
+        Gateway.from_env({"LLM_PROVIDER": "openai-compatible"})
+
+
 @pytest.mark.asyncio
 async def test_mock_complete_is_deterministic_and_accounts_tokens() -> None:
     gateway = Gateway.from_env({})

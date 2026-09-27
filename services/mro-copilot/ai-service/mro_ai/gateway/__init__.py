@@ -49,6 +49,21 @@ class Gateway:
                 "LLM provider disabled by configuration (LLM_PROVIDER=off); "
                 "degrading to extractive/lexical behaviour is expected"
             )
+        if requested == "openai-compatible":
+            # ADR-0017: the ai-service owns the EMBEDDING vector space
+            # (mock-hashed-ngram-384, ADR-0012 §2 / ADR-0010). Switching
+            # embeddings to a real model changes dimensionality and voids the
+            # committed corpus + eval until a dedicated migration ADR. Real
+            # LLM for mro ANSWERS is configured on mro-web (TS gateway), where
+            # the citation guardrails apply unchanged.
+            raise ProviderUnavailableError(
+                'LLM provider "openai-compatible" is deliberately not available '
+                "in the ai-service: this service owns the mock-hashed-ngram-384 "
+                "embedding vector space (ADR-0012 §2), and switching embeddings "
+                "requires a dimension migration + full re-ingest + eval re-run "
+                "under a future ADR. Set LLM_PROVIDER=mock here; configure "
+                "LLM_PROVIDER=openai-compatible on mro-web for real answers."
+            )
         raise ProviderUnavailableError(
             f'LLM provider "{requested}" is registered but not implemented; '
             "set LLM_PROVIDER=mock for offline development"

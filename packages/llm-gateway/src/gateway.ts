@@ -1,4 +1,5 @@
 import { MockProvider } from "./mock-provider";
+import { OpenAiCompatibleProvider } from "./openai-compatible-provider";
 import {
   ProviderUnavailableError,
   type CompletionRequest,
@@ -9,9 +10,10 @@ import {
 } from "./types";
 
 /**
- * Single entry point for all LLM access (ADR-0003). F1 ships the interface + mock
- * provider; HTTP-compatible and Bedrock-shaped providers arrive with the copilot
- * milestone (F4) and remain drop-in implementations of LlmProvider.
+ * Single entry point for all LLM access (ADR-0003). F1 shipped the interface +
+ * mock provider; the openai-compatible HTTP provider arrived post-F5 (ADR-0017,
+ * D-23) as a drop-in implementation of LlmProvider. bedrock-shape remains
+ * registered-but-unimplemented (the AWS migration target, tech-stack.md §2).
  */
 export class LlmGateway {
   private constructor(private readonly provider: LlmProvider) {}
@@ -34,6 +36,15 @@ export class LlmGateway {
             "falling back to rule-based answers is expected behaviour",
         );
       case "openai-compatible":
+        try {
+          return LlmGateway.forProvider(OpenAiCompatibleProvider.fromEnv(env));
+        } catch (err) {
+          // ADR-0017: a misconfigured real provider (e.g. missing OPENAI_API_KEY)
+          // is a degrade signal, not a crash — same contract as provider failures.
+          throw new ProviderUnavailableError(
+            `openai-compatible provider unavailable: ${err instanceof Error ? err.message : String(err)}`,
+          );
+        }
       case "bedrock-shape":
         throw new ProviderUnavailableError(
           `LLM provider "${requested}" is registered but not implemented; ` +

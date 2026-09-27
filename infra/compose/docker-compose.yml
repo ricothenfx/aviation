@@ -57,9 +57,14 @@ services:
       REDIS_URL: redis://redis:6379
       AUTH_SECRET: dev-only-insecure-secret-0123456789abcdef
       AUTH_COOKIE_NAME: tiq_session
-      # LLM gateway provider for the copilot (ADR-0003). Host .env can override
-      # (mock default; "off" exercises the degrade-to-rules path).
+      # LLM gateway provider for the copilot (ADR-0003; ADR-0017/D-23 adds the
+      # opt-in real provider). Host .env can override (mock default; "off"
+      # exercises the degrade-to-rules path; "openai-compatible" needs
+      # OPENAI_API_KEY — missing key degrades to rules, never crashes).
       LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-}
       # Browser → gateway ws (published on host loopback 4001).
       NEXT_PUBLIC_WS_URL: ws://localhost:4001/api/ws
       NEXT_TELEMETRY_DISABLED: "1"
@@ -245,6 +250,9 @@ services:
       MRO_AI_SERVICE_URL: http://mro-ai-service:4103
       AI_SERVICE_TOKEN: dev-only-insecure-ai-token-0123456789abcdef
       LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-}
       NEXT_TELEMETRY_DISABLED: "1"
     ports:
       - "127.0.0.1:3003:3003"
@@ -287,7 +295,10 @@ services:
       DATABASE_URL: postgresql://turnaround:turnaround@postgres:5432/mro_copilot
       # Shared secret with the web app (ADR-0012 §5).
       AI_SERVICE_TOKEN: dev-only-insecure-ai-token-0123456789abcdef
-      LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      # Hard-pinned (ADR-0017): this service owns the mock-hashed-ngram-384
+      # embedding vector space (ADR-0012 §2) — a global provider switch must
+      # never flip embeddings. Real LLM for mro answers lives on mro-web.
+      LLM_PROVIDER: mock
       # Committed synthetic corpus (data-model.md §4), read-only mount.
       MRO_CORPUS_DIR: /seed/manuals
     ports:
@@ -339,9 +350,14 @@ services:
       REBOOK_SEED_DIR: /repo/apps/rebook-ai/seed
       AUTH_SECRET: dev-only-insecure-secret-0123456789abcdef
       REBOOK_AUTH_COOKIE_NAME: rbo_session
-      # LLM gateway provider (ADR-0003). Host .env can override ("off" exercises
-      # the degrade-to-rules path; the UI badges stay honest either way).
+      # LLM gateway provider (ADR-0003; ADR-0017/D-23 adds the opt-in real
+      # provider). Host .env can override ("off" exercises the degrade-to-rules
+      # path; "openai-compatible" needs OPENAI_API_KEY; the UI badges stay
+      # honest either way).
       LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-}
       NEXT_TELEMETRY_DISABLED: "1"
     ports:
       - "127.0.0.1:3004:3004"
@@ -386,7 +402,13 @@ services:
       REBOOK_SEED_DIR: /repo/apps/rebook-ai/seed
       LOG_LEVEL: info
       ORCHESTRATOR_PORT: "4104"
+      # Agent-loop provider (ADR-0003/ADR-0017): mock default; "off" = rules
+      # mode; "openai-compatible" needs OPENAI_API_KEY (missing key fails fast
+      # at boot with the variable named — fix the env, not the code).
       LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-}
     ports:
       - "127.0.0.1:4104:4104"
     volumes:
