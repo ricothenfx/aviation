@@ -4,12 +4,12 @@
   "refusalCases": 22,
   "baseUrl": "http://localhost:3003",
   "topK": 5,
-  "startedAt": "2026-09-26T03:15:19.980Z",
+  "startedAt": "2026-09-29T20:10:20.830Z",
   "cases": 52,
   "metrics": {
     "recallAt5": 0.9231,
     "hitRateAt5": 0.9231,
-    "mrr": 0.8458,
+    "mrr": 0.8554,
     "gate": {
       "recallAt5": 0.85
     },
@@ -325,18 +325,18 @@
       ],
       "recalled": 1,
       "recallAt5": 1,
-      "mrr": 0.5,
+      "mrr": 1,
       "topHits": [
         {
           "docType": "AMM",
           "ataChapter": "27",
-          "taskNo": "27-46-00-315-199",
+          "taskNo": "27-30-00-148-222",
           "score": 0.0325
         },
         {
           "docType": "AMM",
           "ataChapter": "27",
-          "taskNo": "27-30-00-148-222",
+          "taskNo": "27-46-00-315-199",
           "score": 0.0325
         },
         {
@@ -637,13 +637,13 @@
         {
           "docType": "AMM",
           "ataChapter": "29",
-          "taskNo": "29-35-00-291-303",
+          "taskNo": "29-42-00-101-185",
           "score": 0.0161
         },
         {
           "docType": "AMM",
           "ataChapter": "29",
-          "taskNo": "29-42-00-101-185",
+          "taskNo": "29-35-00-291-303",
           "score": 0.0161
         },
         {
@@ -686,13 +686,13 @@
         {
           "docType": "AMM",
           "ataChapter": "32",
-          "taskNo": "32-43-00-445-267",
+          "taskNo": "32-30-00-428-379",
           "score": 0.0161
         },
         {
           "docType": "AMM",
           "ataChapter": "32",
-          "taskNo": "32-30-00-428-379",
+          "taskNo": "32-43-00-445-267",
           "score": 0.0161
         },
         {
@@ -1073,13 +1073,13 @@
         {
           "docType": "AMM",
           "ataChapter": "36",
-          "taskNo": "36-48-00-297-279",
+          "taskNo": "36-26-00-477-250",
           "score": 0.0159
         },
         {
           "docType": "AMM",
           "ataChapter": "36",
-          "taskNo": "36-26-00-477-250",
+          "taskNo": "36-48-00-297-279",
           "score": 0.0159
         },
         {
@@ -1128,7 +1128,7 @@
         {
           "docType": "AMM",
           "ataChapter": "26",
-          "taskNo": "26-34-00-220-313",
+          "taskNo": "26-33-00-278-264",
           "score": 0.0156
         }
       ],
