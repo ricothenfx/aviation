@@ -28,6 +28,9 @@ services:
       # Portfolio landing page static export (ADR-0019); populated from
       # apps/portfolio-landing/out — see landing/README.md.
       - ./landing:/srv/landing:ro
+      # ro-botriv SPA static (M3); populated from ro-botriv apps/web/dist —
+      # see ro-botriv scripts/deploy-web.sh. Additive mount (ADR-010 pattern).
+      - ./ro-botriv-web:/srv/ro-botriv-web:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:

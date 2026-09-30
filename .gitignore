@@ -14,6 +14,11 @@ out/
 infra/deploy/landing/*
 !infra/deploy/landing/README.md
 
+# ro-botriv SPA host-only deploy content — built dist/ is copied here by
+# ro-botriv scripts/deploy-web.sh (see compose.prod.yml); source lives in the
+# ro-botriv repo, not here.
+infra/deploy/ro-botriv-web/
+
 # env & secrets
 .env
 .env.local

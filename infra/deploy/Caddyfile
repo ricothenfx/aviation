@@ -35,3 +35,24 @@
 		X-Content-Type-Options "nosniff"
 	}
 }
+
+# ro.botriv.com — RO BOTRIV trading bot platform (dev on this VPS; see ro-botriv/docs/06-ENVIRONMENTS.md).
+# Additive block: does not affect the sites above.
+ro.botriv.com {
+	# API + OAuth callback + SSE realtime stay on the backend (exact-match
+	# redirect URI /callback must keep hitting the API — ro-botriv docs/06).
+	handle /api/* {
+		reverse_proxy 172.19.0.1:3001
+	}
+	handle /callback {
+		reverse_proxy 172.19.0.1:3001
+	}
+	# SPA static (M3) — built from ro-botriv apps/web, deployed via its
+	# scripts/deploy-web.sh into the bind-mounted read-only dir below.
+	handle {
+		root * /srv/ro-botriv-web
+		try_files {path} /index.html
+		file_server
+	}
+	encode gzip
+}
