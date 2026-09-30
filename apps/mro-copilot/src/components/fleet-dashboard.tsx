@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
 import {
-  CHART_TOKENS,
+  chartTokens,
   EmptyState,
   ErrorState,
   LiveDot,
@@ -12,6 +12,7 @@ import {
   Skeleton,
   StatTile,
   StatusBadge,
+  useTheme,
 } from "@aviation/ui";
 
 import {
@@ -560,6 +561,7 @@ async function loadAlerts() {
 }
 
 function Footer() {
+  const chart = chartTokens(useTheme());
   // The app shell renders the persistent simulated-data Disclaimer
   // (data-ethics §2); C-MAPSS views ADD the dataset citation (FR-3).
   return (
@@ -568,7 +570,7 @@ function Footer() {
         Data: NASA C-MAPSS FD001 — Saxena &amp; Goebel (2008), PHM08 · fleet identities fictional
         (NX-E)
       </span>
-      <span className="font-mono" style={{ color: CHART_TOKENS.muted }}>
+      <span className="font-mono" style={{ color: chart.muted }}>
         synthetic time axis: 1 cycle = 1 day from 2000-01-01
       </span>
     </footer>

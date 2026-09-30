@@ -14,13 +14,14 @@ import {
 } from "recharts";
 
 import {
-  CHART_TOKENS,
+  chartTokens,
   EmptyState,
   ErrorState,
   LiveDot,
   Panel,
   Skeleton,
   StatusBadge,
+  useTheme,
 } from "@aviation/ui";
 
 import { apiEngineDetail } from "@/lib/client/api";
@@ -43,6 +44,7 @@ interface TrendPoint {
 }
 
 export function EngineDetail({ unitId }: { unitId: string }) {
+  const chart = chartTokens(useTheme());
   const [detail, setDetail] = useState<EngineDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<{ message: string; requestId?: string } | null>(null);
@@ -149,11 +151,11 @@ export function EngineDetail({ unitId }: { unitId: string }) {
                     value: "Cycle (synthetic days since 2000-01-01)",
                     position: "insideBottom",
                     offset: -14,
-                    fill: CHART_TOKENS.muted,
+                    fill: chart.muted,
                     fontSize: 11,
                   }}
-                  stroke={CHART_TOKENS.border}
-                  tick={{ fill: CHART_TOKENS.muted, fontSize: 11 }}
+                  stroke={chart.border}
+                  tick={{ fill: chart.muted, fontSize: 11 }}
                   tickLine={false}
                 />
                 <YAxis
@@ -161,31 +163,31 @@ export function EngineDetail({ unitId }: { unitId: string }) {
                     value: "Predicted RUL (cycles)",
                     angle: -90,
                     position: "insideLeft",
-                    fill: CHART_TOKENS.muted,
+                    fill: chart.muted,
                     fontSize: 11,
                   }}
-                  stroke={CHART_TOKENS.border}
-                  tick={{ fill: CHART_TOKENS.muted, fontSize: 11 }}
+                  stroke={chart.border}
+                  tick={{ fill: chart.muted, fontSize: 11 }}
                   tickLine={false}
                 />
                 <Tooltip
                   contentStyle={{
-                    background: "#1A2540",
-                    border: `1px solid ${CHART_TOKENS.border}`,
+                    background: chart.raised,
+                    border: `1px solid ${chart.border}`,
                     borderRadius: 8,
                     fontSize: 12,
                   }}
-                  labelStyle={{ color: CHART_TOKENS.muted }}
+                  labelStyle={{ color: chart.muted }}
                   formatter={(value) => String(value)}
                 />
                 <ReferenceLine
                   y={unit.windowThresholdCycles}
-                  stroke={CHART_TOKENS.danger}
+                  stroke={chart.danger}
                   strokeDasharray="6 4"
                   label={{
                     value: `Maintenance window (${unit.windowThresholdCycles} cyc)`,
                     position: "insideBottomRight",
-                    fill: CHART_TOKENS.danger,
+                    fill: chart.danger,
                     fontSize: 11,
                   }}
                 />
@@ -194,14 +196,14 @@ export function EngineDetail({ unitId }: { unitId: string }) {
                   dataKey="band"
                   name="Uncertainty band"
                   stroke="none"
-                  fill={CHART_TOKENS.accent}
+                  fill={chart.accent}
                   fillOpacity={0.12}
                 />
                 <Line
                   type="monotone"
                   dataKey="rul"
                   name="Predicted RUL (cycles)"
-                  stroke={CHART_TOKENS.accent}
+                  stroke={chart.accent}
                   strokeWidth={2}
                   dot={false}
                 />

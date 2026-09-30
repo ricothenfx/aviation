@@ -12,6 +12,7 @@ import {
   Skeleton,
   StatTile,
   StatusBadge,
+  ThemeToggle,
   useCountUp,
 } from "@aviation/ui";
 import { boardSnapshotSchema, type BoardSnapshot, type WsFrame } from "@aviation/contracts";
@@ -153,6 +154,7 @@ export function BoardShell({ user }: { user: { displayName: string; role: string
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           {snapshot ? (
             <span className="font-mono text-xs tabular-nums text-muted">
               scenario {snapshot.scenarioTs ? `${snapshot.scenarioTs.slice(11, 19)}Z` : "idle"}
@@ -488,7 +490,7 @@ function FlightChips({
             onClick={() => onSelect(flight.id)}
             className={`rounded border px-1.5 py-0.5 font-mono text-[11px] transition-colors duration-150 ease-out ${
               flight.id === selectedFlightId
-                ? "border-accent bg-accent text-[#06121f]"
+                ? "border-accent bg-accent text-accent-contrast"
                 : "border-border bg-surface text-fg hover:bg-raised"
             }`}
           >

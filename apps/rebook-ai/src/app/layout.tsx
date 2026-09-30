@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 
-import { Disclaimer } from "@aviation/ui";
+import { Disclaimer, THEME_INIT_SCRIPT, ThemeToggle } from "@aviation/ui";
 
 import "./globals.css";
 
@@ -22,12 +22,17 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${mono.variable}`}>
+    <html lang="en" className={`${inter.variable} ${mono.variable}`} suppressHydrationWarning>
       <body className="min-h-dvh antialiased">
+        {/* Applies the stored theme to <html> before first paint (ADR-0020). */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <div className="flex min-h-dvh flex-col">
           <main className="flex-1">{children}</main>
           <footer className="border-t border-border px-4 py-2 text-center text-xs text-muted">
-            <Disclaimer />
+            <div className="flex items-center justify-center gap-3">
+              <Disclaimer />
+              <ThemeToggle />
+            </div>
           </footer>
         </div>
       </body>

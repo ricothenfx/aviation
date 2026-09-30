@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/cn";
+import { ThemeToggle } from "@aviation/ui";
 
 /**
  * Primary navigation for the app shell (milestones F1: "app shell with nav").
@@ -52,7 +53,7 @@ export function MroNav({ user }: { user: { email: string; role: string } }) {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "shrink-0 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors duration-150 ease-out",
+                  "shrink-0 whitespace-nowrap rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors duration-150 ease-out",
                   active ? "bg-raised text-accent" : "text-muted hover:bg-raised/60 hover:text-fg",
                 )}
               >
@@ -63,6 +64,7 @@ export function MroNav({ user }: { user: { email: string; role: string } }) {
         </nav>
 
         <div className="flex shrink-0 items-center gap-2">
+          <ThemeToggle />
           <span className="hidden font-mono text-[11px] text-muted md:inline" title={user.email}>
             {user.email}
           </span>

@@ -109,6 +109,15 @@ test.describe("rebook-ai UI quality (ADR-0018)", () => {
     // Role routing lands supervisors on /console (page.tsx) — navigate to the
     // supervisor scenario console explicitly.
     await page.goto("/supervisor");
+    // The audit panel hydrates client-side (5 s poll); without this wait the
+    // screenshot races the fetch and "passes" on an empty panel (found the
+    // race the hard way: the gate verified nothing about the trail).
+    await expect(
+      page
+        .getByTestId("audit-row")
+        .first()
+        .or(page.getByText("No decisions recorded yet")),
+    ).toBeVisible({ timeout: 15_000 });
     const supMask: Locator[] = [];
     const supAgo = page.getByText(/\bs ago\b/);
     if ((await supAgo.count()) > 0) supMask.push(supAgo);

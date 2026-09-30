@@ -15,7 +15,10 @@ import { cn } from "@/lib/cn";
 
 interface ReadinessOk {
   state: "ok";
-  status: string;
+  dependencies: Record<string, string>;
+}
+interface ReadinessDegraded {
+  state: "degraded";
   dependencies: Record<string, string>;
 }
 interface ReadinessProblem {
@@ -23,7 +26,7 @@ interface ReadinessProblem {
   message: string;
   requestId?: string;
 }
-type ReadinessSnapshot = ReadinessOk | ReadinessProblem;
+type ReadinessSnapshot = ReadinessOk | ReadinessDegraded | ReadinessProblem;
 
 const POLL_MS = 10_000;
 
@@ -51,7 +54,13 @@ export function ReadinessPanel() {
           requestId: err.error?.requestId,
         });
       } else {
-        setSnapshot(body as ReadinessOk);
+        // /readyz answers `{status:"ready"|"degraded", dependencies}` (no
+        // `state` key) — map it onto the client snapshot union here.
+        const ok = (body as { status?: string; dependencies?: Record<string, string> });
+        setSnapshot({
+          state: ok.status === "ready" ? "ok" : "degraded",
+          dependencies: ok.dependencies ?? {},
+        });
       }
       setRefreshedAt(Date.now());
     } catch {
@@ -126,7 +135,8 @@ export function ReadinessPanel() {
 
 function liveLabel(snapshot: ReadinessSnapshot | null): string {
   if (!snapshot) return "connecting";
-  return snapshot.state === "ok" ? "live" : "stale";
+  if (snapshot.state === "ok") return "live";
+  return snapshot.state === "degraded" ? "degraded" : "stale";
 }
 
 function DependencyBadge({ value }: { value: string }) {

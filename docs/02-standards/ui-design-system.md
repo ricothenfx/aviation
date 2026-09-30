@@ -11,23 +11,36 @@
 glanceable where it matters. The UI should feel like a real airport operations product
 (a CAG/Airbus APOC screen), built with restraint.
 
+**Theming (ADR-0020):** dark is the default and identity of every screen; a light theme
+exists as a persisted opt-in via the shared `ThemeToggle` (root-layout footer on every
+route + the primary surface header). Never assume a theme in components — use semantic
+tokens only; the one sanctioned escape hatch is `text-accent-contrast` for text on
+`accent` fills.
+
 ## 2. Color Tokens
 
-| Token | Value (dark theme) | Usage |
-|---|---|---|
-| `bg` | `#0B1220` | App background |
-| `surface` | `#111A2C` | Cards, panels |
-| `surface-raised` | `#1A2540` | Modals, drawers, popovers |
-| `border` | `#24314F` | Hairlines, dividers |
-| `text-primary` | `#E6EDF7` | Body text |
-| `text-muted` | `#8A97AD` | Secondary text, labels |
-| `accent` | `#38BDF8` (cyan) | Interactive highlights, selection, live indicators |
-| `accent-warm` | `#F5A524` (amber) | Warnings, in-progress tasks, attention |
-| `danger` | `#F31260` | Breached SLAs, conflicts, critical alerts |
-| `ok` | `#30A46C` | Completed, healthy states |
+| Token | Value (dark — default) | Value (light — opt-in) | Usage |
+|---|---|---|---|
+| `bg` | `#0B1220` | `#EEF2F8` | App background |
+| `surface` | `#111A2C` | `#F8FAFD` | Cards, panels |
+| `surface-raised` | `#1A2540` | `#FFFFFF` | Modals, drawers, popovers |
+| `border` | `#24314F` | `#C9D4E5` | Hairlines, dividers |
+| `text-primary` | `#E6EDF7` | `#17253C` | Body text |
+| `text-muted` | `#8A97AD` | `#4D5D77` | Secondary text, labels |
+| `accent` | `#38BDF8` (cyan) | `#0369A1` (deep cyan) | Interactive highlights, selection, live indicators |
+| `accent-contrast` | `#06121F` | `#FFFFFF` | Text on `accent` fills (Button primary, selected strips) |
+| `accent-warm` | `#F5A524` (amber) | `#9A5B0B` (deep amber) | Warnings, in-progress tasks, attention |
+| `danger` | `#F31260` | `#F31260` (fills/borders) | Breached SLAs, conflicts, critical alerts |
+| `danger-fg` | `#FF6B95` | `#C81E4E` | Danger as **text** (AA on `surface`) |
+| `ok` | `#30A46C` | `#15803D` | Completed, healthy states |
 
+- Both palettes hold WCAG AA (≥ 4.5:1) for every token used as text on
+  `bg`/`surface`/`surface-raised` (ADR-0020 §Decision 2); status colors never encode
+  information alone (pair with icon + label).
+- Where a status token is a **fill under dark text** (Gantt bars, clock chip), the
+  light theme uses lightened `color-mix` variants of the same token in the app-owned
+  theming CSS — components still reference only the semantic token.
 - Semantic roles only in components — never raw hex outside `packages/ui/tokens`.
-- WCAG AA contrast on all text/text-pairs; status colors never encode information alone (pair with icon + label).
 
 ## 3. Typography & Spacing
 

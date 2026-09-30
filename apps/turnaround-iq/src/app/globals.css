@@ -60,6 +60,46 @@
 }
 
 /*
+ * Light-theme bar fills (ADR-0020): in light mode the status tokens darken to
+ * stay AA as TEXT roles, so the fills that sit under the shared dark bar text
+ * (#06121f) are re-mixed lighter here — computed >= 4.5:1 for every pair
+ * (2026-09-29). Borders stay on the semantic tokens; base rules are untouched.
+ */
+html[data-theme="light"] .tiq-timeline .vis-item.tiq-item-scheduled,
+html[data-theme="light"] .tiq-item-scheduled {
+  background-color: color-mix(in oklab, var(--color-muted) 25%, var(--color-surface));
+}
+
+html[data-theme="light"] .tiq-timeline .vis-item.tiq-item-turnaround,
+html[data-theme="light"] .tiq-item-turnaround {
+  background-color: color-mix(in oklab, var(--color-accent) 55%, white);
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--color-accent) 55%, white),
+    color-mix(in oklab, var(--color-accent) 30%, var(--color-surface))
+  );
+}
+
+html[data-theme="light"] .tiq-timeline .vis-item.tiq-item-delayed,
+html[data-theme="light"] .tiq-item-delayed {
+  background-color: color-mix(in oklab, var(--color-warn) 45%, white);
+}
+
+html[data-theme="light"] .tiq-timeline .vis-item.tiq-item-offblock,
+html[data-theme="light"] .tiq-item-offblock {
+  background-color: color-mix(in oklab, var(--color-ok) 45%, white);
+}
+
+html[data-theme="light"] .tiq-timeline .vis-item.tiq-item-offblock-late,
+html[data-theme="light"] .tiq-item-offblock-late {
+  background-color: color-mix(in oklab, var(--color-warn) 40%, white);
+}
+
+html[data-theme="light"] .tiq-timeline .vis-custom-time {
+  background-color: color-mix(in oklab, var(--color-warn) 45%, white);
+}
+
+/*
  * Bars (ui-design-system.md §2/§6): status colors are token-derived and shared
  * by the Gantt bars AND the legend swatches (§2: color never stands alone —
  * every chip is labeled in the legend). Depth comes from token color-mixes,

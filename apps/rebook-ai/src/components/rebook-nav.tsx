@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/cn";
+import { ThemeToggle } from "@aviation/ui";
 
 /**
  * Primary navigation for the app shell (F1 DoD: app shells for both surfaces).
@@ -62,6 +63,7 @@ export function RebookNav({ user }: { user: { email: string; role: string } }) {
         </nav>
 
         <div className="flex shrink-0 items-center gap-2">
+          <ThemeToggle />
           <span className="hidden font-mono text-[11px] text-muted md:inline" title={user.email}>
             {user.email}
           </span>
